@@ -1,0 +1,4 @@
+firebase-admin==4.3.0
+Flask==1.1.2
+py2neo==4.3.0
+requests==2.23.0

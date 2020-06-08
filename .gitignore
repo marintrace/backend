@@ -109,7 +109,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.idea/
+../.idea/
 
 # Spyder project settings
 .spyderproject
@@ -130,5 +130,5 @@ dmypy.json
 .pyre/
 
 # Credentials
-credentials/
+api/lib/credentials/
 *.json
