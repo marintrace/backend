@@ -1,0 +1,33 @@
+version: "3"
+services:
+  web:
+    env_file:
+      - app.env
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: always
+    ports:
+     - "5001:5001"
+    depends_on:
+      - redis
+  worker:
+    env_file:
+      - app.env
+    build:
+      context: .
+      dockerfile: celery/Dockerfile
+    depends_on:
+      - redis
+  monitor:
+    build:
+      context: .
+      dockerfile: celery/Dockerfile
+    ports:
+     - "5555:5555"
+    entrypoint: flower
+    command:  -A tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - redis
+  redis:
+    image: redis
