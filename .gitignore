@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Mac OS files
+**/.DS_Store
+.DS_Store
+
 # Env files
 **/*.env
 app.env
