@@ -9,6 +9,7 @@ services:
     restart: always
     ports:
      - "5001:5001"
+     - "80:80"
     depends_on:
       - redis
   worker:
@@ -20,6 +21,8 @@ services:
     depends_on:
       - redis
   monitor:
+    env_file:
+      - app.env
     build:
       context: .
       dockerfile: celery/Dockerfile

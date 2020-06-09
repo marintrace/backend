@@ -1,9 +1,14 @@
 """
 Operation Handling and Callbacks from Flask API
 """
+from py2neo.matching import NodeMatcher
+
 from worker import celery
-from shared.neo4j import Member, Neo4JConfig
+from shared.neo4j import Neo4JConfig
 from shared.school import Schools
+import logging
+
+logger = logging.getLogger('app.operations')
 
 
 class Callbacks:
@@ -12,30 +17,31 @@ class Callbacks:
     """
 
     @staticmethod
-    def list_users(*, logger, flask_request):
+    def list_users(*, flask_request):
         """
         List the Users in the Neo4J
-        :param logger: Flask App Logger
         :param flask_request: Flask request object
         :return: list of member emails objects
         """
         logger.info("Processing List Users Query...")
-        school = flask_request.headers['X-School']
-        if not Schools.is_valid(school):
-            logger.warn("Invalid School specified... Terminating Request")
-            raise Exception(f"Invalid School {school}")
+        try:
+            school = flask_request.headers['X-School']
+            if not Schools.is_valid(school):
+                logger.warning("Invalid School specified... Terminating Request")
+                raise Exception(f"Invalid School '{school}'")
 
-        with Neo4JConfig.acquire_graph() as g:
-            logger.info("Acquired Neo4J Graph... Running Selection query")
-            result_set = Member.select(g).where(school=school).all()
-
-        return [member.email for member in result_set]
+            with Neo4JConfig.acquire_graph() as g:
+                logger.info("Acquired Neo4J Graph... Running Selection query")
+                result_set = list( NodeMatcher(graph=g).match("Member").where(f"_.school = '{school}'"))
+            return [{'email': member['email'], 'cohort': member['cohort']} for member in result_set]
+        except KeyError as e:
+            logger.exception(f"Missing Data: '{e}'")
+            raise Exception(f"HTTP Header/JSON Property '{e}' is missing")
 
     @staticmethod
-    def report_interaction(*, logger, flask_request):
+    def report_interaction(*, flask_request):
         """
         Asynchronously Log an Interaction between two individuals, offloading the task to celery via Redis.
-        :param logger: Flask App Logger
         :param flask_request: Flask request object
         :return: Celery task ID
         """
@@ -53,11 +59,10 @@ class Callbacks:
             raise Exception(f"Missing Parameter in Body/HTTP Header: {e}")
 
     @staticmethod
-    def notify_risk(*, logger, flask_request):
+    def notify_risk(*, flask_request):
         """
         Asynchronously notify school administrators of COVID-19 Risk
         within their community by offloading request to Celery via Redis
-        :param logger: Flask App Logger
         :param flask_request: Flask request object
         :return: Celery task id
         """
@@ -96,6 +101,7 @@ class Operations:
         :param operation: Operation name (must be in operation hash map)
         :return: Operation callable
         """
-        return {
-            Operations.OPERATION_MAP[operation]
-        }
+        operation_func = Operations.OPERATION_MAP.get(operation)
+        if not operation_func:
+            raise Exception(f"Invalid operation {operation}")
+        return operation_func

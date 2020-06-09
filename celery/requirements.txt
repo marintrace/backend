@@ -9,4 +9,4 @@ pytz==2018.3
 redis==2.10.6
 tornado==5.0.2
 vine==1.1.4
-py2neo==4.3.0
+py2neo==5.0b1
