@@ -83,8 +83,7 @@ class NotifyRiskUtils:
         :return: list of email prefixes from n degree interactions
         """
 
-        seen_individuals = {email.replace('_', ' ').title()}  # set has O(1) membership checking, email prevents
-        # circular reference in the graph, so we include it as a seen_individual
+        seen_individuals = {email}  # set has O(1) membership checking, email prevents circular reference in the graph
         individual_risk_tiers = {}  # build output tiers
 
         for tier in NotifyRiskUtils.TIERS:
@@ -94,11 +93,11 @@ class NotifyRiskUtils:
             RETURN m1'''))  # Database Cursor is lazy, so need to run list operation to serialize
 
             for record in record_set:
-                node_email = record.data()['m1']['email'].replace('_', ' ').title()  # node name from above cypher query
-                if node_email in seen_individuals:
+                node = record.data()['m1']  # node name from above cypher query
+                if node['email'] in seen_individuals:
                     continue
-                seen_individuals.add(node_email)
-                individual_risk_tiers[tier].append(node_email)
+                seen_individuals.add(node['email'])
+                individual_risk_tiers[tier].append(node['name'])
 
         del seen_individuals  # free up memory
 
@@ -115,6 +114,7 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
     """
 
     with Neo4JConfig.acquire_graph() as g:
+        member_node = g.nodes.match("Member", email=member, school=school).first()
         individuals_at_risk = NotifyRiskUtils.extract_n_degree_interactions(graph=g, email=member, school=school)
         logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     try:
@@ -124,7 +124,7 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
             Destination={'ToAddresses': Administrators.get(school)},
             ReplyToAddresses=os.environ['REPLY_TO_EMAILS'].split(','),
             TemplateData=json.dumps({  # Boto3 Requires a Serialized JSON String
-                'member': member.replace('_', ' ').title(),
+                'member': member_node['name'],
                 'highest_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighestRisk]),
                 'high_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighRisk]),
                 'medium_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.LowMediumRisk]),

@@ -32,8 +32,10 @@ class Callbacks:
 
             with Neo4JConfig.acquire_graph() as g:
                 logger.info("Acquired Neo4J Graph... Running Selection query")
-                result_set = list( NodeMatcher(graph=g).match("Member").where(f"_.school = '{school}'"))
-            return [{'email': member['email'], 'cohort': member['cohort']} for member in result_set]
+                result_set = list(NodeMatcher(graph=g).match("Member").where(f"_.school = '{school}'"))
+            return [
+                {'email': member['email'], 'cohort': member['cohort'], 'name': member['name']} for member in result_set
+            ]
         except KeyError as e:
             logger.exception(f"Missing Data: '{e}'")
             raise Exception(f"HTTP Header/JSON Property '{e}' is missing")

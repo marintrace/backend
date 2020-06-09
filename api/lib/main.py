@@ -44,7 +44,7 @@ def api():
         return make_response(jsonify(code=400, message="Authorization must be prefixed with 'Bearer'"), 400)
 
     try:
-        # firebase_auth.verify_id_token(auth_header.split('Bearer ')[1])  # verify validity of Firebase JWT
+        fb_auth.verify_id_token(auth_header.split('Bearer ')[1])  # verify validity of Firebase JWT
         operation = Operations.build(operation=request.json['operation'])
         return jsonify(data=operation(flask_request=request))
     except fb_auth_utils.InvalidIdTokenError:
