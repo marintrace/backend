@@ -1,5 +1,5 @@
 from collections import namedtuple
-from functools import partial
+import uuid
 import json
 import logging
 import os
@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 ses_client = boto3.client('ses', region_name='us-west-2')  # acquire IAM credentials from EC2 instance profile
+
+CELERY_RETRY_OPTIONS = dict(
+    bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 5},
+    exponential_backoff=2, retry_jitter=False  # set to true for production
+)
 
 
 def create_celery_worker():
@@ -38,8 +43,8 @@ def create_celery_worker():
 CELERY: Celery = create_celery_worker()
 
 
-@CELERY.task(name='tasks.report_interaction')
-def report_interaction(*, memberA: str, memberB: str, school):
+@CELERY.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)
+def report_interaction(self, *, memberA: str, memberB: str, school):
     """
     Asynchronously log an interaction between two members of the school
     :param memberA: memberA's email- to log interaction with
@@ -78,7 +83,8 @@ class NotifyRiskUtils:
         :return: list of email prefixes from n degree interactions
         """
 
-        seen_individuals = {email.replace('_', ' ').title()} # add member to seen to prevent circular reference
+        seen_individuals = {email.replace('_', ' ').title()}  # set has O(1) membership checking, email prevents
+        # circular reference in the graph, so we include it as a seen_individual
         individual_risk_tiers = {}  # build output tiers
 
         for tier in NotifyRiskUtils.TIERS:
@@ -99,8 +105,8 @@ class NotifyRiskUtils:
         return individual_risk_tiers
 
 
-@CELERY.task(name='tasks.notify_risk')
-def report_risk(*, member: str, school: str, criteria: list):
+@CELERY.task(name='tasks.notify_risk', **CELERY_RETRY_OPTIONS)
+def notify_risk(self, *, member: str, school: str, criteria: list):
     """
     Asynchronously report member risk from app
     :param member: member email at risk
@@ -110,19 +116,19 @@ def report_risk(*, member: str, school: str, criteria: list):
 
     with Neo4JConfig.acquire_graph() as g:
         individuals_at_risk = NotifyRiskUtils.extract_n_degree_interactions(graph=g, email=member, school=school)
-        print(individuals_at_risk)
+        logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     try:
         ses_client.send_templated_email(
             Template='trace',
-            Source=f"Amrit Baveja <{os.environ['FROM_EMAIL']}>",
+            Source=f"Tracing App <{os.environ['FROM_EMAIL']}>",
             Destination={'ToAddresses': Administrators.get(school)},
             ReplyToAddresses=os.environ['REPLY_TO_EMAILS'].split(','),
             TemplateData=json.dumps({  # Boto3 Requires a Serialized JSON String
                 'member': member.replace('_', ' ').title(),
-                'highest_risk_members': individuals_at_risk[NotifyRiskUtils.HighestRisk],
-                'high_risk_members': individuals_at_risk[NotifyRiskUtils.HighRisk],
-                'medium_risk_members': individuals_at_risk[NotifyRiskUtils.LowMediumRisk],
-                'symptoms': ','.join(criteria), 'request_id': timestamp(),
+                'highest_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighestRisk]),
+                'high_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighRisk]),
+                'medium_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.LowMediumRisk]),
+                'symptoms': ', '.join(criteria), 'request_id': str(uuid.uuid4()),
             })
         )
     except KeyError as e:
