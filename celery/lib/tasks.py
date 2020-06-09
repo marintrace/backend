@@ -1,4 +1,5 @@
 from collections import namedtuple
+from datetime import datetime, timedelta
 import uuid
 import json
 import logging
@@ -44,20 +45,21 @@ CELERY: Celery = create_celery_worker()
 
 
 @CELERY.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)
-def report_interaction(self, *, memberA: str, memberB: str, school):
+def report_interaction(self, *, reporter: str, targets: list, school):
     """
     Asynchronously log an interaction between two members of the school
-    :param memberA: memberA's email- to log interaction with
-    :param memberB: memberB's email- who memberA interacted with
+    :param reporter: memberA's email- to log interaction with
+    :param targets: list of emails email- who memberA interacted with
     :param school: school enum value
     """
     with Neo4JConfig.acquire_graph() as g:
         # Search for memberA and memberB in graph
-        member_a_node = g.nodes.match("Member", email=memberA, school=school).first()
-        member_b_node = g.nodes.match("Member", email=memberB, school=school).first()
-        interaction = Relationship(member_a_node, "interacted_with", member_b_node, timestamp=round(timestamp()))
-        # Commit Transaction (ACID)
-        g.create(interaction)
+        member_a_node = g.nodes.match("Member", email=reporter, school=school).first()
+        for target_member in targets:
+            member_b_node = g.nodes.match("Member", email=target_member, school=school).first()
+            interaction = Relationship(member_a_node, "interacted_with", member_b_node, timestamp=round(timestamp()))
+            # Commit Transaction (ACID)
+            g.create(interaction)
 
 
 class NotifyRiskUtils:
@@ -71,7 +73,7 @@ class NotifyRiskUtils:
     TIERS = [HighestRisk, HighRisk, LowMediumRisk]
 
     @staticmethod
-    def extract_n_degree_interactions(*, graph, email, school):
+    def extract_n_degree_interactions(*, graph, email, cohort, school):
         """
         Extract N degree interactions from the graph. When execution
         is repeated, arguments to should be partial (fixed)
@@ -79,18 +81,24 @@ class NotifyRiskUtils:
         :param graph: Neo4J graph object
         :param email: user email prefix to locate starting node
         :param school: user's school enum
+        :param cohort: user's cohort
         :param n: n degree connections to extract
         :return: list of email prefixes from n degree interactions
         """
-
+        timestamp_limit = round((datetime.now() - timedelta(days=int(os.environ['LOOKBACK_DAYS'])).timestamp()))
         seen_individuals = {email}  # set has O(1) membership checking, email prevents circular reference in the graph
         individual_risk_tiers = {}  # build output tiers
 
         for tier in NotifyRiskUtils.TIERS:
             individual_risk_tiers[tier] = []
+            # Neo4J OGM is too simplistic to execute this complicated of a query, so we have to execute it manually
             record_set = list(graph.run(f'''
-            MATCH(m: Member {{email: "{email}", school: "{school}"}})-[*{tier.depth if tier.depth else ''}]-(m1:Member)
-            RETURN m1'''))  # Database Cursor is lazy, so need to run list operation to serialize
+            MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth if tier.depth else ''}]-
+            (m1:Member) WHERE m1.cohort <> {cohort}
+            WITH *, relationships(path) as rel
+            WHERE all(r in rel WHERE r.timestamp >= {timestamp_limit})
+            return m1
+            '''))  # Database Cursor is lazy, so need to run list operation to serialize
 
             for record in record_set:
                 node = record.data()['m1']  # node name from above cypher query
@@ -115,7 +123,8 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
 
     with Neo4JConfig.acquire_graph() as g:
         member_node = g.nodes.match("Member", email=member, school=school).first()
-        individuals_at_risk = NotifyRiskUtils.extract_n_degree_interactions(graph=g, email=member, school=school)
+        individuals_at_risk = NotifyRiskUtils.extract_n_degree_interactions(graph=g, email=member,
+                                                                            cohort=member_node['cohort'],school=school)
         logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     try:
         ses_client.send_templated_email(
@@ -124,7 +133,7 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
             Destination={'ToAddresses': Administrators.get(school)},
             ReplyToAddresses=os.environ['REPLY_TO_EMAILS'].split(','),
             TemplateData=json.dumps({  # Boto3 Requires a Serialized JSON String
-                'member': member_node['name'],
+                'member': f'{member_node["name"]} (Cohort {member_node["cohort"]})',
                 'highest_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighestRisk]),
                 'high_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighRisk]),
                 'medium_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.LowMediumRisk]),
