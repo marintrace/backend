@@ -5,5 +5,3 @@ RUN pip install -r /tmp/requirements.txt
 
 COPY ./api/lib /app
 COPY ./shared /app/shared
-
-RUN echo $NEO4J_HOST

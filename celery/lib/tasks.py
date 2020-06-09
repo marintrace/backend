@@ -85,7 +85,7 @@ class NotifyRiskUtils:
         :param n: n degree connections to extract
         :return: list of email prefixes from n degree interactions
         """
-        timestamp_limit = round((datetime.now() - timedelta(days=int(os.environ['LOOKBACK_DAYS'])).timestamp()))
+        timestamp_limit = round((datetime.now() - timedelta(days=int(os.environ['LOOKBACK_DAYS']))).timestamp())
         seen_individuals = {email}  # set has O(1) membership checking, email prevents circular reference in the graph
         individual_risk_tiers = {}  # build output tiers
 
@@ -95,7 +95,7 @@ class NotifyRiskUtils:
             record_set = list(graph.run(f'''
             MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth if tier.depth else ''}]-
             (m1:Member) WHERE m1.cohort <> {cohort}
-            WITH *, relationships(path) as rel
+            WITH *, relationships(p) as rel
             WHERE all(r in rel WHERE r.timestamp >= {timestamp_limit})
             return m1
             '''))  # Database Cursor is lazy, so need to run list operation to serialize

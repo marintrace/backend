@@ -50,8 +50,8 @@ class Callbacks:
         logger.info("Processing Interaction Reporting Query...")
         try:
             task = celery.send_task('tasks.report_interaction', args=[], kwargs={
-                'reporter': flask_request.json['memberA'],
-                'targets': flask_request.json['memberB'],
+                'reporter': flask_request.json['reporter'],
+                'targets': flask_request.json['targets'],
                 'school': flask_request.headers['X-School']
             })
             logger.info("Offloaded Task to Redis Queue")
