@@ -9,6 +9,7 @@ from time import time as timestamp
 import boto3
 from celery import Celery
 from py2neo.data import Relationship
+from py2neo.matching import RelationshipMatcher
 
 from shared.neo4j import Neo4JConfig
 from shared.school import Administrators
@@ -57,9 +58,18 @@ def report_interaction(self, *, reporter: str, targets: list, school):
         member_a_node = g.nodes.match("Member", email=reporter, school=school).first()
         for target_member in targets:
             member_b_node = g.nodes.match("Member", email=target_member, school=school).first()
-            interaction = Relationship(member_a_node, "interacted_with", member_b_node, timestamp=round(timestamp()))
-            # Commit Transaction (ACID)
-            g.create(interaction)
+            # Check if edge already exists between nodes
+            edge_matcher = RelationshipMatcher(graph=g)
+            relationship = edge_matcher.match({member_a_node, member_b_node}).first()
+            if relationship:
+                logger.info("Found existing graph edge between specified targets... updating timestamp")
+                relationship['timestamp'] = round(timestamp())
+                g.push(relationship)
+            else:
+                interaction = Relationship(member_a_node, "interacted_with", member_b_node,
+                                           timestamp=round(timestamp()))
+                # Commit Transaction (ACID)
+                g.create(interaction)
 
 
 class NotifyRiskUtils:
@@ -124,22 +134,31 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
     with Neo4JConfig.acquire_graph() as g:
         member_node = g.nodes.match("Member", email=member, school=school).first()
         individuals_at_risk = NotifyRiskUtils.extract_n_degree_interactions(graph=g, email=member,
-                                                                            cohort=member_node['cohort'],school=school)
+                                                                            cohort=member_node['cohort'], school=school)
         logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
-    try:
-        ses_client.send_templated_email(
-            Template='trace',
-            Source=f"Tracing App <{os.environ['FROM_EMAIL']}>",
-            Destination={'ToAddresses': Administrators.get(school)},
-            ReplyToAddresses=os.environ['REPLY_TO_EMAILS'].split(','),
-            TemplateData=json.dumps({  # Boto3 Requires a Serialized JSON String
-                'member': f'{member_node["name"]} (Cohort {member_node["cohort"]})',
-                'highest_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighestRisk]),
-                'high_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighRisk]),
-                'medium_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.LowMediumRisk]),
-                'symptoms': ', '.join(criteria), 'request_id': str(uuid.uuid4()),
-            })
-        )
-    except KeyError as e:
-        logger.exception("Missing Environment Variable:")
-        raise Exception(f"Missing Environment Variable: '{e}'")
+
+        try:
+            ses_client.send_templated_email(  # should be allowed from EC2 Instance Profile on Amazon
+                Template='trace',
+                Source=f"Tracing App <{os.environ['FROM_EMAIL']}>",
+                Destination={'ToAddresses': Administrators.get(school)},
+                ReplyToAddresses=os.environ['REPLY_TO_EMAILS'].split(','),
+                TemplateData=json.dumps({  # Boto3 Requires a Serialized JSON String
+                    'member': f'{member_node["name"]} (Cohort {member_node["cohort"]})',
+                    'highest_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighestRisk]),
+                    'high_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.HighRisk]),
+                    'medium_risk_members': ', '.join(individuals_at_risk[NotifyRiskUtils.LowMediumRisk]),
+                    'symptoms': ', '.join(criteria), 'request_id': str(uuid.uuid4()),
+                })
+            )
+            logger.info("Cleaning Up Stale Graph Edges Recursively")
+            # Cleanup of stale graph edges - recursively delete all branching off nodes if email succeeds
+            # Again, Py2Neo OGM does not suffice for these nested/recursive type Cypher queries
+            g.run(f'''
+            match (m {{email:"{member}"}})-[r:interacted_with *]-(m1:Member)
+            foreach(rel in r | delete rel)
+            '''
+                  )
+        except KeyError as e:
+            logger.exception("Missing Environment Variable:")
+            raise Exception(f"Missing Environment Variable: '{e}'")
