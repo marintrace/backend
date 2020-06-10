@@ -151,14 +151,6 @@ def notify_risk(self, *, member: str, school: str, criteria: list):
                     'symptoms': ', '.join(criteria), 'request_id': str(uuid.uuid4()),
                 })
             )
-            logger.info("Cleaning Up Stale Graph Edges Recursively")
-            # Cleanup of stale graph edges - recursively delete all branching off nodes if email succeeds
-            # Again, Py2Neo OGM does not suffice for these nested/recursive type Cypher queries
-            g.run(f'''
-            match (m {{email:"{member}"}})-[r:interacted_with *]-(m1:Member)
-            foreach(rel in r | delete rel)
-            '''
-                  )
         except KeyError as e:
             logger.exception("Missing Environment Variable:")
             raise Exception(f"Missing Environment Variable: '{e}'")
