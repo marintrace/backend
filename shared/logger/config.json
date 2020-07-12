@@ -1,0 +1,30 @@
+{
+  "development": {
+    "console": {
+      "format": "<level>{level: <8}</level> <green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> - <cyan>{name}</cyan>:<cyan>{function}:{line}</cyan> - <level>{message}</level>",
+      "level": "DEBUG",
+      "diagnose": true,
+      "backtrace": true,
+      "enqueue": true
+    }
+  },
+  "production": {
+    "console": {
+      "format": "{level: <8} {time:YYYY-MM-DD HH:mm:ss.SSS} - {name}:{function}:{line} - <level>{message}</level>",
+      "level": "INFO",
+      "diagnose": false,
+      "backtrace": false,
+      "enqueue": true
+    },
+    "logfile": {
+      "path": "log/iboca_backend.log",
+      "level": "INFO",
+      "rotation": "500MB",
+      "retention": "1 months",
+      "format": "{level: <8} {time:YYYY-MM-DD HH:mm:ss.SSS} - {name}:{function}:{line} - <level>{message}</level>",
+      "diagnose": false,
+      "backtrace": false,
+      "enqueue": true
+    }
+  }
+}

@@ -5,7 +5,7 @@ services:
       - app.env
     build:
       context: .
-      dockerfile: api/Dockerfile
+      dockerfile: rest_service/Dockerfile
     restart: always
     ports:
      - "5001:5001"
@@ -17,7 +17,7 @@ services:
       - app.env
     build:
       context: .
-      dockerfile: celery/Dockerfile
+      dockerfile: worker_service/Dockerfile
     depends_on:
       - redis
   monitor:
@@ -25,7 +25,7 @@ services:
       - app.env
     build:
       context: .
-      dockerfile: celery/Dockerfile
+      dockerfile: worker_service/Dockerfile
     ports:
      - "5555:5555"
     entrypoint: flower

@@ -29,7 +29,7 @@ CELERY_RETRY_OPTIONS = dict(
 def create_celery_worker():
     """
     Create a new Celery worker
-    :returns: new celery object that can be used
+    :returns: new service object that can be used
     to handle tasks etc.
     """
     try:
@@ -41,7 +41,7 @@ def create_celery_worker():
     return Celery('tasks', broker=celery_broker_url, backend=celery_result_backend)
 
 
-# create celery worker
+# create service worker
 CELERY: Celery = create_celery_worker()
 
 

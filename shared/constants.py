@@ -8,8 +8,9 @@ class Schools:
     """
     Supported Schools Enum
     """
-    BRANSON = 'branson'
-    MA = 'ma'
+
+    BRANSON = "branson"
+    MA = "ma"
 
     @staticmethod
     def is_valid(school):
@@ -18,19 +19,16 @@ class Schools:
         :param school: school to check
         :return: boolean indicating validity
         """
-        return school in [
-            Schools.BRANSON, Schools.MA
-        ]
+        return school in [Schools.BRANSON, Schools.MA]
 
 
 class Administrators:
     """
     List of School Administrator's emails to Notify of Risk
     """
+
     try:
-        BRANSON_ADMINISTRATORS = [
-            f"{email}@branson.org" for email in env_vars['BRANSON_ADMINISTRATORS'].split(',')
-        ]
+        BRANSON_ADMINISTRATORS = env_vars["BRANSON_ADMINISTRATORS"].split(",")
 
         MA_ADMINISTRATORS = [
             f"{email}@ma.org" for email in env_vars["MA_ADMINISTRATORS"].split(",")
@@ -47,5 +45,5 @@ class Administrators:
         """
         return {
             Schools.BRANSON: Administrators.BRANSON_ADMINISTRATORS,
-            Schools.MA: Administrators.MA_ADMINISTRATORS
+            Schools.MA: Administrators.MA_ADMINISTRATORS,
         }[school]

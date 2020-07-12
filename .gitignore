@@ -135,7 +135,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Editor Files
 .idea/
+.vscode
+
 # Credentials
-api/lib/credentials/
-*.json
+rest_service/authorization/token_certificate.json
