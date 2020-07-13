@@ -41,13 +41,13 @@ class Logger:
 
     INTERCEPTION_TARGETS = [
         "uvicorn", "uvicorn.access", "uvicorn.error", "fastapi", "boto3", "botocore", "boto", "gunicorn",
-        "gunicorn.error", "gunicorn.access", "neo4j.http", "httpstream"
+        "gunicorn.error", "gunicorn.access", "neo4j.http", "httpstream", "celery.task"
     ]
 
     def __init__(
         self,
         config_file: str = "shared/logger/config.json",
-        debug=env_vars.get("DEBUG", False),
+        debug=env_vars.get("DEV", False),
     ):
         """
         :param config_file: relative path to logging configuration

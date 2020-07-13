@@ -28,7 +28,9 @@ class Administrators:
     """
 
     try:
-        BRANSON_ADMINISTRATORS = env_vars["BRANSON_ADMINISTRATORS"].split(",")
+        BRANSON_ADMINISTRATORS = [
+            f"{email}@branson.org" for email in env_vars["BRANSON_ADMINISTRATORS"].split(",")
+        ]
 
         MA_ADMINISTRATORS = [
             f"{email}@ma.org" for email in env_vars["MA_ADMINISTRATORS"].split(",")

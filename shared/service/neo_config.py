@@ -20,7 +20,7 @@ def acquire_db_graph():
     """
     graph = Graph(
         bolt=True,
-        host=_DB_HOST,  # should be discovered via kubernetes
+        host=_DB_HOST,
         secure=True,  # All data is encrypted in transit over HTTPS
         user=_DB_USERNAME,
         password=_DB_PASSWORD,

@@ -20,6 +20,18 @@ services:
       dockerfile: worker_service/Dockerfile
     depends_on:
       - redis
+    entrypoint: celery
+    command: -A tasks worker --loglevel=info -Q default
+  priority_worker:
+    env_file:
+      - app.env
+    build:
+      context: .
+      dockerfile: worker_service/Dockerfile
+    depends_on:
+      - redis
+    entrypoint: celery
+    command: -A tasks worker --loglevel=info -Q priority
   monitor:
     env_file:
       - app.env
@@ -28,9 +40,10 @@ services:
       dockerfile: worker_service/Dockerfile
     ports:
      - "5555:5555"
-    entrypoint: flower
-    command:  -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - redis
+    entrypoint: celery
+    # should be in entrypoint to pull down from vault/etcd
+    command: -A tasks flower --auth="amrit_baveja@branson.org"
   redis:
     image: redis

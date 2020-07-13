@@ -1,5 +1,7 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
+MAINTAINER Amrit Baveja <amrit_baveja@branson.org>
+
 ENV CELERY_TASK_SERIALIZER = 'pickle'
 
 # Install Python Requirements and Clean Up

@@ -3,7 +3,7 @@
 API Models for type validation and API doc generation
 """
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +17,7 @@ class Timestamped(BaseModel):
     Base Timestamped model
     """
 
-    timestamp = Field(default_factory=pst_timestamp)
+    timestamp: int = Field(default_factory=lambda: int(pst_timestamp()))
 
 
 # ENUMS - Use String Mixin to make JSON Serializeable: https://stackoverflow.com/a/51976841/4501002
@@ -29,6 +29,7 @@ class ResponseStatus(str, Enum):
     MALFORMED = "MALFORMED"
     UNEXPECTED_ERROR = "UNEXPECTED"
     SUCCESS = "SUCCESS"
+    QUEUED = "QUEUED"
     ACCESS_DENIED = "ACCESS_DENIED"
 
 
@@ -64,34 +65,40 @@ class User(BaseModel):
     """
     User Schema for API validation and documentation
     """
-
     first_name: str
     last_name: str
     email: str
     school: str
     signup_at: UserStatus = UserStatus.INACTIVE
 
-    def queue_task(self, *, task_name: str, task_data: Optional[Dict] = None) -> str:
+    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, high_priority: bool = False) -> str:
         """
         Send a task to service via redis
         :param task_name: the task name to queue the task to
         :param task_data: data to send to the target worker
+        :param high_priority: whether or not the request should be routed to the high priority celery queue
         :return: the task id
         """
-        task_data = task_data or {}
+        task_params = {'user': self}
 
-        for key in task_data:
-            if isinstance(task_data[key], BaseModel):  # Serialize PyDantic models to JSON
-                task_data[key] = task_data[key].dict()
+        if task_data:
+            task_params['task_data'] = task_data
 
         queued_task = celery.send_task(
-            name=task_name, args=[], kwargs=dict(user=self.dict(), **(task_data or {}))
+            name=task_name, args=[], kwargs=task_params,
+            queue='priority' if high_priority else 'default'
         )
         return queued_task.id
 
+    class Config:
+        """
+        Pydantic configuration
+        """
+        use_enum_values = True  # Serialize enum values to strings
+
 
 # REPORTS
-class InteractionReport(Timestamped):
+class InteractionReport(BaseModel):
     """
     Interaction report schema for API validation and documentation
     """
@@ -99,19 +106,29 @@ class InteractionReport(Timestamped):
     targets: List[str]
 
 
-class TestReport(Timestamped):
+class TestReport(BaseModel):
     """
     Report either a positive or negative test
     """
 
     test_type: TestType
 
+    def get_test(self):
+        """
+        Get the test type as a string
+        :return: string version of the test
+        """
+        if self.test_type == TestType.POSITIVE:
+            return "Positive Test"
+        elif self.test_type == TestType.NEGATIVE:
+            return "Negative Test"
+        raise Exception(f"Unknown Test Type {self.test_type}")
 
-class SymptomReport(Timestamped):
+
+class SymptomReport(BaseModel):
     """
     Symptom Report
     """
-
     fever_chills: bool = False
     cough: bool = False
     shortness_breath: bool = False
@@ -125,13 +142,27 @@ class SymptomReport(Timestamped):
     nausea_vomiting: bool = False
     diarrhea: bool = False
 
+    def get_symptoms(self):
+        """
+        Retrieve symptoms for which the patient is positive
+        """
+        non_symptom_attributes = ('timestamp',)
+        return [symptom_name.replace('_', ' ').title() for (symptom_name, is_symptomatic) in self if
+                is_symptomatic and symptom_name not in non_symptom_attributes]
+
+
+class RiskNotification(BaseModel):
+    """
+    Risk Notification model
+    """
+    criteria: List[str]
+
 
 # Responses
 class Response(Timestamped):
     """
     Base API Response back to client
     """
-
     status: ResponseStatus = ResponseStatus.SUCCESS
 
 
@@ -155,5 +186,5 @@ class CreatedAsyncTask(Response):
     """
     Created Asynchronous task with service
     """
-
+    status = ResponseStatus.QUEUED
     task_id: str

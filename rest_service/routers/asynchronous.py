@@ -25,8 +25,7 @@ async def queue_interaction_report(contact: InteractionReport, user: User = AUTH
     * Specify the interaction model in the JSON body (schema in docs)
     """
     logger.info(f"Processing Interaction Report Task... {contact}")
-    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_interaction',
-                                                    task_data=dict(interaction=contact)))
+    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_interaction', task_data=contact))
 
 
 @ASYNC_ROUTER.post('/test', operation_id="queue_test_report",
@@ -37,7 +36,7 @@ async def queue_test_report(test: TestReport, user: User = AUTH_USER):
     * Specify the test model in the JSON body
     """
     logger.info(f"Processing Test Reporting Task... {test}")
-    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_test', task_data=dict(test=test)))
+    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_test', task_data=test))
 
 
 @ASYNC_ROUTER.post('/symptoms', operation_id='queue_symptom_report',
@@ -48,8 +47,7 @@ async def queue_symptoms_report(symptoms: SymptomReport, user: User = AUTH_USER)
     * Specify the symptoms model in the JSON Body
     """
     logger.info(f"Processing Symptoms Reporting Task... {symptoms}")
-    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_symptoms',
-                                                    task_data=dict(symptoms=symptoms)))
+    return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_symptoms', task_data=symptoms))
 
 
 @ASYNC_ROUTER.post('/set-active-user', operation_id='queue_set_active_user',
