@@ -34,7 +34,7 @@ def calculate_interaction_risks(*, email: str, school: str, cohort: Optional[int
     """
     timestamp_limit = round((datetime.now() - timedelta(days=int(env_vars['LOOKBACK_DAYS']))).timestamp())
     seen_individuals = {email}  # email prevents circular reference in the graph
-    individual_risk_tiers = {}
+    individual_risk_tiers = dict()
 
     with acquire_db_graph() as g:
         for tier in [HighestRisk, HighRisk, LowMediumRisk]:

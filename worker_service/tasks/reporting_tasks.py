@@ -1,6 +1,6 @@
 from os import environ as env_vars
 
-from py2neo import Node, RelationshipMatcher, Relationship
+from py2neo import RelationshipMatcher, Relationship
 
 from .utilities import update_active_user_report
 

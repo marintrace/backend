@@ -17,6 +17,6 @@ RUN pip install -r /tmp/requirements.txt && \
     rm  /tmp/requirements.txt
 
 # Copy code into container
-COPY ./worker_service /opt/app
-COPY ./shared /opt/app/shared
-WORKDIR /opt/app
+COPY ./worker_service /app
+COPY ./shared /app/shared
+WORKDIR /app

@@ -1,8 +1,6 @@
 version: "3"
 services:
   web:
-    env_file:
-      - app.env
     build:
       context: .
       dockerfile: rest_service/Dockerfile
@@ -12,38 +10,71 @@ services:
      - "80:80"
     depends_on:
       - redis
-  worker:
+      - neo4j
+      - vault
+  neo4j:
+    image: neo4j:3.5
+    restart: unless-stopped
+    volumes:
+      - ./conf:/conf
+      - ./data:/data
     env_file:
-      - app.env
+      - neo4j_service/vault_roles/neo4j_approle.env
+    environment:
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms.memory.heap.initial_size=1G
+      - NEO4J_dbms_memory_heap_max__size=1G
+  worker:
     build:
       context: .
       dockerfile: worker_service/Dockerfile
     depends_on:
       - redis
+      - neo4j
+      - vault
+    env_file:
+      - worker_service/vault_roles/celery_approle.env
     entrypoint: celery
     command: -A tasks worker --loglevel=info -Q default
   priority_worker:
-    env_file:
-      - app.env
     build:
       context: .
       dockerfile: worker_service/Dockerfile
     depends_on:
       - redis
+      - neo4j
+      - vault
+    env_file:
+      - worker_service/vault_roles/celery_approle.env
     entrypoint: celery
     command: -A tasks worker --loglevel=info -Q priority
   monitor:
-    env_file:
-      - app.env
     build:
       context: .
       dockerfile: worker_service/Dockerfile
+    env_file:
+      - worker_service/vault_roles/monitor_approle.env
     ports:
      - "5555:5555"
     depends_on:
       - redis
     entrypoint: celery
-    # should be in entrypoint to pull down from vault/etcd
     command: -A tasks flower --auth="amrit_baveja@branson.org"
+  vault:
+    build:
+      context: vault_service
+      dockerfile: vault/Dockerfile
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+  vault-init:
+    build:
+        context: vault_service
+        dockerfile: vault_init/Dockerfile
+    env_file:
+      - vault_service/config/unseal_options.env
+    depends_on:
+      - vault
   redis:
     image: redis

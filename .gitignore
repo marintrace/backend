@@ -11,8 +11,10 @@ __pycache__/
 .DS_Store
 
 # Env files
-**/*.env
-app.env
+**/vault_roles
+
+# Vault files
+vault_service/config
 
 # Distribution / packaging
 .Python
@@ -30,6 +32,8 @@ pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
+*.zip
+*.tar.gz
 *.egg
 MANIFEST
 
@@ -140,4 +144,5 @@ dmypy.json
 .vscode
 
 # Credentials
+vault_service/config/*.json
 rest_service/authorization/token_certificate.json

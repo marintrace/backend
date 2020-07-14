@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Setup Celery Queue Access from Flask
 """

@@ -46,7 +46,7 @@ class Logger:
 
     def __init__(
         self,
-        config_file: str = "shared/logger/config.json",
+        config_file: str = "shared/logger/vault_roles.json",
         debug=env_vars.get("DEV", False),
     ):
         """

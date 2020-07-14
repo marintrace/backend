@@ -9,7 +9,6 @@ from os import environ as env_vars
 from py2neo import Graph
 
 _DB_USERNAME = env_vars["NEO4J_USER"]
-_DB_HOST = env_vars["NEO4J_HOST"]
 _DB_PASSWORD = env_vars["NEO4J_PASSWORD"]
 
 
@@ -20,7 +19,7 @@ def acquire_db_graph():
     """
     graph = Graph(
         bolt=True,
-        host=_DB_HOST,
+        host='neo4j',
         secure=True,  # All data is encrypted in transit over HTTPS
         user=_DB_USERNAME,
         password=_DB_PASSWORD,

@@ -35,7 +35,8 @@ async def on_shutdown():
     logger.info("****** API IS SHUTTING DOWN ******")
 
 
-@app.get('/', description='Health check', response_model=str, tags=['Mgmt API'], status_code=status.HTTP_200_OK)
+@app.get('/', description='Health check', response_model=str, operation_id='healthcheck', tags=['Mgmt'],
+         status_code=status.HTTP_200_OK)
 async def health_check():
     """
     Returns 'Bet'
@@ -45,12 +46,12 @@ async def health_check():
 
 app.include_router(
     router=ASYNC_ROUTER,
-    tags=['Async API']
+    tags=['Async']
 )
 
 app.include_router(
     router=SYNC_ROUTER,
-    tags=['Sync API']
+    tags=['Sync']
 )
 
 if __name__ == '__main__':

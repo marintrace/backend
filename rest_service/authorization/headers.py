@@ -3,7 +3,6 @@
 """
 FastAPI Common Header Dependencies
 """
-import os
 import re
 import traceback
 
@@ -11,17 +10,27 @@ from fastapi import Header, HTTPException, Depends, status
 from firebase_admin import initialize_app, auth, _auth_utils as auth_utils, credentials
 
 from shared.logger import logger
-from shared.constants import Schools
 from shared.models import User
+from shared.service.vault_config import VaultConnection
 
 # Portion Extraction
 TOKEN_EXTRACTOR: re.Pattern = re.compile('^Bearer\s(?P<token>[A-Za-z0-9.\-_]+)$')
 EMAIL_EXTRACTOR: re.Pattern = re.compile('^(?P<mailbox>[A-Za-z0-9._].+)@(?P<domain>[A-Za-z_.*?].+)\.')
 NAME_EXTRACTOR: re.Pattern = re.compile('^(?P<first_name>[A-Za-z].+)\s(?P<last_name>[A-Za-z ].+)')
 
-# Token Authorization
-JWT_CERTIFICATE = credentials.Certificate("authorization/token_certificate.json")
-JWT_ISS = os.environ['FIREBASE_ISS']
+with VaultConnection() as vault:
+    # Valid School Domains
+    SCHOOL_DOMAINS = vault.read_secret(secret_path='kv/schools/domains')['valid'].split(',')
+
+    # Authentication Secrets
+    auth_secrets = vault.read_secret(secret_path='kv/bearer_auth')
+    JWT_ISS = auth_secrets['issuer']
+
+    certificate_file = 'authorization/token_certificate.json'
+    with open(certificate_file, 'w') as cert_file:
+        cert_file.write(auth_secrets['service_account'])
+
+    JWT_CERTIFICATE = credentials.Certificate(certificate_file)
 
 
 async def _extract_token(authorization: str):
@@ -57,7 +66,7 @@ async def _parse_email_claim_domain(email):
     """
     email_domain = EMAIL_EXTRACTOR.match(email).group('domain')
 
-    if not Schools.is_valid(email_domain):  # Validate the email claim domain is from an authorized domain
+    if email_domain not in SCHOOL_DOMAINS:  # Validate the email claim domain is from an authorized domain
         logger.error(f"***SECURITY RISK: Email from unauthorized domain '{email_domain}'***")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User is not from authorized domain')
     return email_domain
