@@ -3,5 +3,7 @@
 """
 Simplify the importing of models in other files
 """
-from shared.models.entities import InteractionReport, SymptomReport, TestReport, User, ListUsersResponse, \
-    CreatedAsyncTask, RiskNotification, UserStatus, TestType
+from shared.models.entities import (CreatedAsyncTask, InteractionReport,
+                                    ListUsersResponse, RiskNotification,
+                                    SymptomReport, TestReport, TestType, User,
+                                    UserStatus)

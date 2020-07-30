@@ -7,8 +7,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from shared.utilities import pst_timestamp
 from shared.service.celery_config import celery
+from shared.utilities import pst_timestamp
 
 
 # Base Classes

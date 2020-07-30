@@ -6,8 +6,8 @@ import os
 
 from celery import Celery
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379")
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", f'{os.environ["REDIS_ADDRESS"]}:6379')
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", f'{os.environ["REDIS_ADDRESS"]}:6379')
 CELERY_CONFIG_OPTIONS = {
     'task_serializer': 'pickle',
     'task_create_missing_queues': True,

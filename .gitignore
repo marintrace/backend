@@ -10,11 +10,15 @@ __pycache__/
 **/.DS_Store
 .DS_Store
 
-# Env files
-**/vault_roles
+# K8s secrets
+**/*secret.yaml
+
+# Neo4j files
+conf
+data
 
 # Vault files
-vault_service/config
+vault/config
 
 # Distribution / packaging
 .Python
@@ -34,6 +38,7 @@ share/python-wheels/
 .installed.cfg
 *.zip
 *.tar.gz
+*.tgz
 *.egg
 MANIFEST
 
@@ -110,6 +115,7 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
+**/values.yaml
 
 # Environments
 .env
@@ -145,4 +151,4 @@ dmypy.json
 
 # Credentials
 vault_service/config/*.json
-rest_service/authorization/token_certificate.json
+rest_api/authorization/token_certificate.json

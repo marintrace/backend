@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name:  {{ template "neo4j.fullname" . }}
+  labels:
+    name: {{ template "neo4j.fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+spec:
+  replicas: 1 # cannot be > 1 because of lack of ReadWriteMany support on GKE
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+  selector:
+    matchLabels:
+      name: {{ template "neo4j.fullname" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "neo4j.fullname" . }}
+    spec:
+      securityContext:
+        fsGroup: 2000
+      initContainers:
+        - name: wait-for-vault-service
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-vault; do sleep 1.5; echo "Waiting for Vault to start..."; done']
+        - name: make-volume-mounts-writeable
+          image: busybox
+          command: ['/bin/chmod', '-R', '755', '/data', '/conf']
+          volumeMounts:
+            - name: {{ template "neo4j.fullname" . }}-claim0
+              mountPath: /conf
+            - name: {{ template "neo4j.fullname" . }}-claim1
+              mountPath: /data
+      containers:
+        - env:
+            - name: VAULT_ADDRESS
+              value: https://{{ .Release.Name }}-vault
+            - name: VAULT_ROLE
+              value: {{ .Values.vault.vaultRole }}
+            - name: NEO4J_dbms.memory.heap.initial_size
+              value: 1G
+            - name: NEO4J_dbms_memory_heap_max__size
+              value: 1G
+            - name: NEO4J_dbms_memory_pagecache_size
+              value: 1G
+          image: gcr.io/vault-159468/neo4j:{{ .Values.imageVersion }}
+          imagePullPolicy: ""
+          name: {{ template "neo4j.fullname" . }}-pod
+          volumeMounts:
+            - mountPath: /conf
+              name: {{ template "neo4j.fullname" . }}-claim0
+            - mountPath: /data
+              name: {{ template "neo4j.fullname" . }}-claim1
+          ports:
+            - containerPort: {{ .Values.exposePort }}
+              name: bolt
+          {{ if eq .Values.readinessProbe.enabled "true" }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - curl -i http://localhost:7474 2>&1 | grep -e '200 OK'
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
+            periodSeconds: {{ .Values.readinessProbe.interval}}
+          {{ end }}
+          {{ if eq .Values.livenessProbe.enabled "true" }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - curl -i http://localhost:7474 2>&1 | grep -e '200 OK'
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
+            periodSeconds: {{ .Values.livenessProbe.interval }}
+          {{ end }}
+      imagePullSecrets:
+        - name: gcp-registry
+      restartPolicy: Always
+      serviceAccountName: {{ template "neo4j.fullname" . }}-serviceaccount
+      volumes:
+        - name: {{ template "neo4j.fullname" . }}-claim0
+          persistentVolumeClaim:
+            claimName: {{ template "neo4j.fullname" . }}-claim0
+        - name: {{ template "neo4j.fullname" . }}-claim1
+          persistentVolumeClaim:
+            claimName: {{ template "neo4j.fullname" . }}-claim1
+status: {}

@@ -4,8 +4,8 @@
 Custom Logging Configuration so we can control FastAPI Logging and use
 Loguru for increased performance and flexibility
 """
-from json import load as read_json_file
 import logging
+from json import load as read_json_file
 from os import environ as env_vars
 from sys import stdout
 from typing import Dict
@@ -46,7 +46,7 @@ class Logger:
 
     def __init__(
         self,
-        config_file: str = "shared/logger/vault_roles.json",
+        config_file: str = "shared/logger/config.json",
         debug=env_vars.get("DEV", False),
     ):
         """
