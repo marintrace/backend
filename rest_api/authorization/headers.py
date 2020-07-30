@@ -7,8 +7,8 @@ import re
 import traceback
 
 from fastapi import Depends, Header, HTTPException, status
-from firebase_admin import _auth_utils as auth_utils
-from firebase_admin import auth, credentials, initialize_app
+from jose import jwt
+from requests import post as post_request
 
 from shared.logger import logger
 from shared.models import User
@@ -16,22 +16,16 @@ from shared.service.vault_config import VaultConnection
 
 # Portion Extraction
 TOKEN_EXTRACTOR: re.Pattern = re.compile('^Bearer\s(?P<token>[A-Za-z0-9.\-_]+)$')
-EMAIL_EXTRACTOR: re.Pattern = re.compile('^(?P<mailbox>[A-Za-z0-9._].+)@(?P<domain>[A-Za-z_.*?].+)\.')
-NAME_EXTRACTOR: re.Pattern = re.compile('^(?P<first_name>[A-Za-z].+)\s(?P<last_name>[A-Za-z ].+)')
 
 with VaultConnection() as vault:
-    # Valid School Domains
-    SCHOOL_DOMAINS = vault.read_secret(secret_path='kv/schools/domains')['valid'].split(',')
+    oidc_secrets = vault.read_secret(secret_path="oidc/rest")
 
-    # Authentication Secrets
-    auth_secrets = vault.read_secret(secret_path='kv/bearer_auth')
-    JWT_ISS = auth_secrets['issuer']
+    AUTHORIZED_OIDC_ROLES = set(oidc_secrets["authorized_roles"].split(","))
+    OIDC_DOMAIN = oidc_secrets["auth0_domain"]
+    AUDIENCE = oidc_secrets["audience"]
+    ROLE_CLAIM_NAME = oidc_secrets["role_claim_name"]
 
-    certificate_file = 'authorization/token_certificate.json'
-    with open(certificate_file, 'w') as cert_file:
-        cert_file.write(auth_secrets['service_account'])
-
-    JWT_CERTIFICATE = credentials.Certificate(certificate_file)
+    JWKS = post_request(f"https://{OIDC_DOMAIN}/.well-known/jwks.json").json()
 
 
 async def _extract_token(authorization: str):
@@ -45,55 +39,68 @@ async def _extract_token(authorization: str):
     if not extracted_token:  # Verify token format
         logger.info("Invalid Token Header format specified")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Authorization format")
-    return extracted_token
+    return extracted_token.group("token")
 
 
-async def _validate_token_issuer(iss: str):
-    """
-    Validate the token issuer for the JWT
-    :param iss: the issuer specified
-    """
-    if not iss == JWT_ISS:  # Verify JWT token issuer and make sure that it is authorized
-        logger.error(f"***SECURITY RISK: Invalid Token Issuer '{iss}'***")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid Token Issuer')
-
-
-async def _parse_email_claim_domain(email):
+async def _validate_oidc_role(roles):
     """
     Validate that the token was issued for a user
-    from an authorized domain
-    :param email: the email claimed by the token
-    :return: the parsed email claim domain
+    with an authorized role
+    :param roles: the roles claimed by the token
+    :returns authorized role which matches the school name
     """
-    email_domain = EMAIL_EXTRACTOR.match(email).group('domain')
+    for role in roles:
+        if role in AUTHORIZED_OIDC_ROLES:  # Validate the user's roles
+            return role
 
-    if email_domain not in SCHOOL_DOMAINS:  # Validate the email claim domain is from an authorized domain
-        logger.error(f"***SECURITY RISK: Email from unauthorized domain '{email_domain}'***")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User is not from authorized domain')
-    return email_domain
+    logger.error("***SECURITY RISK: Unable to find authorized role***")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail='User does not have an authorized role')
+
+
+async def _get_signing_header(token):
+    """
+    Validate RSA signing header
+    :param token: The bearer token
+    :return: Decoded signing header
+    """
+    jwt_raw_header = jwt.get_unverified_header(token)
+    for key in JWKS["keys"]:
+        if key["kid"] == jwt_raw_header["kid"]:
+            return dict(kty=key["kty"], kid=key["kid"],
+                        use=key["use"], n=key["n"],
+                        e=key["e"])
+    logger.error("***SECURITY RISK: Unknown signing header***")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User does not have a verified signing header')
 
 
 async def authorized_user(authorization: str = Header(..., alias='Authorization')):
     """
-    Validate Firebase issued BearerJWT Tokens
+    Validate OIDC issued BearerJWT Tokens
     :param authorization: Bearer token accompanying request
     """
     extracted_token = await _extract_token(authorization)
+    signed_header = await _get_signing_header(extracted_token)
 
+    # noinspection PyBroadException
     try:
-        claims = auth.verify_id_token(extracted_token.group('token'))
-        await _validate_token_issuer(claims['iss'])
-        user_domain = await _parse_email_claim_domain(claims['email'])
-        extracted_name = NAME_EXTRACTOR.match(claims['name'])
-        user_model = User(first_name=extracted_name.group('first_name'), last_name=extracted_name.group('last_name'),
-                          school=user_domain, email=claims['email'])
-        logger.info(f"Authenticated user {claims['uid']}")
-        return user_model
-    except auth_utils.InvalidIdTokenError:
-        logger.warning("***SECURITY RISK: Token verification failed***")  # Validate JWT Signing, Expiration etc.
-        logger.warning(traceback.format_exc(limit=100))
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token verification failed")
+        claims = jwt.decode(token=extracted_token, key=signed_header, algorithms=['RS256'], audience=AUDIENCE,
+                            issuer=f"https://{OIDC_DOMAIN}/")
+        school = await _validate_oidc_role(claims[ROLE_CLAIM_NAME])
+        return User(first_name=claims["given_name"], last_name=claims["family_name"], email=claims["email"],
+                    school=school)
+
+    except jwt.ExpiredSignatureError:
+        logger.exception("***SECURITY RISK: Expired JWT***")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User has an expired JWT")
+    except jwt.JWTClaimsError:
+        logger.exception("***SECURITY RISK: Invalid claims. Check issuer and audience.***")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Unable to verify user's claims. Check issuer and audience.")
+    except Exception:
+        logger.exception("***SECURITY RISK: Unable to parse token***")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to parse token")
 
 
 AUTH_USER = Depends(authorized_user)
-initialize_app(credential=JWT_CERTIFICATE)
+
