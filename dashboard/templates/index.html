@@ -1,0 +1,72 @@
+{% extends "base_site.html" %}
+
+{% block title %} Dashboard {% endblock title %}
+
+{% block stylesheets %}
+  {{ super() }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+  {% with page_title="Dashboard" %}
+    {% include "components/navigation.html" %}
+    {% endwith %}
+
+  {% with remaining_symptom_reports=remaining_symptom_reports %}
+    {% include "components/top-stats.html" %}
+  {% endwith %}
+
+  <div class="container-fluid mt--7">
+    <div class="row mt-5">
+      <div class="col">
+        <div class="card shadow">
+          <div class="card-header border-0">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="mb-0">Today</h3>
+                <p class="mt-3 mb-0 text-muted text-sm">
+                  <span class="text">Everyone and their reports</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <!-- Projects table -->
+            <table class="table align-items-center table-flush">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="sort" data-sort="name">Name</th>
+                  <th scope="col" class="sort" data-sort="budget">Status</th>
+                  <th scope="col" class="sort" data-sort="status">Last Report Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for person in people %}
+                <tr>
+                  <td>
+                    <a href="/user/{{ person.email }}">{{ person.name }}</a>
+                  </td>
+                  <td>
+                    <span class="badge badge-dot mr-4">
+                      <i class= "bg-{{ person.status_color }}" ></i>
+                      <span class="status">{{ person.status_description }}</span>
+                    </span>
+                  </td>
+                  <td>
+                    {{ person.last_report_date }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  {{ super()}}
+{% endblock javascripts %}
