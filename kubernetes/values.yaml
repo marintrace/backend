@@ -1,16 +1,16 @@
 global:
   tlsDisable: false
 
-# Celery High Priority Asynchronous Worker [INTERNAL]
-priority-worker:
+# Application Facing REST API [EXTERNAL FACING] [SSL & ODIC SECURED]
+rest:
   replicas: 2
-  exposePort: 5555
-  imageVersion: 0.0.18
+  exposePort: 80
+  imageVersion: 0.0.4
   autoscaling:
     enabled: "true"
     maxReplicas: 3
   vault:
-    vaultRole: priority-worker
+    vaultRole: rest
   readinessProbe:
     enabled: "true"
     initialDelay: 5
@@ -20,20 +20,29 @@ priority-worker:
     initialDelay: 5
     interval: 5
 
+# Celery High Priority Asynchronous Worker [INTERNAL]
+priority-worker:
+  replicas: 2
+  imageVersion: 0.0.19
+  autoscaling:
+    enabled: "true"
+    maxReplicas: 3
+  vault:
+    vaultRole: priority-worker
+  livenessProbe:
+    enabled: "true"
+    initialDelay: 5
+    interval: 5
+
 # Celery Default Priority Asynchronous Worker [INTERNAL]
 worker:
   replicas: 1
-  exposePort: 5555
-  imageVersion: 0.0.18
+  imageVersion: 0.0.19
   autoscaling:
     enabled: "true"
     maxReplicas: 3
   vault:
     vaultRole: worker
-  readinessProbe:
-    enabled: "false"
-    initialDelay: 5
-    interval: 5
   livenessProbe:
     enabled: "false"
     initialDelay: 5
@@ -43,7 +52,7 @@ worker:
 flower:
   replicas: 1
   exposePort: 5555
-  imageVersion: 0.0.18
+  imageVersion: 0.0.19
   vault:
     vaultRole: flower
   readinessProbe:

@@ -4,11 +4,10 @@
 FastAPI Common Header Dependencies
 """
 import re
-import traceback
 
 from fastapi import Depends, Header, HTTPException, status
 from jose import jwt
-from requests import post as post_request
+from requests import get as get_request
 
 from shared.logger import logger
 from shared.models import User
@@ -25,7 +24,7 @@ with VaultConnection() as vault:
     AUDIENCE = oidc_secrets["audience"]
     ROLE_CLAIM_NAME = oidc_secrets["role_claim_name"]
 
-    JWKS = post_request(f"https://{OIDC_DOMAIN}/.well-known/jwks.json").json()
+    JWKS = get_request(f"https://{OIDC_DOMAIN}/.well-known/jwks.json").json()
 
 
 async def _extract_token(authorization: str):
@@ -65,13 +64,19 @@ async def _get_signing_header(token):
     :return: Decoded signing header
     """
     jwt_raw_header = jwt.get_unverified_header(token)
-    for key in JWKS["keys"]:
-        if key["kid"] == jwt_raw_header["kid"]:
-            return dict(kty=key["kty"], kid=key["kid"],
-                        use=key["use"], n=key["n"],
-                        e=key["e"])
-    logger.error("***SECURITY RISK: Unknown signing header***")
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User does not have a verified signing header')
+    try:
+        for key in JWKS["keys"]:
+            if key["kid"] == jwt_raw_header["kid"]:
+                return dict(kty=key["kty"], kid=key["kid"],
+                            use=key["use"], n=key["n"],
+                            e=key["e"])
+        logger.error("***SECURITY RISK: Unknown signing header***")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='User does not have a verified signing header')
+    except KeyError:
+        logger.error("***SECURITY RISK: Missing Token Header***")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Token is missing a necessary header")
 
 
 async def authorized_user(authorization: str = Header(..., alias='Authorization')):
@@ -103,4 +108,3 @@ async def authorized_user(authorization: str = Header(..., alias='Authorization'
 
 
 AUTH_USER = Depends(authorized_user)
-

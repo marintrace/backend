@@ -13,7 +13,6 @@ from shared.service.vault_config import VaultConnection
 from shared.service.email_config import EmailClient
 
 SES_CLIENT = AWSClient('ses', region_name='us-west-2')  # acquire IAM credentials from EC2 instance profile
-VAULT_CONNECTION = VaultConnection()
 EMAIL_CLIENT = EmailClient()
 
 RiskTier = namedtuple('RiskTier', ['name', 'depth'])
@@ -68,7 +67,8 @@ def notify_risk(self, *, user: User, task_data: RiskNotification):
     with acquire_db_graph() as g:
         member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
 
-    risk_notification_secrets = VAULT_CONNECTION.read_secret(secret_path=f'schools/{user.school}/risk_notification')
+    with VaultConnection() as vault:
+        risk_notification_secrets = vault.read_secret(secret_path=f'schools/{user.school}/risk_notification')
     individuals_at_risk = calculate_interaction_risks(email=user.email, school=user.school,
                                                       lookback_days=int(risk_notification_secrets['lookback_days']),
                                                       **({'cohort': member_node['cohort']} or {}))

@@ -13,6 +13,10 @@ __pycache__/
 # K8s secrets
 **/*secret.yaml
 
+# Third Party Vendor Files
+dashboard/static/assets/vendor
+dashboard/static/assets/js/plugins
+
 # Neo4j files
 conf
 data

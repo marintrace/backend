@@ -50,33 +50,13 @@ spec:
             - -Q
             - default
           name: {{ template "worker.fullname" .}}
-          ports:
-            - containerPort: {{ .Values.exposePort }}
-          {{ if eq .Values.readinessProbe.enabled "true" }}
-          readinessProbe:
-            exec:
-              command:
-                - celery
-                - inspect
-                - ping
-                - -A
-                - tasks
-                - -d
-                - celery@$HOSTNAME
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
-            periodSeconds: {{ .Values.readinessProbe.interval}}
-          {{ end }}
           {{ if eq .Values.livenessProbe.enabled "true" }}
           livenessProbe:
             exec:
               command:
-                - celery
-                - inspect
-                - ping
-                - -A
-                - tasks
-                - -d
-                - celery@$HOSTNAME
+                - python
+                - -c
+                - "import os;from celery.task.control import inspect;from tasks import celery;exit(0 if os.environ['HOSTNAME'] in ','.join(inspect(app=celery).stats().keys()) else 1)"
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}
           {{ end }}

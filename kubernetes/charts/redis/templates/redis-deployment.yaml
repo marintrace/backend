@@ -11,10 +11,6 @@ metadata:
     helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
 spec:
   replicas: {{ .Values.replicas }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
   selector:
     matchLabels:
       name: {{ template "redis.fullname" . }}
