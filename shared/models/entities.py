@@ -137,6 +137,21 @@ class RiskNotification(BaseModel):
 
 
 # REST Entities
+class UserEmailIdentifier(BaseModel):
+    """
+    Identification for a user by their email
+    """
+    email: str
+    school: str
+
+
+class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
+    """
+    Pagination identification for a user by their email
+    """
+    pass
+
+
 class AdminDashboardUser(BaseModel):
     """
     User who is using the admin dashboard
@@ -151,18 +166,22 @@ class DashboardUserSummaryItem(BaseModel):
     """
     Entity representing a summary item on the dashboard
     """
-    first_name: str
-    last_name: str
+    email: str
     color: str
     message: str
-    healthy: bool
+    code: str
 
-    def get_full_name(self):
-        """
-        Get the fullname of a dashboard
-        user summary item
-        """
-        return f"{self.first_name} {self.last_name}"
+
+class DashboardUserInfoDetail(BaseModel):
+    """
+    Entity representing user info detail on the user
+    detail page
+    """
+    email: str
+    first_name: str
+    last_name: str
+    cohort: Optional[int]
+    school: str
 
 
 class User(BaseModel):
@@ -244,3 +263,10 @@ class DashboardUserSummaryResponse(Paginated):
     User Summary Response for the Dashboard
     """
     records: List[DashboardUserSummaryItem]
+
+
+class DashboardUserInteractions(Paginated):
+    """
+    User Interactions for the Dasboard
+    """
+    users: List[str]

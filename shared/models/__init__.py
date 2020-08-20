@@ -6,6 +6,6 @@ Simplify the importing of models in other files
 from shared.models.entities import (CreatedAsyncTask, InteractionReport,
                                     ListUsersResponse, RiskNotification,
                                     SymptomReport, TestReport, TestType, User,
-                                    UserStatus, DashboardNumericalWidgetResponse,
+                                    UserStatus, DashboardNumericalWidgetResponse, PaginatedUserEmailIdentifer,
                                     AdminDashboardUser, DashboardUserSummaryResponse, DashboardUserSummaryItem,
-                                    Paginated)
+                                    Paginated, DashboardUserInfoDetail, UserEmailIdentifier, DashboardUserInteractions)

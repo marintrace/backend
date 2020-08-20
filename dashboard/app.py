@@ -26,16 +26,6 @@ def index():
     return render_template('index.html', remaining_symptom_reports=1, last_report_date=date.today(), people=people)
 
 
-@app.route('/alerts')
-def alerts():
-    alerts = [
-        Alert("1 MISSING SYMPTOM REPORT", "Amrit Baveja has not reported their symptoms yet.", date.today(), "warning"),
-        Alert("ROHAN VASISHTH REPORTED 2 SYMPTOMS", "They reported shortness of breath and diarrhea.", date.today(),
-              "danger")]
-
-    return render_template('alerts.html', last_alert_date=date.today(), alerts=alerts)
-
-
 @app.route('/user/<user_id>')
 # @login_required
 def user(user_id):
