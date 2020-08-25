@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   creationTimestamp: null
-  name: {{ template "admin.fullname" . }}
+  name: {{ template "admin-oidc.fullname" . }}
   labels:
-    name: {{ template "admin.fullname" . }}
+    name: {{ template "admin-oidc.fullname" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
     app.kubernetes.io/instance: {{ .Release.Name | quote }}
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -17,30 +17,28 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      name: {{ template "admin.fullname" . }}
+      name: {{ template "admin-oidc.fullname" . }}
   template:
     metadata:
       labels:
-        name: {{ template "admin.fullname" . }}
+        name: {{ template "admin-oidc.fullname" . }}
       creationTimestamp: null
     spec:
       initContainers:
         - name: wait-for-vault-service
           image: busybox:1.28
           command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-vault; do sleep 1.5; echo "Waiting for Vault to start..."; done']
-        - name: wait-for-neo4j-service
+        - name: wait-for-dashboard-service
           image: busybox:1.28
-          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-neo4j; do sleep 1.5; echo "Waiting for Neo4j to start..."; done']
+          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-admin; do sleep 1.5; echo "Waiting for Dashboard to start..."; done']
       containers:
       - env:
         - name: VAULT_ADDRESS
           value: https://{{ .Release.Name }}-vault
-        - name: REDIS_ADDRESS
-          value: redis://{{ .Release.Name }}-redis
         - name: VAULT_ROLE
           value: {{ .Values.vault.vaultRole }}
-        image: gcr.io/vault-159468/admin:{{ .Values.imageVersion }}
-        name: {{ template "admin.fullname" .}}
+        image: gcr.io/vault-159468/admin-oidc:{{ .Values.imageVersion }}
+        name: {{ template "oidc-proxy.fullname" .}}
         ports:
           - containerPort: {{ .Values.exposePort }}
         {{ if eq .Values.readinessProbe.enabled "true" }}
@@ -60,7 +58,7 @@ spec:
           periodSeconds: {{ .Values.livenessProbe.interval }}
         {{ end }}
       restartPolicy: Always
-      serviceAccountName: {{ template "admin.fullname" . }}-serviceaccount
+      serviceAccountName: {{ template "admin-oidc.fullname" . }}-serviceaccount
       imagePullSecrets:
       - name: gcp-registry
 status: {}

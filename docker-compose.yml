@@ -16,6 +16,16 @@ services:
       context: neo4j
       dockerfile: Dockerfile
     image: gcr.io/vault-159468/neo4j:0.0.8
+  webapp:
+    build:
+      context: web_app
+      dockerfile: Dockerfile
+    image: gcr.io/vault-159468/web-app:0.0.1
+  dashboard-proxy:
+    build:
+      context: dashboard_proxy
+      dockerfile: Dockerfile
+    image: gcr.io/vault-159468/oidc-proxy:0.0.3
   dashboard:
     build:
       context: .

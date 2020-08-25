@@ -17,7 +17,7 @@ spec:
         backend:
           serviceName: {{ .Release.Name }}-admin-oidc
           servicePort: 80
-      - path: /web/*
+      - path: /app/*
         backend:
-          serivceName: {{ .Release.Name }}-webapp
+          serivceName: {{ .Release.Name }}-web
           servicePort: 80

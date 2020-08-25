@@ -156,3 +156,12 @@ dmypy.json
 # Credentials
 vault_service/config/*.json
 rest_api/authorization/token_certificate.json
+
+# Proxy Files
+dashboard_proxy/*.go
+dashboard_proxy/*.sum
+dashboard_proxy/get-version.sh
+dashboard_proxy/release.sh
+dashboard_proxy/set-version.sh
+dashboard_proxy/*.mod
+dashboard_proxy/*.md

@@ -18,7 +18,7 @@ AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/dashboard",
                               AdminDashboardUser(last_name=claims['family_name'], first_name=claims['given_name'],
                                                  email=claims['email'], school=role.split('-')[0]))
 
-OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')
+OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 
 async def create_summary_item(record) -> DashboardUserSummaryItem:
