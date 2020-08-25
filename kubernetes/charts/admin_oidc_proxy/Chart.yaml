@@ -1,4 +1,4 @@
-name: admin-oidc-proxy
+name: admin-oidc
 version: 0.0.1
 home: "https://github.com/tracing-app/backend"
 maintainers:

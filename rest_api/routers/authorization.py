@@ -10,4 +10,4 @@ manager = JWTAuthManager(oidc_vault_secret="oidc/rest",
                              school=role, email=claims['email']
                          ))
 
-AUTH_USER = manager.auth_header()
+AUTH_USER = await manager.auth_header()

@@ -124,7 +124,7 @@ class JWTAuthManager:
         FastAPI Depends to verify Bearer Tokens specified as Cookies
         """
 
-        async def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
+        def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
             return self.verify_jwt(token)
 
         return Depends(cookie_verification)

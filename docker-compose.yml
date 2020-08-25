@@ -10,12 +10,12 @@ services:
     build:
       context: .
       dockerfile: rest_api/Dockerfile
-    image: gcr.io/vault-159468/rest:0.0.4
+    image: gcr.io/vault-159468/rest:0.0.5
   neo4j:
     build:
       context: neo4j
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/neo4j:0.0.8
+    image: gcr.io/vault-159468/neo4j:0.0.9
   webapp:
     build:
       context: web_app
@@ -25,7 +25,7 @@ services:
     build:
       context: dashboard_proxy
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/oidc-proxy:0.0.3
+    image: gcr.io/vault-159468/oidc-proxy:0.0.4
   dashboard:
     build:
       context: .
@@ -35,4 +35,4 @@ services:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.0.19
+    image: gcr.io/vault-159468/celery:0.0.20
