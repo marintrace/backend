@@ -2,43 +2,44 @@
 <html lang="en">
 
 <head>
-  {% block head %}
+    {% block head %}
 
-    {% block meta %}
-      <meta charset="utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    {% endblock meta %}
+        {% block meta %}
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {% endblock meta %}
 
-  <title>
-    MarinTrace - {% block title %}{% endblock %}
-  </title>
+        <title>
+            MarinTrace - {% block title %}{% endblock %}
+        </title>
 
-  {% block stylesheets %}
-    <!-- Favicon -->
-    <link href="{{ url_for('static', filename='assets/img/brand/favicon.png') }}" rel="icon" type="image/png">
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
-    <!-- Icons -->
-    <link href="{{ url_for('static', filename='assets/js/plugins/nucleo/css/nucleo.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
-    <!-- CSS Files -->
-    <link href="{{ url_for('static', filename='assets/css/argon-dashboard.css') }}" rel="stylesheet">
-  {% endblock stylesheets %}
+        {% block stylesheets %}
+            <!-- Favicon -->
+            <link href="{{ url_for('static', filename='assets/img/brand/favicon.png') }}" rel="icon" type="image/png">
+            <!-- Fonts -->
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+            <!-- Icons -->
+            <link href="{{ url_for('static', filename='assets/js/plugins/nucleo/css/nucleo.css') }}" rel="stylesheet">
+            <link href="{{ url_for('static', filename='assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css') }}"
+                  rel="stylesheet">
+            <!-- CSS Files -->
+            <link href="{{ url_for('static', filename='assets/css/argon-dashboard.css') }}" rel="stylesheet">
+        {% endblock stylesheets %}
 
-  {% endblock head %}
+    {% endblock head %}
 </head>
 
 <body class="">
 
-  {% include "components/sidebar.html" %}
+{% include "components/sidebar.html" %}
 
-  <div class="main-content">
+<div class="main-content">
 
     {% block content %}{% endblock content %}
 
-  </div>
+</div>
 
-  {% block javascripts %}
+{% block javascripts %}
     <!-- Core -->
     <script src="{{ url_for('static', filename='assets/js/plugins/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
@@ -49,7 +50,8 @@
 
     <!-- Argon JS -->
     <script src="{{ url_for('static', filename='assets/js/argon-dashboard.min.js') }}"></script>
-  {% endblock javascripts %}
+    <script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>
+{% endblock javascripts %}
 
 </body>
 

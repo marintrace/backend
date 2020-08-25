@@ -5,7 +5,7 @@ Synchronous API for client-side display in both iOS and Web Apps
 from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
-from authorization.headers import AUTH_USER
+from .authorization import AUTH_USER
 from shared.logger import logger
 from shared.models import ListUsersResponse, User
 from shared.service.neo_config import acquire_db_graph

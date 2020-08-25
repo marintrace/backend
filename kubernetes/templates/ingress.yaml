@@ -13,3 +13,11 @@ spec:
         backend:
           serviceName: {{ .Release.Name }}-rest
           servicePort: 80
+      - path: /admin/*
+        backend:
+          serviceName: {{ .Release.Name }}-admin-oidc
+          servicePort: 80
+      - path: /web/*
+        backend:
+          serivceName: {{ .Release.Name }}-webapp
+          servicePort: 80

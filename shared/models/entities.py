@@ -142,7 +142,6 @@ class UserEmailIdentifier(BaseModel):
     Identification for a user by their email
     """
     email: str
-    school: str
 
 
 class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
@@ -166,7 +165,8 @@ class DashboardUserSummaryItem(BaseModel):
     """
     Entity representing a summary item on the dashboard
     """
-    email: str
+    email: str = "Unspecified"
+    timestamp: str = "Unspecified"
     color: str
     message: str
     code: str
@@ -263,6 +263,14 @@ class DashboardUserSummaryResponse(Paginated):
     User Summary Response for the Dashboard
     """
     records: List[DashboardUserSummaryItem]
+
+
+class DashboardUserInteraction(BaseModel):
+    """
+    Interaction between two users on the dashboard
+    """
+    email: str
+    timestamp: str
 
 
 class DashboardUserInteractions(Paginated):

@@ -28,7 +28,6 @@ class JWTAuthManager:
             oidc_secrets = vault.read_secret(secret_path=oidc_vault_secret)
 
             self.domain = oidc_secrets["auth0_domain"]
-            self.audience = oidc_secrets["audience"]
             self.issuer = oidc_secrets['issuer']
             self.authorized_roles = oidc_secrets['authorized_roles'].split(',')
             self.role_claim_name = oidc_secrets["role_claim_name"]
@@ -90,8 +89,10 @@ class JWTAuthManager:
 
         # noinspection PyBroadException
         try:
-            claims: Dict[str, Any] = jwt.decode(token=token, key=signed_header, algorithms=['RS256'],
-                                                audience=self.audience, issuer=self.issuer)
+            claims: Dict[str, Any] = jwt.decode(
+                token=token, key=signed_header, algorithms=['RS256'],
+                issuer=self.issuer, options=dict(verify_aud=False)
+            )  # auth0 id token does not provide an audience
             authorized_role = await self._get_authorized_role(claims[self.role_claim_name])
             return self.object_creator(claims, authorized_role)
         except jwt.ExpiredSignatureError:

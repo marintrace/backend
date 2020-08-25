@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import uuid4
 
-from boto3 import client as AWSClient
-
 from shared.logger import logger
 from shared.models import RiskNotification, User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, celery
@@ -12,7 +10,6 @@ from shared.service.neo_config import acquire_db_graph
 from shared.service.vault_config import VaultConnection
 from shared.service.email_config import EmailClient
 
-SES_CLIENT = AWSClient('ses', region_name='us-west-2')  # acquire IAM credentials from EC2 instance profile
 EMAIL_CLIENT = EmailClient()
 
 RiskTier = namedtuple('RiskTier', ['name', 'depth'])

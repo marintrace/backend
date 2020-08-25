@@ -8,4 +8,5 @@ from shared.models.entities import (CreatedAsyncTask, InteractionReport,
                                     SymptomReport, TestReport, TestType, User,
                                     UserStatus, DashboardNumericalWidgetResponse, PaginatedUserEmailIdentifer,
                                     AdminDashboardUser, DashboardUserSummaryResponse, DashboardUserSummaryItem,
-                                    Paginated, DashboardUserInfoDetail, UserEmailIdentifier, DashboardUserInteractions)
+                                    Paginated, DashboardUserInfoDetail, UserEmailIdentifier, DashboardUserInteractions,
+                                    DashboardUserInteraction)
