@@ -37,7 +37,7 @@ spec:
           value: https://{{ .Release.Name }}-vault
         - name: VAULT_ROLE
           value: {{ .Values.vault.vaultRole }}
-        image: gcr.io/vault-159468/admin-oidc:{{ .Values.imageVersion }}
+        image: gcr.io/vault-159468/oidc-proxy:{{ .Values.imageVersion }}
         name: {{ template "admin-oidc.fullname" .}}
         ports:
           - containerPort: {{ .Values.exposePort }}

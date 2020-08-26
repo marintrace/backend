@@ -108,7 +108,7 @@ class JWTAuthManager:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Error verifying JWT")
 
-    async def auth_header(self):
+    def auth_header(self):
         """
         FastAPI Depends to verify OIDC issued Bearer Tokens specified as HTTP Header
         """
@@ -119,7 +119,7 @@ class JWTAuthManager:
 
         return Depends(header_verification)
 
-    async def auth_cookie(self, cookie_name: str):
+    def auth_cookie(self, cookie_name: str):
         """
         FastAPI Depends to verify Bearer Tokens specified as Cookies
         """

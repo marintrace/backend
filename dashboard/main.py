@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from os import environ as env_vars
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -17,14 +17,31 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/user/{email}", description="Render the User HTML page", status_code=200, )
-async def render_user_page(email: str):
+@app.get('/health', description="Returns Bet", response_model=str, status_code=200)
+async def health():
     """
-    Render the User Page
-    :param email: email specified to retrieve
+    Healthcheck - Bet
+    :return: 'Bet'
+    """
+    return 'Bet'
+
+
+@app.get('/', description="Render the Home HTML Page", response_model=str, status_code=200)
+async def render_home_page(request: Request):
+    """
+    Render the Home Page
     :return: Rendered HTML
     """
-    return templates.TemplateResponse("user.html", {"user": email})
+    return templates.TemplateResponse("index.html", dict(request=request))
+
+
+@app.get("/user/{email}", description="Render the User HTML page", response_model=str, status_code=200)
+async def render_user_page(request: Request, email: str):
+    """
+    Render the User Page
+    :return: Rendered HTML
+    """
+    return templates.TemplateResponse("user.html", dict(request=request, user=email))
 
 
 app.include_router(

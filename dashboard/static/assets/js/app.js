@@ -12,7 +12,7 @@ function requestFailure(data) {
 }
 
 function updateUserStatus(user_email) {
-    $.post("/get-user-summary-status", {"email": user_email}, function () {
+    $.post("/api/get-user-summary-status", {"email": user_email}, function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
             $("#today-status-color").addClass("bg-" + data.color);
@@ -22,7 +22,7 @@ function updateUserStatus(user_email) {
 }
 
 function updateUserInteractions(user_email) {
-    $.post("/paginate-user-interactions",
+    $.post("/api/paginate-user-interactions",
         {
             "email": user_email,
             "pagination_token": userInteractionPagToken,
@@ -43,7 +43,7 @@ function updateUserInteractions(user_email) {
 }
 
 function updateUserReports(user_email) {
-    $.post("/paginate-user-reports", {
+    $.post("/api/paginate-user-reports", {
         "email": user_email,
         "pagination_token": userReportPagToken,
         "limit": userReportPagLimit
@@ -64,7 +64,7 @@ function updateUserReports(user_email) {
 }
 
 function updateHomeStatusSummaries() {
-    $.post("/paginate-user-summary-items", {
+    $.post("/api/paginate-user-summary-items", {
         "pagination_token": homeUserStatusPagToken,
         "limit": homeUserStatusPagLimit
     }, function () {
@@ -83,7 +83,7 @@ function updateHomeStatusSummaries() {
 }
 
 function updateSubmittedWidget() {
-    $.post("/submitted-symptom-reports", {}, function () {
+    $.post("/api/submitted-symptom-reports", {}, function () {
         console.log("Update submitted symptom reports received");
     }, "json").done(function (data) {
         $("#submitted-symptom-reports").html(data.value);

@@ -39,14 +39,14 @@ spec:
           value: redis://{{ .Release.Name }}-redis
         - name: VAULT_ROLE
           value: {{ .Values.vault.vaultRole }}
-        image: gcr.io/vault-159468/admin:{{ .Values.imageVersion }}
+        image: gcr.io/vault-159468/dashboard:{{ .Values.imageVersion }}
         name: {{ template "admin.fullname" .}}
         ports:
           - containerPort: {{ .Values.exposePort }}
         {{ if eq .Values.readinessProbe.enabled "true" }}
         readinessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 80
           initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
           periodSeconds: {{ .Values.readinessProbe.interval}}
@@ -54,7 +54,7 @@ spec:
         {{ if eq .Values.livenessProbe.enabled "true" }}
         livenessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 80
           initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
           periodSeconds: {{ .Values.livenessProbe.interval }}

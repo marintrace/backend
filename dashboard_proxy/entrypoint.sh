@@ -16,7 +16,7 @@ OIDC_SECRET=$(curl -k --fail --location --request GET "${VAULT_ADDRESS}:8200/v1/
 CLIENT_ID=$(echo "$OIDC_SECRET" | jq .data.data.client_id -r)
 CLIENT_SECRET=$(echo "$OIDC_SECRET" | jq .data.data.client_secret -r)
 DISCOVERY_URL=$(echo "$OIDC_SECRET" | jq .data.data.discovery_url -r)
-MATCH_CLAIMS=$(echo "$MATCH_CLAIMS" | jq .data.data.match_claims -r)
+MATCH_CLAIMS=$(echo "$MATCH_CLAIMS" | jq .data.data.match_claims)
 
 echo "Starting Louketo Proxy"
 /opt/louketo/louketo-proxy \

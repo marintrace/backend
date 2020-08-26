@@ -15,15 +15,11 @@
 
         {% block stylesheets %}
             <!-- Favicon -->
-            <link href="{{ url_for('static', filename='assets/img/brand/favicon.png') }}" rel="icon" type="image/png">
+            <link href="/static/assets/img/brand/favicon.png" rel="icon" type="image/png">
             <!-- Fonts -->
             <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
-            <!-- Icons -->
-            <link href="{{ url_for('static', filename='assets/js/plugins/nucleo/css/nucleo.css') }}" rel="stylesheet">
-            <link href="{{ url_for('static', filename='assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css') }}"
-                  rel="stylesheet">
             <!-- CSS Files -->
-            <link href="{{ url_for('static', filename='assets/css/argon-dashboard.css') }}" rel="stylesheet">
+            <link href="/static/assets/css/argon-dashboard.css" rel="stylesheet">
         {% endblock stylesheets %}
 
     {% endblock head %}
@@ -41,16 +37,13 @@
 
 {% block javascripts %}
     <!-- Core -->
-    <script src="{{ url_for('static', filename='assets/js/plugins/jquery/dist/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Optional JS -->
-    <script src="{{ url_for('static', filename='assets/js/plugins/chart.js/dist/Chart.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/js/plugins/chart.js/dist/Chart.extension.js') }}"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <!-- Argon JS -->
-    <script src="{{ url_for('static', filename='assets/js/argon-dashboard.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>
+    <script src="/static/assets/js/argon-dashboard.min.js"></script>
+    <script src="/static/assets/js/app.js"></script>
 {% endblock javascripts %}
 
 </body>
