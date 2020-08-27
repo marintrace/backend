@@ -5,46 +5,65 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>MarinTrace</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="assets/css/styles.min.css">
 </head>
 
-<body>
-    <nav class="navbar navbar-light navbar-expand-md navigation-clean">
-        <div class="container"><a class="navbar-brand" href="home.html" style="font-family: 'Lato';font-weight: 900;">MarinTrace</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
-            <div
-                class="collapse navbar-collapse" id="navcol-1">
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item dropdown"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="#" style="font-family: 'Lato';">Settings&nbsp;</a>
-                        <div class="dropdown-menu" role="menu"><a class="dropdown-item" role="presentation" id="logout" href="#">Log out</a></div>
-                    </li>
-                </ul>
-        </div>
-        </div>
-    </nav>
-    <div style="margin-top: 1em;">
+<body class="bg-default"><nav class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="home.html">
+		<img src="assets/img/white.png">
+		<sup>web</sup>
+	 </a>
+    <button data-toggle="collapse" data-target="#navcol-1" class="navbar-toggler"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+      <div
+          class="collapse navbar-collapse" id="navcol-1">
+          <ul class="nav navbar-nav ml-auto">
+              <li class="nav-item dropdown"><a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#" style="font-family: 'Lato';">Settings </a>
+                  <div role="menu" class="dropdown-menu"><a role="presentation" class="dropdown-item" id="logout" href="#">Log out</a></div>
+              </li>
+          </ul>
+  </div>
+  </div>
+</nav><div class="header bg-gradient-primary py-7 py-lg-8 pt-lg-9">
+      <div class="separator separator-bottom separator-skew zindex-100">
+        <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+        </svg>
+      </div>
+    </div>
+    <div class="mt--8" style="margin-top: 1em;">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h2 style="font-weight: 400;">Contacts</h2>
-                    <p>Report who you've been in contact with today.&nbsp;</p><button class="btn btn-primary" id="reportContacts" type="button" style="background-color: #017BD6;border-color: #FFFFFF;">Report contacts&nbsp;»</button></div>
-                <div class="col-md-4 mb-4">
-                    <h2 style="font-weight: 400;">Symptoms</h2>
-                    <p>Report your symptoms. They are required to be reported everyday.</p><a class="btn btn-primary" role="button" id="reportSymptoms" style="background-color: #017BD6;border-color: #FFFFFF;" href="report-symptoms.html">Report symptoms »</a></div>
-                <div
-                    class="col-md-4 mb-4">
-                    <h2 style="font-weight: 400;">Tests</h2>
-                    <p>When you get tested, you should report the result here.</p>
-                    <div style="display: flex;flex-direction: column;width: 200px;"><button class="btn btn-primary" type="button" style="margin-bottom: 10px;background-color: #017BD6;border-color: inherit;border-color: #FFFFFF;" data-toggle="modal" data-target="#positiveModal">Report positive test »</button>
-                        <button
-                            class="btn btn-primary" type="button" style="margin-bottom: 10px;background-color: #017BD6;border-color: inherit;" data-toggle="modal" data-target="#negativeModal">Report negative test »</button>
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Contacts</h2>
+                            <p>Report who you've been in contact with today.&nbsp;</p><button class="btn btn-primary text-nowrap" id="reportContacts" type="button" style="margin-bottom: 10px; width:100%;"><strong>Report contacts »</strong></button></div>
                     </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Symptoms</h2>
+                            <p>Report your symptoms. They are required to be reported everyday.</p><a class="btn btn-primary text-nowrap" role="button" id="reportSymptoms" href="report-symptoms.html" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms »</strong></a></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Tests</h2>
+                            <p>When you get tested, you should report the result here.</p>
+                            <div style="display: flex;flex-direction: column;width: 100%;"><button class="btn btn-primary text-nowrap" type="button" data-toggle="modal" data-target="#negativeModal" style="margin-bottom: 10px; width:100%;"><strong>Report negative test »</strong><br></button><button class="btn btn-primary text-nowrap"
+                                    type="button" data-toggle="modal" data-target="#positiveModal" style="margin-bottom: 10px; width:100%;"><strong>Report positive test »</strong><br></button></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
     </div>
     <div class="modal fade" role="dialog" tabindex="-1" id="positiveModal">
         <div class="modal-dialog" role="document">

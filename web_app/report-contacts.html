@@ -5,40 +5,50 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>MarinTrace</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="assets/css/styles.min.css">
 </head>
 
-<body>
-    <nav class="navbar navbar-light navbar-expand-md navigation-clean">
-        <div class="container"><a class="navbar-brand" style="font-family: 'Lato';font-weight: 900;" href="home.html">MarinTrace</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
-            <div
-                class="collapse navbar-collapse" id="navcol-1">
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item" role="presentation"><a class="nav-link active" href="#"></a></li>
-                    <li class="nav-item" role="presentation"><a class="nav-link" href="#"></a></li>
-                    <li class="nav-item" role="presentation"><a class="nav-link" href="#"></a></li>
-                    <li class="nav-item dropdown"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="#" style="font-family: 'Lato';">Settings&nbsp;</a>
-                        <div class="dropdown-menu" role="menu"><a class="dropdown-item" role="presentation" id="logout" href="#">Log out</a></div>
-                    </li>
-                </ul>
-        </div>
-        </div>
-    </nav>
-    <div style="margin-top: 10px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12 col-lg-8 offset-lg-2">
-                    <div class="form-group" style="/*padding: 10px;*/"><div class="input-group">
+<body class="bg-default"><nav class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="home.html">
+		<img src="assets/img/white.png">
+		<sup>web</sup>
+	 </a>
+    <button data-toggle="collapse" data-target="#navcol-1" class="navbar-toggler"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+      <div
+          class="collapse navbar-collapse" id="navcol-1">
+          <ul class="nav navbar-nav ml-auto">
+              <li class="nav-item dropdown"><a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#" style="font-family: 'Lato';">Settings </a>
+                  <div role="menu" class="dropdown-menu"><a role="presentation" class="dropdown-item" id="logout" href="#">Log out</a></div>
+              </li>
+          </ul>
+  </div>
+  </div>
+</nav><div class="header bg-gradient-primary py-7 py-lg-8 pt-lg-9">
+      <div class="separator separator-bottom separator-skew zindex-100">
+        <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+        </svg>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col col-md-8">
+            <div class="card mt--6">
+                <div class="card-body">
+                    <div class="container" style="margin-top:10px">
+                        <h2 style="font-weight: 400;">Report Symptoms</h2>
+                        <div class="form-group" style="/*padding: 10px;*/"><div class="input-group">
     <div class="input-group-prepend"></div>
-    <input type="text" class="form-control" id="tokenfield" value="" placeholder="Start typing a name. Hit tab or click on a suggestion to autocomplete." style="font-family:'Lato'"/>
+    <input type="text" class="form-control" id="tokenfield" value="" placeholder="Start typing a name." style="font-family:'Lato'"/>
     <div class="input-group-append">
 		<button id = "submitButton" class="btn btn-primary" type="submit" style="/*margin-top: 10px;*/">Report Contacts</button>
 	</div>
 </div></div>
+                    </div>
                 </div>
             </div>
         </div>
