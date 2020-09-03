@@ -49,11 +49,11 @@
 {% endblock content %}
 
 {% block javascripts %}
-{{ super() }}
-<script>
-    $(document).ready(function () {
-        updateSubmittedWidget();
-        updateHomeStatusSummaries();
-    });
-</script>
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            updateSubmittedWidget();
+            updateHomeStatusSummaries();
+        });
+    </script>
 {% endblock %}

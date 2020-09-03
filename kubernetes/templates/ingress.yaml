@@ -7,17 +7,17 @@ metadata:
     ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - http:
-      paths:
-      - path: /rest/*
-        backend:
-          serviceName: {{ .Release.Name }}-rest
-          servicePort: 80
-      - path: /admin/*
-        backend:
-          serviceName: {{ .Release.Name }}-admin-oidc
-          servicePort: 80
-      - path: /app/*
-        backend:
-          serviceName: {{ .Release.Name }}-web
-          servicePort: 80
+    - http:
+        paths:
+          - path: /rest/*
+            backend:
+              serviceName: {{ .Release.Name }}-rest
+              servicePort: 80
+          - path: /admin/*
+            backend:
+              serviceName: {{ .Release.Name }}-admin-oidc
+              servicePort: 80
+          - path: /app/*
+            backend:
+              serviceName: {{ .Release.Name }}-web
+              servicePort: 80

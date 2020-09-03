@@ -11,9 +11,9 @@ metadata:
     helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
 spec:
   ports:
-  - name: "admin"
-    port: {{ .Values.exposePort }}
-    targetPort: {{ .Values.exposePort }}
+    - name: "admin"
+      port: {{ .Values.exposePort }}
+      targetPort: {{ .Values.exposePort }}
   selector:
     name: {{ template "admin.fullname" . }}
 status:

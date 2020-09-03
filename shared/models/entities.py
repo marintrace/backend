@@ -98,26 +98,7 @@ class SymptomReport(Timestamped):
     """
     Symptom Report
     """
-    fever_chills: bool = False
-    cough: bool = False
-    shortness_breath: bool = False
-    difficulty_breathing: bool = False
-    fatigue: bool = False
-    muscle_body_aches: bool = False
-    headache: bool = False
-    loss_taste_smell: bool = False
-    sore_throat: bool = False
-    congestion_runny_nose: bool = False
-    nausea_vomiting: bool = False
-    diarrhea: bool = False
-
-    def get_symptoms(self):
-        """
-        Retrieve symptoms for which the patient is positive
-        """
-        non_symptom_attributes = ('timestamp',)
-        return [symptom_name.replace('_', ' ').title() for (symptom_name, is_symptomatic) in self if
-                is_symptomatic and symptom_name not in non_symptom_attributes]
+    num_symptoms: int = 0
 
 
 class Report(BaseModel):
@@ -192,14 +173,13 @@ class User(BaseModel):
     last_name: str
     email: str
     school: str
-    signup_at: UserStatus = UserStatus.INACTIVE
+    status: UserStatus = UserStatus.INACTIVE
 
-    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, high_priority: bool = False) -> str:
+    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None) -> str:
         """
         Send a task to service via redis
         :param task_name: the task name to queue the task to
         :param task_data: data to send to the target worker
-        :param high_priority: whether or not the request should be routed to the high priority celery queue
         :return: the task id
         """
         task_params = {'user': self}
@@ -209,7 +189,7 @@ class User(BaseModel):
 
         queued_task = celery.send_task(
             name=task_name, args=[], kwargs=task_params,
-            queue='priority' if high_priority else 'default'
+            queue='default'
         )
         return queued_task.id
 

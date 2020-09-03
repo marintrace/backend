@@ -3,8 +3,8 @@ Email Service for sending emails via SendGrid
 """
 import requests
 
-from shared.service.vault_config import VaultConnection
 from shared.logger import logger
+from shared.service.vault_config import VaultConnection
 
 
 class EmailClient:

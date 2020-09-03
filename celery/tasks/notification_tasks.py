@@ -6,9 +6,9 @@ from uuid import uuid4
 from shared.logger import logger
 from shared.models import RiskNotification, User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, celery
+from shared.service.email_config import EmailClient
 from shared.service.neo_config import acquire_db_graph
 from shared.service.vault_config import VaultConnection
-from shared.service.email_config import EmailClient
 
 EMAIL_CLIENT = EmailClient()
 
@@ -29,7 +29,7 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
     :return: list of email prefixes from n degree interactions
     """
     timestamp_limit = round((datetime.now() - timedelta(days=lookback_days)).timestamp())
-    seen_individuals = {email}  # email prevents circular reference in the graph
+    seen_individuals = {email}  # prevent infinite circular traversal if user links back to itself.
     individual_risk_tiers = dict()
 
     with acquire_db_graph() as g:
@@ -47,7 +47,7 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
                 if node['email'] in seen_individuals:
                     continue
                 seen_individuals.add(node['email'])
-                individual_risk_tiers[tier].append(node['name'])
+                individual_risk_tiers[tier].append(f'{node["first_name"]} {node["last_name"]}')
 
     del seen_individuals
     return individual_risk_tiers
@@ -78,6 +78,6 @@ def notify_risk(self, *, user: User, task_data: RiskNotification):
                                 'highest_risk_members': ', '.join(individuals_at_risk[HighestRisk]),
                                 'high_risk_members': ', '.join(individuals_at_risk[HighRisk]),
                                 'medium_risk_members': ', '.join(individuals_at_risk[LowMediumRisk]),
-                                'symptoms': ', '.join(task_data.criteria), 'request_id': str(uuid4()),
+                                'symptoms': task_data.criteria, 'request_id': str(uuid4()),
                             })
     logger.info("Sent email to relevant administrators")

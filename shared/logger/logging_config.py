@@ -45,9 +45,9 @@ class Logger:
     ]
 
     def __init__(
-        self,
-        config_file: str = "shared/logger/config.json",
-        debug=env_vars.get("DEV", False),
+            self,
+            config_file: str = "shared/logger/config.json",
+            debug=env_vars.get("DEV", False),
     ):
         """
         :param config_file: relative path to logging configuration

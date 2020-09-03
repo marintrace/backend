@@ -1,12 +1,14 @@
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter
+
 from shared.logger import logger
-from shared.service.jwt_auth_config import JWTAuthManager
-from shared.service.neo_config import acquire_db_graph, current_day_node
 from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummaryResponse, DashboardUserInfoDetail, \
     DashboardUserSummaryItem, AdminDashboardUser, Paginated, TestType, UserEmailIdentifier, \
     PaginatedUserEmailIdentifer, DashboardUserInteractions, DashboardUserInteraction
+from shared.service.jwt_auth_config import JWTAuthManager
+from shared.service.neo_config import acquire_db_graph, current_day_node
 from shared.utilities import get_pst_time
-from fastapi import APIRouter
-from datetime import datetime, timedelta
 
 # Mounted on the main router
 BACKEND_ROUTER = APIRouter()
@@ -32,13 +34,14 @@ async def create_summary_item(record) -> DashboardUserSummaryItem:
 
     edge_properties = dict(record['report']) if record and record['report'] else None
     test_type = edge_properties.pop('test_type', default=None)
+    num_symptoms = edge_properties.pop('num_symptoms', default=0)
 
     if not (record and record['report']):
         summary_item_parameters.update(dict(color='danger', message='No report', code='INCOMPLETE'))
     elif test_type == TestType.POSITIVE.value:
         summary_item_parameters.update(dict(color='danger', message='Positive Test', code='POSITIVE'))
-    elif any(edge_properties.values()):  # check for positive symptoms
-        summary_item_parameters.update(dict(color='danger', message='Symptomatic', code='SYMPTOM'))
+    elif num_symptoms > 0:  # check for positive symptoms
+        summary_item_parameters.update(dict(color='danger', message=f'{num_symptoms} symptoms', code='SYMPTOM'))
     elif test_type == TestType.NEGATIVE.value:
         summary_item_parameters.update(dict(color='success', message='Negative Test', code='NEGATIVE'))
     else:
