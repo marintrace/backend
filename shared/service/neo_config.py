@@ -4,13 +4,14 @@ FastAPI REST API for processing both synchronous and
 asynchronous information from clients
 """
 from contextlib import contextmanager
+from os import environ as env_vars
 from typing import Dict, Optional
 
 from py2neo import Graph, Node
-from shared.utilities import get_pst_time
 
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
+from shared.utilities import get_pst_time
 
 
 class Neo4JCredentials:
@@ -45,8 +46,8 @@ def acquire_db_graph():
     credentials: Optional[Dict] = _CREDENTIALS.retrieve_credentials()
     logger.info("Establishing new graph connection to Neo4J")
     graph = Graph(
-        bolt=True, host='neo4j', secure=True,
-        user=credentials['username'], password=credentials['password']
+        host=env_vars.get('NEO4J_HOST', 'tracing-neo4j'), scheme='bolt',
+        auth=(credentials['username'], credentials['password']), port=7687
     )
     try:
         yield graph

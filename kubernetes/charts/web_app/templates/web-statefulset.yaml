@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: {{ template "web.fullname" . }}
+  labels:
+    name: {{ template "web.fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+spec:
+  replicas: {{ .Values.replicas }}
+  serviceName: {{ template "web.fullname" . }}
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      name: {{ template "web.fullname" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "web.fullname" . }}
+      creationTimestamp: null
+    spec:
+      containers:
+        - image: gcr.io/vault-159468/web-app:{{ .Values.imageVersion }}
+          name: {{ template "web.fullname" .}}
+          ports:
+            - containerPort: {{ .Values.exposePort }}
+          {{ if eq .Values.readinessProbe.enabled "true" }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
+            periodSeconds: {{ .Values.readinessProbe.interval}}
+          {{ end }}
+          {{ if eq .Values.livenessProbe.enabled "true" }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
+            periodSeconds: {{ .Values.livenessProbe.interval }}
+          {{ end }}
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: gcp-registry

@@ -1,46 +1,59 @@
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter
+from py2neo import RelationshipMatcher
+
 from shared.logger import logger
-from shared.service.jwt_auth_config import JWTAuthManager
-from shared.service.neo_config import acquire_db_graph, current_day_node
 from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummaryResponse, DashboardUserInfoDetail, \
     DashboardUserSummaryItem, AdminDashboardUser, Paginated, TestType, UserEmailIdentifier, \
-    PaginatedUserEmailIdentifer, DashboardUserInteractions
+    PaginatedUserEmailIdentifer, DashboardUserInteractions, DashboardUserInteraction
+from shared.service.jwt_auth_config import JWTAuthManager
+from shared.service.neo_config import acquire_db_graph, current_day_node
 from shared.utilities import get_pst_time
-from fastapi import APIRouter
 
 # Mounted on the main router
 BACKEND_ROUTER = APIRouter()
 
 # JWT Authentication Manager
 
-AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/dashboard",
+AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
                               object_creator=lambda claims, role:
                               AdminDashboardUser(last_name=claims['family_name'], first_name=claims['given_name'],
                                                  email=claims['email'], school=role.split('-')[0]))
 
-OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')
+OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 
-async def create_summary_item(record) -> DashboardUserSummaryItem:
+async def create_summary_item(record, with_email=None, with_timestamp=None) -> DashboardUserSummaryItem:
     """
-    Create a Summary item from a graph edge between two interactions
+    Create a Summary item from a graph edge between a member and DailyReport
     """
-    summary_item_parameters = dict(email=record['email'])
-    edge_properties = dict(record['report']) if record and record['report'] else None
+    summary_item_parameters = {
+        'timestamp': datetime.fromtimestamp(with_timestamp).strftime("%Y-%m-%d") if with_timestamp else None,
+        'email': with_email
+    }
 
     if not (record and record['report']):
         summary_item_parameters.update(dict(color='danger', message='No report', code='INCOMPLETE'))
-    elif edge_properties.pop('test_type', default=None) == TestType.POSITIVE.value:
-        summary_item_parameters.update(dict(color='danger', message='Positive Test', code='POSITIVE'))
-    elif any(edge_properties.values()):  # check for positive symptoms
-        summary_item_parameters.update(dict(color='danger', message='Symptomatic', code='SYMPTOM'))
     else:
-        summary_item_parameters.update(dict(color='success', message='Healthy', code='HEALTHY'))
+        edge_properties = dict(record['report']) if record and record['report'] else None
+        test_type = edge_properties.get('test_type')
+        num_symptoms = edge_properties.get('num_symptoms', 0)
+
+        if test_type == TestType.POSITIVE.value:
+            summary_item_parameters.update(dict(color='danger', message='Positive Test', code='POSITIVE'))
+        elif num_symptoms > 0:  # check for positive symptoms
+            summary_item_parameters.update(dict(color='danger', message=f'{num_symptoms} symptoms', code='SYMPTOM'))
+        elif test_type == TestType.NEGATIVE.value:
+            summary_item_parameters.update(dict(color='success', message='Negative Test', code='NEGATIVE'))
+        else:
+            summary_item_parameters.update(dict(color='success', message='Healthy', code='HEALTHY'))
 
     return DashboardUserSummaryItem(**summary_item_parameters)
 
 
-@BACKEND_ROUTER.get(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
-                    summary="Retrieve the number of submitted symptom reports")
+@BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
+                     summary="Retrieve the number of submitted symptom reports")
 async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the number of submitted symptom reports for the school
@@ -49,8 +62,30 @@ async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
     logger.info(f"Retrieving number of submitted symptom reports for school '{user.school}'")
     with acquire_db_graph() as graph:
         current_day = current_day_node(school=user.school)
-        submitted_reports = len(graph.match((current_day,), r_type="reported"))
+        matcher = RelationshipMatcher(graph=graph)
+        submitted_reports = len(matcher.match(nodes=(None, current_day), r_type='reported'))
         return DashboardNumericalWidgetResponse(value=submitted_reports)
+
+
+@BACKEND_ROUTER.post(path="/paginate-user-reports", response_model=DashboardUserSummaryResponse,
+                     summary="Paginate through user report history")
+async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, user: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Paginate through a user's report history
+    """
+    logger.info("Paginating user report history")
+    with acquire_db_graph() as graph:
+        query = f"""
+        MATCH (m: Member {{school: "{user.school}", email: "{request.email}"}})-[report:reported]-(d: DailyReport))
+        RETURN report, d.date as timestamp ORDER BY d.date
+        SKIP {request.pagination_token} LIMIT {request.limit}
+        """
+
+        return DashboardUserSummaryResponse(
+            records=[await create_summary_item(record, with_timestamp=record['timestamp'])
+                     for record in list(graph.run(query))],
+            pagination_token=request.pagination_token + request.limit
+        )
 
 
 @BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=DashboardUserSummaryResponse,
@@ -65,11 +100,12 @@ async def paginate_user_summary_items(pagination: Paginated, user: AdminDashboar
         query = f"""
         MATCH (m: Member {{school: "{user.school}"}})
         OPTIONAL MATCH(m) - [report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime("%Y-%m-%d")}"}})
-        RETURN m.email, report ORDER BY report.timestamp 
+        RETURN m.email as email, report, report.timestamp as timestamp ORDER BY report.timestamp 
         SKIP {pagination.pagination_token} LIMIT {pagination.limit}"""
 
     return DashboardUserSummaryResponse(
-        records=[await create_summary_item(record) for record in list(graph.run(query))],
+        records=[await create_summary_item(record, with_email=record['email'], with_timestamp=record['timestamp'])
+                 for record in list(graph.run(query))],
         pagination_token=pagination.pagination_token + pagination.limit
     )
 
@@ -80,15 +116,16 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
     """
     Get the user info from the database for the specified user
     """
+    logger.info("Retrieving user info")
     with acquire_db_graph() as graph:
         # Scope User Retrieval to the Admin Dashboard's Logged In School
-        member_node = graph.nodes.match("Member", email=identifier.email, school=user.school)
+        member_node = graph.nodes.match("Member", email=identifier.email, school=user.school).first()
         return DashboardUserInfoDetail(
-            first_name=member_node.first_name,
-            last_name=member_node.last_name,
-            cohort=member_node.cohort,
-            email=member_node.email,
-            school=member_node.school
+            first_name=member_node['first_name'],
+            last_name=member_node['last_name'],
+            cohort=member_node['cohort'],
+            email=member_node['email'],
+            school=member_node['school']
         )
 
 
@@ -98,16 +135,23 @@ async def paginate_user_interactions(request: PaginatedUserEmailIdentifer, user:
     """
     Paginate through a user's interactions
     """
+    timestamp_limit = round((datetime.now() - timedelta(days=14)).timestamp())
+
     with acquire_db_graph() as graph:
         query = f"""
         MATCH (m:Member {{email: "{request.email}", school: "{user.school}"}})
-        OPTIONAL MATCH (m)-[r: interacted_with]-(m1:Member)
-        return m1.email as email
+        OPTIONAL MATCH (m)-[r: interacted_with]-(m1:Member) WHERE r.timestamp>={timestamp_limit}
+        return m1.email as email, m1.timestamp as timestamp
         SKIP {request.pagination_token} LIMIT {request.limit}"""
 
         return DashboardUserInteractions(
-            users=[record['email'] for record in list(graph.run(query))],
-            pagination_token=request.pagination_token + request.limit)
+            users=[
+                DashboardUserInteraction(
+                    email=record['email'],
+                    timestamp=datetime.fromtimestamp(record['timestamp']).strftime("%Y-%m-%d")  # UNIX timestamp -> str
+                ) for record in list(graph.run(query))],
+            pagination_token=request.pagination_token + request.limit
+        )
 
 
 @BACKEND_ROUTER.post(path="/get-user-summary-status", response_model=DashboardUserSummaryItem,
@@ -116,10 +160,13 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
     """
     Get the user's summary status
     """
-    with acquire_db_graph():
+    logger.info("Acquiring User Summary Status")
+
+    with acquire_db_graph() as graph:
         query = f"""
-        MATCH (m:Member {{email:"{identifier.email}",school:"{user.school}}}-
-                [report:REPORTED]-(d:SchoolDay {{date:"{get_pst_time().strftime("%Y-%m-%d")}"}})
+        MATCH (m:Member {{email: '{identifier.email}', school:'{user.school}'}})-
+                [report:reported]-(d:DailyReport {{date: '{get_pst_time().strftime("%Y-%m-%d")}'}}) 
         RETURN report
         """
-        return await create_summary_item(record=list(query) or None)
+        query_result = list(graph.run(query))
+        return (await create_summary_item(record=query_result[0])) if query_result else None

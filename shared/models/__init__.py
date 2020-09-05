@@ -3,9 +3,15 @@
 """
 Simplify the importing of models in other files
 """
-from shared.models.entities import (CreatedAsyncTask, InteractionReport,
-                                    ListUsersResponse, RiskNotification,
-                                    SymptomReport, TestReport, TestType, User,
-                                    UserStatus, DashboardNumericalWidgetResponse, PaginatedUserEmailIdentifer,
-                                    AdminDashboardUser, DashboardUserSummaryResponse, DashboardUserSummaryItem,
-                                    Paginated, DashboardUserInfoDetail, UserEmailIdentifier, DashboardUserInteractions)
+from shared.models.entities import (AdminDashboardUser, CreatedAsyncTask,
+                                    DashboardNumericalWidgetResponse,
+                                    DashboardUserInfoDetail,
+                                    DashboardUserInteraction,
+                                    DashboardUserInteractions,
+                                    DashboardUserSummaryItem,
+                                    DashboardUserSummaryResponse,
+                                    InteractionReport, ListUsersResponse,
+                                    Paginated, PaginatedUserEmailIdentifer,
+                                    RiskNotification, SymptomReport,
+                                    TestReport, TestType, User,
+                                    UserEmailIdentifier, UserStatus)

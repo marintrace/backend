@@ -2,13 +2,15 @@
 Service to validate and verify JSON web tokens for FastAPI
 """
 import re
-from typing import Callable, List, Dict, Any
-from pydantic import BaseModel
+from typing import Any, Callable, Dict, List
+
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from jose import jwt
-from shared.service.vault_config import VaultConnection
-from shared.logger import logger
-from fastapi import HTTPException, Depends, Cookie, Header, status
+from pydantic import BaseModel
 from requests import get as get_request
+
+from shared.logger import logger
+from shared.service.vault_config import VaultConnection
 
 
 class JWTAuthManager:
@@ -28,7 +30,6 @@ class JWTAuthManager:
             oidc_secrets = vault.read_secret(secret_path=oidc_vault_secret)
 
             self.domain = oidc_secrets["auth0_domain"]
-            self.audience = oidc_secrets["audience"]
             self.issuer = oidc_secrets['issuer']
             self.authorized_roles = oidc_secrets['authorized_roles'].split(',')
             self.role_claim_name = oidc_secrets["role_claim_name"]
@@ -37,7 +38,7 @@ class JWTAuthManager:
         self.token_extractor = JWTAuthManager.TOKEN_EXTRACTOR
         self.object_creator = object_creator
 
-    async def _extract_token_from_header(self, header: str):
+    def _extract_token_from_header(self, header: str):
         """
         Extract the token from the authorization header
         :param header: authorization header specified
@@ -51,7 +52,7 @@ class JWTAuthManager:
 
         return extracted_token.group("token")
 
-    async def _get_authorized_role(self, roles: List[str]):
+    def _get_authorized_role(self, roles: List[str]):
         """
         Get the user's authorized role for this service
         """
@@ -62,7 +63,7 @@ class JWTAuthManager:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='User does not have an authorized role')
 
-    async def _get_signing_header(self, token):
+    def _get_signing_header(self, token):
         """
         Validate RSA Signing Header
         :param token: the bearer token to verify
@@ -81,18 +82,19 @@ class JWTAuthManager:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Token is missing a necessary header")
 
-    async def verify_jwt(self, token: str):
+    def verify_jwt(self, token: str):
         """
         Verify Authorization JWT issued by OIDC
         :param token: Bearer token accompanying request (from cookie, or from header)
         """
-        signed_header: dict = await self._get_signing_header(token=token)
-
         # noinspection PyBroadException
         try:
-            claims: Dict[str, Any] = jwt.decode(token=token, key=signed_header, algorithms=['RS256'],
-                                                audience=self.audience, issuer=self.issuer)
-            authorized_role = await self._get_authorized_role(claims[self.role_claim_name])
+            signed_header: dict = self._get_signing_header(token=token)
+            claims: Dict[str, Any] = jwt.decode(
+                token=token, key=signed_header, algorithms=['RS256'],
+                issuer=self.issuer, options=dict(verify_aud=False)
+            )  # auth0 id token does not provide an audience
+            authorized_role = self._get_authorized_role(claims[self.role_claim_name])
             return self.object_creator(claims, authorized_role)
         except jwt.ExpiredSignatureError:
             logger.exception("***SECURITY RISK: Expired JWT***")
@@ -107,23 +109,23 @@ class JWTAuthManager:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Error verifying JWT")
 
-    async def auth_header(self):
+    def auth_header(self):
         """
         FastAPI Depends to verify OIDC issued Bearer Tokens specified as HTTP Header
         """
 
-        async def header_verification(authorization: str = Header(..., alias='Authorization')):
-            extracted_token = await self._extract_token_from_header(authorization)
+        def header_verification(authorization: str = Header(..., alias='Authorization')):
+            extracted_token = self._extract_token_from_header(authorization)
             return self.verify_jwt(extracted_token)
 
         return Depends(header_verification)
 
-    async def auth_cookie(self, cookie_name: str):
+    def auth_cookie(self, cookie_name: str):
         """
         FastAPI Depends to verify Bearer Tokens specified as Cookies
         """
 
-        async def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
+        def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
             return self.verify_jwt(token)
 
         return Depends(cookie_verification)

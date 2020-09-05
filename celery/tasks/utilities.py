@@ -1,4 +1,4 @@
-from py2neo import Node, Relationship, RelationshipMatcher
+from py2neo import Relationship, RelationshipMatcher
 from pydantic import BaseModel
 
 from shared.logger import logger

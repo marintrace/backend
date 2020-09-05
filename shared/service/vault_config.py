@@ -24,8 +24,7 @@ class VaultConnection:
     assert len(VAULT_SERVICE_TOKEN) > 1, "Unable to read Kubernetes Service Account Token"
 
     def __init__(self):
-        # for some reason, hvac doesn't always get the token for vault so we use requests instead
-        self.client = Client(url=VaultConnection.VAULT_URL, verify=False)
+        self.client = Client(url=VaultConnection.VAULT_URL)
         self.refresh_token()
 
     def __enter__(self):

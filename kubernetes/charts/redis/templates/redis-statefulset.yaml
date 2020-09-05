@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: {{ template "redis.fullname" . }}
+  labels:
+    name: {{ template "redis.fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+spec:
+  replicas: {{ .Values.replicas }}
+  serviceName: {{ template "redis.fullname" . }}
+  selector:
+    matchLabels:
+      name: {{ template "redis.fullname" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "redis.fullname" . }}
+    spec:
+      containers:
+        - image: redis
+          name:  {{ template "redis.fullname" . }}-pod
+          volumeMounts:
+              - mountPath: /data
+                name: {{ template "redis.fullname" . }}-claim0
+#              - mountPath: /var/run/ssl
+#                name: {{ template "redis.fullname" . }}-ssl
+#                readOnly: true
+          ports:
+            - containerPort: {{ .Values.exposePort }}
+              name: redis
+          {{ if eq .Values.readinessProbe.enabled "true" }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - redis-cli ping # PONG!
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
+            periodSeconds: {{ .Values.readinessProbe.interval }}
+          {{ end }}
+          {{ if eq .Values.livenessProbe.enabled "true" }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - redis-cli ping
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
+            periodSeconds: {{ .Values.livenessProbe.interval }}
+          {{ end }}
+      restartPolicy: Always
+      serviceAccountName: {{ template "redis.fullname" . }}-serviceaccount
+      volumes:
+          - name: {{ template "redis.fullname" . }}-claim0
+            persistentVolumeClaim:
+              claimName: {{ template "redis.fullname" . }}-claim0
+#            - name: redis-tls

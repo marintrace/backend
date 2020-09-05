@@ -51,7 +51,7 @@ def report_test(self, *, user: User, task_data: TestReport):
 
     if task_data.test_type == TestType.POSITIVE:
         task_id = user.queue_task(task_name='tasks.notify_risk',
-                                  task_data=RiskNotification(criteria=[task_data.get_test()]), high_priority=True)
+                                  task_data=RiskNotification(criteria=task_data.get_test()))
         logger.warning(f"*Test indicates that the authorized user has COVID-19. Notifying risk with task id {task_id}*")
 
 
@@ -65,14 +65,12 @@ def report_symptoms(self, *, user: User, task_data: SymptomReport):
     logger.info("Adding symptom report to daily record for authorized user...")
     update_active_user_report(user=user, report=task_data)
 
-    positive_symptoms = task_data.get_symptoms()
-
     with VaultConnection() as vault:
         min_symptoms = vault.read_secret(secret_path=f'schools/{user.school}/symptom_criteria')['minimum_symptoms']
 
-    if len(positive_symptoms) >= int(min_symptoms):  # notify the administrators of potential risk
-        task_id = user.queue_task(task_name='tasks.notify_risk', task_data=RiskNotification(criteria=positive_symptoms),
-                                  high_priority=True)
+    if task_data.num_symptoms >= int(min_symptoms):  # notify the administrators of potential risk
+        task_id = user.queue_task(task_name='tasks.notify_risk',
+                                  task_data=RiskNotification(criteria=f"{task_data.num_symptoms} symptoms"))
         logger.warning(f"*Symptoms indicate possible COVID 19. Notifying risk with task id {task_id}*")
 
 
