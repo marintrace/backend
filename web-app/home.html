@@ -10,129 +10,98 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="assets/css/styles.min.css">
-    <link rel="manifest" href="/manifest.webmanifest">
+<link rel="manifest" href="/manifest.webmanifest">
 </head>
 
-<body class="bg-default">
-<nav class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-dark">
-    <div class="container">
-        <a class="navbar-brand" href="home.html">
-            <img src="assets/img/white.png">
-            <sup>web</sup>
-        </a>
-        <button data-toggle="collapse" data-target="#navcol-1" class="navbar-toggler"><span class="sr-only">Toggle navigation</span><span
-                class="navbar-toggler-icon"></span></button>
-        <div
-                class="collapse navbar-collapse" id="navcol-1">
-            <ul class="nav navbar-nav ml-auto">
-                <li class="nav-item dropdown"><a data-toggle="dropdown" aria-expanded="false"
-                                                 class="dropdown-toggle nav-link" href="#" style="font-family: 'Lato';">Settings </a>
-                    <div role="menu" class="dropdown-menu"><a role="presentation" class="dropdown-item" id="logout"
-                                                              href="#">Log out</a></div>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<div class="header bg-gradient-primary py-7 py-lg-8 pt-lg-9">
-    <div class="separator separator-bottom separator-skew zindex-100">
-        <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1"
-             xmlns="http://www.w3.org/2000/svg">
-            <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+<body class="bg-default"><nav class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="home.html">
+		<img src="assets/img/white.png">
+		<sup>web</sup>
+	 </a>
+    <button data-toggle="collapse" data-target="#navcol-1" class="navbar-toggler"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+      <div
+          class="collapse navbar-collapse" id="navcol-1">
+          <ul class="nav navbar-nav ml-auto">
+              <li class="nav-item dropdown"><a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#" style="font-family: 'Lato';">Settings </a>
+                  <div role="menu" class="dropdown-menu"><a role="presentation" class="dropdown-item" id="logout" href="#">Log out</a></div>
+              </li>
+          </ul>
+  </div>
+  </div>
+</nav><div class="header bg-gradient-primary py-7 py-lg-8 pt-lg-9">
+      <div class="separator separator-bottom separator-skew zindex-100">
+        <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
         </svg>
+      </div>
     </div>
-</div>
-<div class="mt--8" style="margin-top: 1em;">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 style="font-weight: 400;">Contacts</h2>
-                        <p>Report who you've been in contact with today.&nbsp;</p>
-                        <button class="btn btn-primary text-nowrap" id="reportContacts" type="button"
-                                style="margin-bottom: 10px; width:100%;"><strong>Report contacts »</strong></button>
+    <div class="mt--8" style="margin-top: 1em;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Contacts</h2>
+                            <p>Report who you've been in contact with today.&nbsp;</p><button class="btn btn-primary text-nowrap" id="reportContacts" type="button" style="margin-bottom: 10px; width:100%;"><strong>Report contacts »</strong></button></div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 style="font-weight: 400;">Symptoms</h2>
-                        <p>Report your symptoms. They are required to be reported everyday.</p><a
-                            class="btn btn-primary text-nowrap" role="button" id="reportSymptoms"
-                            href="report-symptoms.html" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms
-                        »</strong></a></div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Symptoms</h2>
+                            <p>Report your symptoms. They are required to be reported everyday.</p><a class="btn btn-primary text-nowrap" role="button" id="reportSymptoms" href="report-symptoms.html" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms »</strong></a></div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 style="font-weight: 400;">Tests</h2>
-                        <p>When you get tested, you should report the result here.</p>
-                        <div style="display: flex;flex-direction: column;width: 100%;">
-                            <button class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
-                                    data-target="#negativeModal" style="margin-bottom: 10px; width:100%;"><strong>Report
-                                negative test »</strong><br></button>
-                            <button class="btn btn-primary text-nowrap"
-                                    type="button" data-toggle="modal" data-target="#positiveModal"
-                                    style="margin-bottom: 10px; width:100%;"><strong>Report positive test »</strong><br>
-                            </button>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 style="font-weight: 400;">Tests</h2>
+                            <p>When you get tested, you should report the result here.</p>
+                            <div style="display: flex;flex-direction: column;width: 100%;"><button class="btn btn-primary text-nowrap" type="button" data-toggle="modal" data-target="#negativeModal" style="margin-bottom: 10px; width:100%;"><strong>Report negative test »</strong><br></button><button class="btn btn-primary text-nowrap"
+                                    type="button" data-toggle="modal" data-target="#positiveModal" style="margin-bottom: 10px; width:100%;"><strong>Report positive test »</strong><br></button></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="modal fade" role="dialog" tabindex="-1" id="positiveModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Report <strong>POSITIVE</strong> Test?</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">×</span></button>
-            </div>
-            <div class="modal-body">
-                <p>Reporting a positive test cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
-                <button class="btn btn-danger" id="positiveButton" type="button">Report</button>
+    <div class="modal fade" role="dialog" tabindex="-1" id="positiveModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Report <strong>POSITIVE</strong> Test?</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
+                <div class="modal-body">
+                    <p>Reporting a positive test cannot be undone.</p>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button><button class="btn btn-danger" id="positiveButton" type="button">Report</button></div>
             </div>
         </div>
     </div>
-</div>
-<div class="modal fade" role="dialog" tabindex="-1" id="negativeModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Report <strong>NEGATIVE</strong> Test?</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">×</span></button>
-            </div>
-            <div class="modal-body">
-                <p>Reporting a negative test cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
-                <button class="btn btn-danger" id="negativeButton" type="button">Report</button>
+    <div class="modal fade" role="dialog" tabindex="-1" id="negativeModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Report <strong>NEGATIVE</strong> Test?</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
+                <div class="modal-body">
+                    <p>Reporting a negative test cannot be undone.</p>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button><button class="btn btn-danger" id="negativeButton" type="button">Report</button></div>
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-migrate-3.0.1.js"></script>
-<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-analytics.js"></script>
-<script src="https://cdn.auth0.com/js/auth0-spa-js/1.9/auth0-spa-js.production.js"></script>
-<script src="https://unpkg.com/swagger-client"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script src="assets/js/script.min.js"></script>
-<script src="assets/js/auth0-authed-page.min.js"></script>
-<script src="assets/js/home.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-migrate-3.0.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-analytics.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.9/auth0-spa-js.production.js"></script>
+    <script src="https://unpkg.com/swagger-client"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="assets/js/script.min.js"></script>
+    <script src="assets/js/auth0-authed-page.min.js"></script>
+    <script src="assets/js/home.min.js"></script>
 </body>
 
 </html>
