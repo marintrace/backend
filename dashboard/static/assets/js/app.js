@@ -41,8 +41,8 @@ function updateUserInteractions(user_email) {
 
         data['users'].forEach(function (e) {
             let rows = [
+                e.timestamp,
                 "<a href='/user/" + e.email + "'>" + e.email + "</a>",
-                e.timestamp
             ];
             $("#interactions").append("<tr><td>" + rows.join("</td><td>") + "</td>")
         })
@@ -61,11 +61,10 @@ function updateUserReports(user_email) {
 
         data['records'].forEach(function (e) {
             let rows = [
-                "<span class=\"badge badge-dot mr-4\"> <i class= \"bg-secondary\"></i></span>",
-                e.timestamp
+                e.timestamp,
+                "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.color + "'></i><span class='status'>" + e.message + "</span></span>",
             ];
-            $("#reports").append("<th scope='row'>" + e.message + "</th>")
-                .append("<tr><td>" + rows.join("</td><td>") + "</td>");
+            $("#reports").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
     }).fail(requestFailure)
 }

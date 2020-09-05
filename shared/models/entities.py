@@ -257,4 +257,4 @@ class DashboardUserInteractions(Paginated):
     """
     User Interactions for the Dasboard
     """
-    users: List[str]
+    users: List[DashboardUserInteraction]

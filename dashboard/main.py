@@ -43,7 +43,7 @@ async def render_user_page(request: Request, email: str):
     Render the User Page
     :return: Rendered HTML
     """
-    return templates.TemplateResponse("user.html", dict(request=request, user=email))
+    return templates.TemplateResponse("user.html", dict(request=request, user_email=email))
 
 
 app.include_router(
