@@ -8,6 +8,7 @@ from py2neo.matching import NodeMatcher
 from shared.logger import logger
 from shared.models import ListUsersResponse, User
 from shared.service.neo_config import acquire_db_graph
+
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API

@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 from os import environ as env_vars
 
-from backend.data_retrievers import BACKEND_ROUTER
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from backend.data_retrievers import BACKEND_ROUTER
 
 app = FastAPI(
     title="Admin Dashboard",

@@ -6,10 +6,10 @@ asynchronous information from clients
 from os import environ as env_vars
 
 from fastapi import FastAPI, status
-from routers.asynchronous import ASYNC_ROUTER
-from routers.synchronous import SYNC_ROUTER
 from uvicorn import run as run_server
 
+from routers.asynchronous import ASYNC_ROUTER
+from routers.synchronous import SYNC_ROUTER
 from shared.logger import logger
 
 app = FastAPI(

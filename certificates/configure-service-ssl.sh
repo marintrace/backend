@@ -12,6 +12,7 @@ cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem - | 
     "tracing-$1.default.svc.cluster.local",
     "10.0.0.1",
     "127.0.0.1",
+    "localhost",
     "tracing-$1"
   ],
   "CN": "tracing-$1.default.svc.cluster.local",

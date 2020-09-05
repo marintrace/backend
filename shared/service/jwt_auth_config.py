@@ -2,9 +2,9 @@
 Service to validate and verify JSON web tokens for FastAPI
 """
 import re
-from typing import Callable, List, Dict, Any
+from typing import Any, Callable, Dict, List
 
-from fastapi import HTTPException, Depends, Cookie, Header, status
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from jose import jwt
 from pydantic import BaseModel
 from requests import get as get_request
@@ -87,10 +87,9 @@ class JWTAuthManager:
         Verify Authorization JWT issued by OIDC
         :param token: Bearer token accompanying request (from cookie, or from header)
         """
-        signed_header: dict = self._get_signing_header(token=token)
-
         # noinspection PyBroadException
         try:
+            signed_header: dict = self._get_signing_header(token=token)
             claims: Dict[str, Any] = jwt.decode(
                 token=token, key=signed_header, algorithms=['RS256'],
                 issuer=self.issuer, options=dict(verify_aud=False)

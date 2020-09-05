@@ -21,7 +21,7 @@ class EmailClient:
         self.api_key = None
         self.from_email = None
         self.bcc_emails = None
-
+        self.auth_header = None
         self.has_setup = False
 
     def setup(self):
@@ -78,7 +78,9 @@ class EmailClient:
         }
 
         logger.info("Sending API Request to SendGrid")
-        response = requests.post(url=self.sendgrid_endpoint, json=api_payload)
+        response = requests.post(url=self.sendgrid_endpoint,
+                                 headers={'Authorization': f'Bearer {self.api_key}'},
+                                 json=api_payload)
 
         if not response.status_code == 202:
             logger.error(f"Unable to send Email... Server responded with JSON "

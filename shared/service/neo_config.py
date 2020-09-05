@@ -46,8 +46,8 @@ def acquire_db_graph():
     credentials: Optional[Dict] = _CREDENTIALS.retrieve_credentials()
     logger.info("Establishing new graph connection to Neo4J")
     graph = Graph(
-        host=env_vars.get('NEO4J_HOST', 'tracing-neo4j'), secure=True, scheme='https',
-        auth=(credentials['username'], credentials['password']), port=7473
+        host=env_vars.get('NEO4J_HOST', 'tracing-neo4j'), scheme='bolt',
+        auth=(credentials['username'], credentials['password']), port=7687
     )
     try:
         yield graph

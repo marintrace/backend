@@ -5,6 +5,13 @@ let homeUserStatusPagToken = 0;
 const userReportPagLimit = 10;
 let userReportPagToken = 0;
 
+$.ajaxSetup({
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+});
+
 function requestFailure(data) {
     alert("Failed to obtain user information");
     console.log("Error while issuing POST request");
@@ -12,7 +19,7 @@ function requestFailure(data) {
 }
 
 function updateUserStatus(user_email) {
-    $.post("/api/get-user-summary-status", {"email": user_email}, function () {
+    $.post("/api/get-user-summary-status", JSON.stringify({"email": user_email}), function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
             $("#today-status-color").addClass("bg-" + data.color);
@@ -23,11 +30,11 @@ function updateUserStatus(user_email) {
 
 function updateUserInteractions(user_email) {
     $.post("/api/paginate-user-interactions",
-        {
+        JSON.stringify({
             "email": user_email,
             "pagination_token": userInteractionPagToken,
             "limit": userInteractionPagLimit
-        }, function () {
+        }), function () {
             console.log("Paginate User Interactions Request Response Received");
         }, "json").done(function (data) {
         userInteractionPagToken = data['pagination_token'];
@@ -43,11 +50,11 @@ function updateUserInteractions(user_email) {
 }
 
 function updateUserReports(user_email) {
-    $.post("/api/paginate-user-reports", {
+    $.post("/api/paginate-user-reports", JSON.stringify({
         "email": user_email,
         "pagination_token": userReportPagToken,
         "limit": userReportPagLimit
-    }, function () {
+    }), function () {
         console.log("Paginating user reports request response received");
     }, "json").done(function (data) {
         userReportPagToken = data['pagination_token'];
@@ -64,10 +71,10 @@ function updateUserReports(user_email) {
 }
 
 function updateHomeStatusSummaries() {
-    $.post("/api/paginate-user-summary-items", {
+    $.post("/api/paginate-user-summary-items", JSON.stringify({
         "pagination_token": homeUserStatusPagToken,
         "limit": homeUserStatusPagLimit
-    }, function () {
+    }), function () {
         console.log("Update home status summaries request response received");
     }, "json").done(function (data) {
         homeUserStatusPagToken = data['pagination_token'];
@@ -83,7 +90,7 @@ function updateHomeStatusSummaries() {
 }
 
 function updateSubmittedWidget() {
-    $.post("/api/submitted-symptom-reports", {}, function () {
+    $.post("/api/submitted-symptom-reports", JSON.stringify({}), function () {
         console.log("Update submitted symptom reports received");
     }, "json").done(function (data) {
         $("#submitted-symptom-reports").html(data.value);

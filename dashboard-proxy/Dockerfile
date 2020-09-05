@@ -11,22 +11,18 @@ RUN find . -name '*.tar.gz' -type f | xargs -rn1 tar -xzf
 RUN if [ -f Makefile ]; then make; fi
 RUN cp "$(find . -name 'louketo-proxy' -type f -print -quit)" /louketo-proxy
 
-FROM centos:centos7
+FROM ubuntu:18.04
 ARG CA_URL="https://storage.googleapis.com/vault-159468-cert-storage/ca.pem"
 WORKDIR "/opt/louketo"
 
 # Install Utilities Required for Entrypoint
-RUN yum -y install curl jq wget
+RUN apt-get -y update && \
+    apt-get install -y curl jq wget ca-certificates
 
 # Trust Internal CA Certificate
-RUN wget -O /etc/pki/ca-trust/source/anchors/ca.crt "$CA_URL" && \
-    update-ca-trust extract
-
-# Setup Proxy Security
-RUN echo "louketo:x:1000:louketo" >> /etc/group && \
-    echo "louketo:x:1000:1000:louketo user:/opt/louketo:/sbin/nologin" >> /etc/passwd && \
-    chown -R louketo:louketo /opt/louketo && \
-    chmod -R g+rw /opt/louketo
+RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
+    echo "ca.crt" >> /etc/ca-certificates.conf && \
+    update-ca-certificates --fresh
 
 # Copy Required Config and Source Files
 COPY templates ./templates
@@ -40,5 +36,4 @@ COPY --from=build-env /louketo-proxy ./
 RUN chmod +x louketo-proxy && \
     chmod +x entrypoint.sh
 
-USER 1000
 CMD ["./entrypoint.sh"]

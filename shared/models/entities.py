@@ -114,7 +114,7 @@ class RiskNotification(BaseModel):
     """
     Risk Notification model
     """
-    criteria: List[str]
+    criteria: str
 
 
 # REST Entities
@@ -146,8 +146,8 @@ class DashboardUserSummaryItem(BaseModel):
     """
     Entity representing a summary item on the dashboard
     """
-    email: str = "Unspecified"
-    timestamp: str = "Unspecified"
+    email: Optional[str]
+    timestamp: Optional[str]
     color: str
     message: str
     code: str

@@ -7,6 +7,7 @@ from shared.service.celery_config import CELERY_RETRY_OPTIONS, celery
 from shared.service.neo_config import acquire_db_graph
 from shared.service.vault_config import VaultConnection
 from shared.utilities import pst_timestamp
+
 from .utilities import update_active_user_report
 
 

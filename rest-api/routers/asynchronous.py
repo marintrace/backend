@@ -7,6 +7,7 @@ from fastapi import APIRouter, status
 from shared.logger import logger
 from shared.models import (CreatedAsyncTask, InteractionReport, SymptomReport,
                            TestReport, User)
+
 from .authorization import AUTH_USER
 
 # Asynchronous API Router -- mountable to main API
