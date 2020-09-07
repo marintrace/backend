@@ -132,6 +132,7 @@ function clearSearch() {
     $("#email-input").val("");
     $("#summaries").html("");
     updateHomeStatusSummaries();
+    $("#search-toggle").html("");
     $("#load-more-home").attr("onclick", "updateHomeStatusSummaries()");
 }
 

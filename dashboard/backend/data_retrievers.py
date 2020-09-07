@@ -80,7 +80,7 @@ async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, use
     with acquire_db_graph() as graph:
         query = f"""
         MATCH (m: Member {{school: "{user.school}", email: "{request.email}"}})-[report:reported]-(d: DailyReport)
-        RETURN report, report.timestamp as timestamp ORDER BY d.date
+        RETURN report, report.timestamp as timestamp ORDER BY report.timestamp DESC
         SKIP {request.pagination_token} LIMIT {request.limit}
         """
 
@@ -103,8 +103,8 @@ async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentif
     with acquire_db_graph() as graph:
         query = f"""
         MATCH (m: Member {{school: "{user.school}"}})
-        OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime(DATE_FORMAT)}"}})
         {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
+        OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime(DATE_FORMAT)}"}})
         RETURN m.email as email, report, report.timestamp as timestamp 
         ORDER BY COALESCE(report.num_symptoms, 0) + CASE report.test_type WHEN 'positive' THEN 100 ELSE 0 END DESC
         SKIP {request.pagination_token} LIMIT {request.limit}"""

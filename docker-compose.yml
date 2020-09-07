@@ -15,7 +15,7 @@ services:
     build:
       context: neo4j
       dockerfile: Dockerfile
-    image: gcr.io/vault-1594687/neo4j:0.0.21
+    image: gcr.io/vault-1594687/neo4j:0.0.20
   web:
     build:
       context: web-app
@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: dashboard/Dockerfile
-    image: gcr.io/vault-159468/dashboard:0.0.39
+    image: gcr.io/vault-159468/dashboard:0.0.43
   celery:
     build:
       context: .
