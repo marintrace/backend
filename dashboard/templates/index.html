@@ -21,10 +21,9 @@
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col">
-                                <h3 class="mb-0">Today</h3>
-                                <p class="mt-3 mb-0 text-muted text-sm">
-                                    <span class="text">Everyone and their reports</span>
-                                </p>
+                                <h3 class="mb-0">Today's Reports</h3>
+                                <div id="search-toggle">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -39,14 +38,17 @@
                             </thead>
                             <tbody id="summaries">
                             </tbody>
-                           <tfoot>
-                              <tr>
+                            <tfoot id="home-footer">
+                            <tr>
                                 <th>
-                                  <button type="button" class="btn btn-primary">Load more</button>
+                                    <button type="button" id="load-more-home" onclick="updateHomeStatusSummaries()"
+                                            class="btn btn-primary">
+                                        Load more
+                                    </button>
                                 </th>
                                 <th></th>
                                 <th></th>
-                              </tr>
+                            </tr>
                             </tfoot>
                         </table>
                     </div>

@@ -125,6 +125,12 @@ class UserEmailIdentifier(BaseModel):
     email: str
 
 
+class OptionalPaginatedUserEmailIdentifier(Paginated):
+    """
+    Identification for a user pagination optionally by their email
+    """
+    email: str = None
+
 class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
     """
     Pagination identification for a user by their email

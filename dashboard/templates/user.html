@@ -40,6 +40,27 @@
                             </tr>
                             <tr>
                                 <th scope="row">
+                                    First Name
+                                </th>
+                                <td id="first-name">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Last Name
+                                </th>
+                                <td id="last-name">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Cohort
+                                </th>
+                                <td id="cohort">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
                                     Current Status
                                 </th>
                                 <td>
@@ -77,14 +98,16 @@
                             </thead>
                             <tbody id="interactions">
                             </tbody>
-                           <tfoot>
-                              <tr>
+                            <tfoot id="interaction-footer">
+                            <tr>
                                 <th>
-                                  <button type="button" class="btn btn-primary">Load more</button>
+                                    <button type="button" onclick="updateUserInteractions('{{ user_email }}')"
+                                            class="btn btn-primary">Load more
+                                    </button>
                                 </th>
                                 <th></th>
                                 <th></th>
-                              </tr>
+                            </tr>
                             </tfoot>
                         </table>
                     </div>
@@ -112,16 +135,19 @@
                             </tr>
                             </thead>
                             <tbody id="reports">
-                           </tbody>
-                       <tfoot>
-                          <tr>
-                            <th>
-                              <button type="button" class="btn btn-primary">Load more</button>
-                            </th>
-                            <th></th>
-                            <th></th>
-                          </tr>
-                        </tfoot> 
+                            </tbody>
+                            <tfoot id="report-footer">
+                            <tr>
+                                <th>
+                                    <button type="button" class="btn btn-primary"
+                                            onclick="updateUserReports('{{ user_email }}')">
+                                        Load more
+                                    </button>
+                                </th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -139,6 +165,7 @@
             updateUserInteractions("{{ user_email }}");
             updateUserReports("{{ user_email }}");
             updateUserStatus("{{ user_email }}");
+            updateUserInfo("{{ user_email }}")
         });
     </script>
 {% endblock javascripts %}

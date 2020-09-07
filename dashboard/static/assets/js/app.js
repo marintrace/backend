@@ -28,6 +28,21 @@ function updateUserStatus(user_email) {
     ).fail(requestFailure)
 }
 
+function updateUserInfo(user_email) {
+    $.post("/api/get-user-info", JSON.stringify({"email": user_email}), function () {
+        console.log("User info Request Response Received");
+    }, "json").done(function (data) {
+            $("#first-name").html(data["first_name"]);
+            $("#last-name").html(data["last_name"]);
+            if (data["cohort"] != null) {
+                $("#cohort").html(data["cohort"]);
+            } else {
+                $("#cohort").html("Unassigned");
+            }
+        }
+    ).fail(requestFailure)
+}
+
 function updateUserInteractions(user_email) {
     $.post("/api/paginate-user-interactions",
         JSON.stringify({
@@ -37,6 +52,9 @@ function updateUserInteractions(user_email) {
         }), function () {
             console.log("Paginate User Interactions Request Response Received");
         }, "json").done(function (data) {
+        if (data['users'].length === 0) {
+            $('#interaction-footer').hide();
+        }
         userInteractionPagToken = data['pagination_token'];
 
         data['users'].forEach(function (e) {
@@ -57,8 +75,11 @@ function updateUserReports(user_email) {
     }), function () {
         console.log("Paginating user reports request response received");
     }, "json").done(function (data) {
+        if (data['records'].length === 0) {
+            $("#report-footer").hide();
+            return;
+        }
         userReportPagToken = data['pagination_token'];
-
         data['records'].forEach(function (e) {
             let rows = [
                 e.timestamp,
@@ -69,13 +90,22 @@ function updateUserReports(user_email) {
     }).fail(requestFailure)
 }
 
-function updateHomeStatusSummaries() {
-    $.post("/api/paginate-user-summary-items", JSON.stringify({
+function updateHomeStatusSummaries(email=null) {
+    let data = {
         "pagination_token": homeUserStatusPagToken,
         "limit": homeUserStatusPagLimit
-    }), function () {
+    };
+    if (email != null){
+        data['email'] = email
+    }
+
+    $.post("/api/paginate-user-summary-items", JSON.stringify(data), function () {
         console.log("Update home status summaries request response received");
     }, "json").done(function (data) {
+        if (data['records'].length === 0) {
+            $("#home-footer").hide();
+            return;
+        }
         homeUserStatusPagToken = data['pagination_token'];
 
         data['records'].forEach(function (e) {
@@ -86,6 +116,23 @@ function updateHomeStatusSummaries() {
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
     }).fail(requestFailure)
+}
+
+function submitSearch() {
+    homeUserStatusPagToken = 0;
+    const email = $('#email-input').val();
+    $("#summaries").html("");
+    updateHomeStatusSummaries(email);
+    $("#load-more-home").attr("onclick", "updateHomeStatusSummaries('" + email + '")');
+    $("#search-toggle").html("<br><button class='btn btn-secondary' onclick='clearSearch()'>Clear Search</button>");
+}
+
+function clearSearch() {
+    homeUserStatusPagToken = 0;
+    $("#email-input").val("");
+    $("#summaries").html("");
+    updateHomeStatusSummaries();
+    $("#load-more-home").attr("onclick", "updateHomeStatusSummaries()");
 }
 
 function updateSubmittedWidget() {

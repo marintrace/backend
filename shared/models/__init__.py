@@ -12,6 +12,7 @@ from shared.models.entities import (AdminDashboardUser, CreatedAsyncTask,
                                     DashboardUserSummaryResponse,
                                     InteractionReport, ListUsersResponse,
                                     Paginated, PaginatedUserEmailIdentifer,
+                                    OptionalPaginatedUserEmailIdentifier,
                                     RiskNotification, SymptomReport,
                                     TestReport, TestType, User,
                                     UserEmailIdentifier, UserStatus)

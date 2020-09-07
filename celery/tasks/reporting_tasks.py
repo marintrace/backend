@@ -25,7 +25,6 @@ def report_interaction(self, *, user: User, task_data: InteractionReport):
             interacted_user = g.nodes.match('Member', email=target_member, school=user.school).first()
             if not interacted_user:
                 logger.error(f"Cannot locate node with email {target_member} and school {user.school}")
-                raise Exception(f"Unable to locate user {target_member} from {user.school}")
 
             # If a relationship already exists, we just update the timestamp
             edge_matcher = RelationshipMatcher(graph=g)

@@ -10,12 +10,12 @@ services:
     build:
       context: .
       dockerfile: rest-api/Dockerfile
-    image: gcr.io/vault-159468/rest:0.0.19
+    image: gcr.io/vault-159468/rest:0.0.20
   neo4j:
     build:
       context: neo4j
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/neo4j:0.0.20
+    image: gcr.io/vault-1594687/neo4j:0.0.21
   web:
     build:
       context: web-app
@@ -30,9 +30,9 @@ services:
     build:
       context: .
       dockerfile: dashboard/Dockerfile
-    image: gcr.io/vault-159468/dashboard:0.0.34
+    image: gcr.io/vault-159468/dashboard:0.0.39
   celery:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.0.33
+    image: gcr.io/vault-159468/celery:0.0.34

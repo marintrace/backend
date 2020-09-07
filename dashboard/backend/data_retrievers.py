@@ -6,7 +6,8 @@ from py2neo import RelationshipMatcher
 from shared.logger import logger
 from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummaryResponse, DashboardUserInfoDetail, \
     DashboardUserSummaryItem, AdminDashboardUser, Paginated, TestType, UserEmailIdentifier, \
-    PaginatedUserEmailIdentifer, DashboardUserInteractions, DashboardUserInteraction
+    PaginatedUserEmailIdentifer, OptionalPaginatedUserEmailIdentifier, DashboardUserInteractions, \
+    DashboardUserInteraction
 from shared.service.jwt_auth_config import JWTAuthManager
 from shared.service.neo_config import acquire_db_graph, current_day_node
 from shared.utilities import get_pst_time, pst_date, DATE_FORMAT, TIMEZONE
@@ -92,7 +93,8 @@ async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, use
 
 @BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=DashboardUserSummaryResponse,
                      summary="Paginate through dashboard status records")
-async def paginate_user_summary_items(pagination: Paginated, user: AdminDashboardUser = OIDC_COOKIE):
+async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentifier,
+                                      user: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate through the user summary items to render the home screen dashboard
     """
@@ -102,13 +104,15 @@ async def paginate_user_summary_items(pagination: Paginated, user: AdminDashboar
         query = f"""
         MATCH (m: Member {{school: "{user.school}"}})
         OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime(DATE_FORMAT)}"}})
-        RETURN m.email as email, report, report.timestamp as timestamp ORDER BY report.timestamp 
-        SKIP {pagination.pagination_token} LIMIT {pagination.limit}"""
+        {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
+        RETURN m.email as email, report, report.timestamp as timestamp 
+        ORDER BY COALESCE(report.num_symptoms, 0) + CASE report.test_type WHEN 'positive' THEN 100 ELSE 0 END DESC
+        SKIP {request.pagination_token} LIMIT {request.limit}"""
 
     return DashboardUserSummaryResponse(
         records=[await create_summary_item(record, with_email=record['email'], with_timestamp=record['timestamp'])
                  for record in list(graph.run(query))],
-        pagination_token=pagination.pagination_token + pagination.limit
+        pagination_token=request.pagination_token + request.limit
     )
 
 
