@@ -6,6 +6,7 @@ asynchronous information from clients
 from os import environ as env_vars
 
 from fastapi import FastAPI, status
+from fastapi.middleware.cors import CORSMiddleware
 from uvicorn import run as run_server
 
 from routers.asynchronous import ASYNC_ROUTER

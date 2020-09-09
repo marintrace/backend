@@ -36,6 +36,8 @@ spec:
               value: https://{{ .Release.Name }}-vault
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
+            - name: INGRESS_BASE
+              value: "/admin"
           image: gcr.io/vault-159468/oidc-proxy:{{ .Values.imageVersion }}
           name: {{ template "admin-oidc.fullname" .}}
           ports:
@@ -43,7 +45,7 @@ spec:
           {{ if eq .Values.readinessProbe.enabled "true" }}
           readinessProbe:
             httpGet:
-              path: /
+              path: /admin/oauth/health
               port: 80
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
             periodSeconds: {{ .Values.readinessProbe.interval}}
@@ -51,7 +53,7 @@ spec:
           {{ if eq .Values.livenessProbe.enabled "true" }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /admin/oauth/health
               port: 80
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}

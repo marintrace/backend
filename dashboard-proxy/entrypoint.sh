@@ -27,4 +27,4 @@ echo "Starting Louketo Proxy"
   --client-secret "$CLIENT_SECRET" \
   --preserve-host \
   --match-claims="$MATCH_CLAIMS" \
-  --secure-cookie=false
+  --oauth-uri "$INGRESS_BASE/oauth" \

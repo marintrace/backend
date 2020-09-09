@@ -17,7 +17,7 @@
       "enqueue": true
     },
     "logfile": {
-      "path": "log/iboca_backend.log",
+      "path": "log/app.log",
       "level": "INFO",
       "rotation": "500MB",
       "retention": "1 months",

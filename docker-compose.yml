@@ -20,17 +20,17 @@ services:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.0.3
+    image: gcr.io/vault-159468/web-app:0.0.4
   admin-oidc:
     build:
       context: dashboard-proxy
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/oidc-proxy:0.0.14
+    image: gcr.io/vault-159468/oidc-proxy:0.0.17
   admin:
     build:
       context: .
       dockerfile: dashboard/Dockerfile
-    image: gcr.io/vault-159468/dashboard:0.0.43
+    image: gcr.io/vault-159468/dashboard:0.0.45
   celery:
     build:
       context: .

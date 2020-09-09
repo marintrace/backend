@@ -16,6 +16,9 @@ __pycache__/
 # Third Party Vendor Files
 dashboard/static/assets/vendor
 dashboard/static/assets/js/plugins
+*.go
+*.mod
+*.sum
 
 # Neo4j files
 conf
