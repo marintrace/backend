@@ -34,6 +34,7 @@ function updateUserInfo(user_email) {
     }, "json").done(function (data) {
             $("#first-name").html(data["first_name"]);
             $("#last-name").html(data["last_name"]);
+            $("#active").html(data["active"] ? 'Yes' : 'No');
             if (data["cohort"] != null) {
                 $("#cohort").html(data["cohort"]);
             } else {

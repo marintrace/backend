@@ -7,16 +7,30 @@ from os import environ as env_vars
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from uvicorn import run as run_server
-
 from routers.asynchronous import ASYNC_ROUTER
 from routers.synchronous import SYNC_ROUTER
+from uvicorn import run as run_server
+
 from shared.logger import logger
 
 app = FastAPI(
     title="Contact Tracing API",
     debug=env_vars.get('DEBUG', False),
     description="API for asynchronous and synchronous calls from contact tracing clients"
+)
+
+# Add CORS support from production and test domains
+app.add_middleware(
+    middleware_class=CORSMiddleware,
+    allow_origins=[
+        'https://api.marintracingapp.org',
+        'https://marintracingapp.org',
+        'https://bmaapp.de',
+        'http://localhost:8090'
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 

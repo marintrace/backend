@@ -5,7 +5,7 @@ from py2neo import RelationshipMatcher
 
 from shared.logger import logger
 from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummaryResponse, DashboardUserInfoDetail, \
-    DashboardUserSummaryItem, AdminDashboardUser, Paginated, TestType, UserEmailIdentifier, \
+    DashboardUserSummaryItem, AdminDashboardUser, TestType, UserEmailIdentifier, \
     PaginatedUserEmailIdentifer, OptionalPaginatedUserEmailIdentifier, DashboardUserInteractions, \
     DashboardUserInteraction
 from shared.service.jwt_auth_config import JWTAuthManager
@@ -45,8 +45,11 @@ async def create_summary_item(record, with_email=None, with_timestamp=None) -> D
 
         if test_type == TestType.POSITIVE.value:
             summary_item_parameters.update(dict(color='danger', message='Positive Test', code='POSITIVE'))
-        elif num_symptoms > 0:  # check for positive symptoms
-            summary_item_parameters.update(dict(color='danger', message=f'{num_symptoms} symptoms', code='SYMPTOM'))
+        if num_symptoms > 0:  # check for positive symptoms
+            if summary_item_parameters.get('code') == 'POSITIVE':  # if we need to merge with the other one
+                summary_item_parameters['message'] += f" & {num_symptoms} symptoms"
+            else:
+                summary_item_parameters.update(dict(color='danger', message=f'{num_symptoms} symptoms', code='SYMPTOM'))
         elif test_type == TestType.NEGATIVE.value:
             summary_item_parameters.update(dict(color='success', message='Negative Test', code='NEGATIVE'))
         else:
@@ -131,7 +134,8 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
             last_name=member_node['last_name'],
             cohort=member_node['cohort'],
             email=member_node['email'],
-            school=member_node['school']
+            school=member_node['school'],
+            active=member_node.get('status') == 'active'
         )
 
 

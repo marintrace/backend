@@ -28,3 +28,4 @@ echo "Starting Louketo Proxy"
   --preserve-host \
   --match-claims="$MATCH_CLAIMS" \
   --oauth-uri "$INGRESS_BASE/oauth" \
+  --enable-logout-redirect

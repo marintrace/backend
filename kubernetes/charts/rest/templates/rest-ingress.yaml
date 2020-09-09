@@ -5,11 +5,15 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
+  tls:
+    - hosts:
+        - {{ .Values.ingressSubdomain }}.marintracingapp.org
+      secretName: tls-secret
   rules:
-  - host: api.marintracingapp.org
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: {{ template "rest.fullname" . }}
-          servicePort: {{ .Values.exposePort }}
+    - host: {{ .Values.ingressSubdomain }}.marintracingapp.org
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ template "rest.fullname" . }}
+              servicePort: {{ .Values.exposePort }}
