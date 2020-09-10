@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>MarinTrace</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="assets/css/styles.min.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+</head>
+
+<body class="bg-default">
+<nav class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="home.html">
+            <img src="assets/img/white.png">
+            <sup>web</sup>
+        </a>
+        <button data-toggle="collapse" data-target="#navcol-1" class="navbar-toggler"><span class="sr-only">Toggle navigation</span><span
+                class="navbar-toggler-icon"></span></button>
+        <div
+                class="collapse navbar-collapse" id="navcol-1">
+            <ul class="nav navbar-nav ml-auto">
+                <li class="nav-item dropdown"><a data-toggle="dropdown" aria-expanded="false"
+                                                 class="dropdown-toggle nav-link" href="#" style="font-family: 'Lato';">Settings </a>
+                    <div role="menu" class="dropdown-menu"><a role="presentation" class="dropdown-item" id="logout"
+                                                              href="#">Log out</a></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="header bg-gradient-primary py-7 py-lg-8 pt-lg-9">
+    <div class="separator separator-bottom separator-skew zindex-100">
+        <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1"
+             xmlns="http://www.w3.org/2000/svg">
+            <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+        </svg>
+    </div>
+</div>
+<div class="row justify-content-center">
+    <div class="col col-md-8">
+        <div class="card mt--6">
+            <div class="card-body">
+                <div class="container" style="margin-top:10px">
+                    <h2 style="font-weight: 400;">Report Contacts</h2>
+                    <div class="form-group" style="/*padding: 10px;*/">
+                        <div class="input-group">
+                            <div class="input-group-prepend"></div>
+                            <input type="text" class="form-control" id="tokenfield" value=""
+                                   placeholder="Start typing a name." style="font-family:'Lato'"/>
+                            <div class="input-group-append">
+                                <button id="submitButton" class="btn btn-primary" type="submit"
+                                        style="/*margin-top: 10px;*/">Report Contacts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-3.0.1.js"></script>
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-analytics.js"></script>
+<script src="https://cdn.auth0.com/js/auth0-spa-js/1.9/auth0-spa-js.production.js"></script>
+<script src="https://unpkg.com/swagger-client"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="assets/js/script.min.js"></script>
+<script src="assets/js/tokenfield.min.js"></script>
+<script src="assets/js/auth0-authed-page.min.js"></script>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+    var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+    (function () {
+        var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/5f598af2f0e7167d000ef58c/default';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        s0.parentNode.insertBefore(s1, s0);
+    })();
+</script>
+<!--End of Tawk.to Script-->
+</body>
+
+</html>

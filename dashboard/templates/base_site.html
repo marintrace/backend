@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+
+        {% block meta %}
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {% endblock meta %}
+
+        <title>
+            MarinTrace - {% block title %}{% endblock %}
+        </title>
+
+        {% block stylesheets %}
+            <!-- Favicon -->
+            <link href="/static/assets/img/brand/favicon.png" rel="icon" type="image/png">
+            <!-- Fonts -->
+            <link rel="stylesheet" href="/static/assets/css/font-awesome.min.css">
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+            <!-- CSS Files -->
+            <link href="/static/assets/css/argon-dashboard.css" rel="stylesheet">
+        {% endblock stylesheets %}
+
+    {% endblock head %}
+</head>
+
+<body class="">
+
+{% include "components/sidebar.html" %}
+
+<div class="main-content">
+
+    {% block content %}{% endblock content %}
+
+</div>
+
+{% block javascripts %}
+    <!-- Core -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Argon JS -->
+    <script src="/static/assets/js/argon-dashboard.min.js"></script>
+    <script src="/static/assets/js/app.js"></script>
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+        (function () {
+            var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+            s1.async = true;
+            s1.src = 'https://embed.tawk.to/5f598af2f0e7167d000ef58c/default';
+            s1.charset = 'UTF-8';
+            s1.setAttribute('crossorigin', '*');
+            s0.parentNode.insertBefore(s1, s0);
+        })();
+    </script>
+    <!--End of Tawk.to Script-->
+{% endblock javascripts %}
+
+</body>
+
+</html>

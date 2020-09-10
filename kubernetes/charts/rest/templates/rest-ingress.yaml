@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "rest.fullname" . }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.ingressSubdomain }}.marintracingapp.org
+      secretName: tls-secret
+  rules:
+    - host: {{ .Values.ingressSubdomain }}.marintracingapp.org
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ template "rest.fullname" . }}
+              servicePort: {{ .Values.exposePort }}

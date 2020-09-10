@@ -1,0 +1,10 @@
+name: vault
+version: 0.0.1
+home: "https://github.com/tracing-app/backend"
+maintainers:
+  - name: "Amrit Baveja"
+    email: "amrit_baveja@branson.org"
+dependencies:
+  - name: vault
+    version: "0.5.0"
+    repository: "https://helm.releases.hashicorp.com"

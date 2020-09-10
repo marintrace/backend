@@ -1,0 +1,38 @@
+# Because some of our docker-containers have shared libraries, we need to specify
+# the build context when creating. Although running from docker-compose doesn't work
+# it is still a convenient way to build our containers in the correct contexts
+
+# ~~ DOCKER COMPOSE BUILDER CONTAINER ~~
+
+version: "3.7"
+services:
+  rest:
+    build:
+      context: .
+      dockerfile: rest-api/Dockerfile
+    image: gcr.io/vault-159468/rest:0.0.22
+  neo4j:
+    build:
+      context: neo4j
+      dockerfile: Dockerfile
+    image: gcr.io/vault-1594687/neo4j:0.0.20
+  web:
+    build:
+      context: web-app
+      dockerfile: Dockerfile
+    image: gcr.io/vault-159468/web-app:0.0.12
+  admin-oidc:
+    build:
+      context: dashboard-proxy
+      dockerfile: Dockerfile
+    image: gcr.io/vault-159468/oidc-proxy:0.0.19
+  admin:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    image: gcr.io/vault-159468/dashboard:0.0.54
+  celery:
+    build:
+      context: .
+      dockerfile: celery/Dockerfile
+    image: gcr.io/vault-159468/celery:0.0.35
