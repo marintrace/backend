@@ -68,6 +68,8 @@ async function reportTest(testType) {
     })
     .then(function (response) {
         console.log(response);
+				$('#positiveModal').modal('hide'); //close modals
+				$('#negativeModal').modal('hide'); //close modals
     })
     .catch(function (error) {
         alert("Couldn't report test result. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. "+ error);
