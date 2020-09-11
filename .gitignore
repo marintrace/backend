@@ -170,3 +170,6 @@ dashboard-proxy/release.sh
 dashboard-proxy/set-version.sh
 dashboard_proxy/*.mod
 dashboard_proxy/*.md
+
+# NPM
+web-app/node_modules
