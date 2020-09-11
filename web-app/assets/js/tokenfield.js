@@ -17,9 +17,6 @@ jQuery(function(){
 	if (typeof users !== "undefined") {
 		alert("Couldn't find any other users to potentially report.")
 		window.location = "home.html"
-	} else if (users.length == 0) {
-		alert("Couldn't find any other users to potentially report.")
-		window.location = "home.html"
 	}
 
     var source = users.map(function(x) {
