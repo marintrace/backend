@@ -2,25 +2,25 @@
 
 jQuery(function(){
 
-	//let users = JSON.parse(localStorage.getItem("users"));
+	let users = JSON.parse(localStorage.getItem("users"));
 
 	//for testing
-	const user1 = {
+	/*const user1 = {
 			"first_name": "string",
 			"last_name": "string",
 			"email": "string@gmail.com",
 			"school": "string",
 			"signup_at": "inactive"
 	}
-	var users = [user1]
+	var users = [user1]*/
 
-	/*if (typeof users !== "undefined") {
+	if (typeof users !== "undefined") {
 		alert("Couldn't find any other users to potentially report.")
 		window.location = "home.html"
 	} else if (users.length == 0) {
 		alert("Couldn't find any other users to potentially report.")
 		window.location = "home.html"
-	}*/
+	}
 
     var source = users.map(function(x) {
         let object = {
