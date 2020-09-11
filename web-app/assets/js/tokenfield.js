@@ -14,6 +14,8 @@ jQuery(function(){
 	}
 	var users = [user1]*/
 
+	console.log(users)
+
 	if (typeof users !== "undefined") {
 		alert("Couldn't find any other users to potentially report.")
 		window.location = "home.html"
