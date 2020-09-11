@@ -16,10 +16,12 @@ jQuery(function(){
 
 	console.log(users)
 
-	if (typeof users !== "undefined") {
+	void 0 !== users && 0 != users.length || (alert("Couldn't find any other users to potentially report."), window.location = "home.html");
+
+	/*if (typeof users !== "undefined") {
 		alert("Couldn't find any other users to potentially report.")
 		window.location = "home.html"
-	}
+	}*/
 
     var source = users.map(function(x) {
         let object = {
