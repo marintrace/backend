@@ -45,13 +45,13 @@ firebase.analytics();
 
 function createHTTPClientInstance() {
     var token = ""
-    if(typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
-        token = authToken
-    }
-		if (token = "") {
-			//const claims = await auth0.getIdTokenClaims();
-			//token = claims.__raw
+    if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
+			token = authToken
+    } else {
+			alert("Couldn't verify authentication status. Please log in again.")
+			document.location.href="/index.html"
 		}
+		console.log(token)
     return axios.create({
     baseURL: 'https://api.marintracingapp.org',
     headers: {'Content-type':'application/json','Authorization': 'Bearer ' + token},
