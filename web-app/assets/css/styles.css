@@ -1,15 +1,18 @@
-@media (max-width: 480px) {
-.contact-card {
-  margin: 3px;
+@media (max-width: 768px) {
+  .contact-card {
+    margin: 1em;
+  }
 }
-.input-group-addon, .input-group-btn, .input-group .form-control {
+
+@media (max-width: 480px) {
+  .input-group-addon, .input-group-btn, .input-group .form-control {
     display: block;
     margin-bottom: 10px;
     clear: both;
-    }
-.input-group {
+  }
+  .input-group {
     display: block;
-    }
+  }
 }
 
 .navigation-clean {
