@@ -5,12 +5,22 @@ from pytz import timezone, utc
 DATE_FORMAT = "%Y-%m-%d"
 TIMEZONE = timezone("US/Pacific")
 
+
 def get_pst_time():
     """
     Get the current localized datetime for pacific time
     :return: localized datetime
     """
     return datetime.now(tz=utc).astimezone(timezone("US/Pacific"))
+
+
+def parse_timestamp(timestamp):
+    """
+    Parse the specified timestamp into the current PST timezone
+    :param timestamp: UNIX timestamp
+    :return: parsed timestamp
+    """
+    return datetime.fromtimestamp(timestamp, TIMEZONE)
 
 
 def pst_timestamp():

@@ -10,7 +10,7 @@ from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummary
     DashboardUserInteraction
 from shared.service.jwt_auth_config import JWTAuthManager
 from shared.service.neo_config import acquire_db_graph, current_day_node
-from shared.utilities import get_pst_time, pst_date, DATE_FORMAT, TIMEZONE
+from shared.utilities import get_pst_time, pst_date, parse_timestamp, DATE_FORMAT
 
 # Mounted on the main router
 BACKEND_ROUTER = APIRouter()
@@ -27,35 +27,37 @@ AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
 OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 
+class RecordCreators:
+    """
+    Record Creators for Dashboard
+    """
+    incomplete = lambda message, code: dict(color='gray', message=message, code=code)
+    unhealthy = lambda message, code: dict(color='danger', message=message, code=code)
+    healthy = lambda message, code: dict(color='success', message=message, code=code)
+
+
 async def create_summary_item(record, with_email=None, with_timestamp=None) -> DashboardUserSummaryItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
     """
-    timestamp = datetime.fromtimestamp(with_timestamp).astimezone(TIMEZONE).strftime(DATE_FORMAT) if \
-        with_timestamp else None
-
-    summary_item_parameters = dict(timestamp=timestamp, email=with_email)
-
+    item = DashboardUserSummaryItem(
+        timestamp=parse_timestamp(with_timestamp).strftime(DATE_FORMAT) if with_timestamp else None,
+        email=with_email
+    )
     if not (record and record.get('report')):
-        summary_item_parameters.update(dict(color='gray', message='No report', code='INCOMPLETE'))
-    else:
-        edge_properties = dict(record['report']) if record and record['report'] else None
-        test_type = edge_properties.get('test_type')
-        num_symptoms = edge_properties.get('num_symptoms', 0)
+        return item.set_incomplete()
 
-        if test_type == TestType.POSITIVE.value:
-            summary_item_parameters.update(dict(color='danger', message='Positive Test', code='POSITIVE'))
-        if num_symptoms > 0:  # check for positive symptoms
-            if summary_item_parameters.get('code') == 'POSITIVE':  # if we need to merge with the other one
-                summary_item_parameters['message'] += f" & {num_symptoms} symptoms"
-            else:
-                summary_item_parameters.update(dict(color='danger', message=f'{num_symptoms} symptoms', code='SYMPTOM'))
-        elif test_type == TestType.NEGATIVE.value:
-            summary_item_parameters.update(dict(color='success', message='Negative Test', code='NEGATIVE'))
-        else:
-            summary_item_parameters.update(dict(color='success', message='Healthy', code='HEALTHY'))
+    test_type = record['report'].get('test_type')
+    num_symptoms = record['report'].get('num_symptoms', 0)
 
-    return DashboardUserSummaryItem(**summary_item_parameters)
+    if test_type == TestType.POSITIVE.value:
+        return item.set_positive_test(num_symptoms=num_symptoms)
+    elif test_type == TestType.NEGATIVE.value:
+        return item.set_negative_test(num_symptoms=num_symptoms)
+    elif num_symptoms > 0:  # check for positive symptoms
+        return item.set_symptomatic(num_symptoms)
+
+    return item.set_healthy()
 
 
 @BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
