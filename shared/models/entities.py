@@ -40,12 +40,33 @@ class ResponseStatus(str, Enum):
     """
     Possible response statuses from the API
     """
-
     MALFORMED = "MALFORMED"
     UNEXPECTED_ERROR = "UNEXPECTED"
     SUCCESS = "SUCCESS"
     QUEUED = "QUEUED"
     ACCESS_DENIED = "ACCESS_DENIED"
+
+
+class DashboardSummaryStatus(str, Enum):
+    """
+    Item code representing User Health
+    """
+    HEALTHY = "HEALTHY"
+    NO_REPORT = "INCOMPLETE"
+    POSITIVE_TEST = "POSITIVE_TEST"
+    POSITIVE_TEST_WITH_SYMPTOMS = "POSITIVE_TEST_WITH_SYMPTOMS"
+    NEGATIVE_TEST_WITH_SYMPTOMS = "NEGATIVE_TEST_WITH_SYMPTOMS"
+    NEGATIVE_TEST = "NEGATIVE_TESTS"
+    SYMPTOMATIC = "SYMPTOMATIC"
+
+
+class DashboardSummaryColors(str, Enum):
+    """
+    Summary Item colors for dashboard items
+    """
+    UNHEALTHY = "danger"
+    HEALTHY = "success"
+    NO_REPORT = "gray"
 
 
 class TestType(str, Enum):
@@ -131,6 +152,7 @@ class OptionalPaginatedUserEmailIdentifier(Paginated):
     """
     email: str = None
 
+
 class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
     """
     Pagination identification for a user by their email
@@ -154,9 +176,47 @@ class DashboardUserSummaryItem(BaseModel):
     """
     email: Optional[str]
     timestamp: Optional[str]
-    color: str
-    message: str
-    code: str
+    color: str = None
+    message: str = None
+    code: str = None
+
+    def set_negative_test(self, num_symptoms=0):
+        self.color = DashboardSummaryColors.HEALTHY
+        if num_symptoms > 0:
+            self.code = DashboardSummaryStatus.NEGATIVE_TEST_WITH_SYMPTOMS
+            self.message = f'Negative Test & {num_symptoms} Symptoms'
+        else:
+            self.code = DashboardSummaryStatus.NEGATIVE_TEST
+            self.message = 'Negative Test'
+        return self
+
+    def set_positive_test(self, num_symptoms=0):
+        self.color = DashboardSummaryColors.UNHEALTHY
+        if num_symptoms > 0:
+            self.code = DashboardSummaryStatus.POSITIVE_TEST_WITH_SYMPTOMS
+            self.message = f'Positive Test & {num_symptoms} Symptoms'
+        else:
+            self.code = DashboardSummaryStatus.POSITIVE_TEST
+            self.message = 'Positive Test'
+        return self
+
+    def set_symptomatic(self, num_symptoms):
+        self.color = DashboardSummaryColors.UNHEALTHY
+        self.code = DashboardSummaryStatus.SYMPTOMATIC
+        self.message = f'{num_symptoms} Symptoms'
+        return self
+
+    def set_incomplete(self):
+        self.color = DashboardSummaryColors.NO_REPORT
+        self.code = DashboardSummaryStatus.NO_REPORT
+        self.message = "No Report"
+        return self
+
+    def set_healthy(self):
+        self.color = DashboardSummaryColors.HEALTHY
+        self.code = DashboardSummaryStatus.HEALTHY
+        self.message = 'Healthy'
+        return self
 
 
 class DashboardUserInfoDetail(BaseModel):
