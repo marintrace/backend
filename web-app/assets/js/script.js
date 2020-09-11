@@ -1,43 +1,43 @@
 var auth0 = null;
 
 const configureClient = async () => {
-	auth0 = await createAuth0Client({
-  		domain: 'marintrace.us.auth0.com',
-  		client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
-		scope: 'openid profile email',
-		audience: 'tracing-rest-api'
-	}).catch(function (error) {
-		//TODO - ENABLE BEFORE RELEASE
+    auth0 = await createAuth0Client({
+        domain: 'marintrace.us.auth0.com',
+        client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
+        scope: 'openid profile email',
+        audience: 'tracing-rest-api'
+    }).catch(function (error) {
+        //TODO - ENABLE BEFORE RELEASE
         alert("Couldn't initialize authentication");
         console.log(error);
-		window.location = 'index.html'; //couldn't auth go to login
+        window.location = 'index.html'; //couldn't auth go to login
     });
 }
 
 
 //register service worker
 if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('service-worker.js').then(function (registration) {
             // Registration was successful
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function(err) {
+        }, function (err) {
             // registration failed :(
             console.log('ServiceWorker registration failed: ', err);
-            });
         });
+    });
 }
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-apiKey: "AIzaSyAb7kW9g741aeWlVXoaTaAGZvyHQe55J6Q",
-authDomain: "marintrace-7c31a.firebaseapp.com",
-databaseURL: "https://marintrace-7c31a.firebaseio.com",
-projectId: "marintrace-7c31a",
-storageBucket: "marintrace-7c31a.appspot.com",
-messagingSenderId: "932772973963",
-appId: "1:932772973963:web:90dd713cc42c2a4c2c738e",
-measurementId: "G-RQSKEVJ22B"
+    apiKey: "AIzaSyAb7kW9g741aeWlVXoaTaAGZvyHQe55J6Q",
+    authDomain: "marintrace-7c31a.firebaseapp.com",
+    databaseURL: "https://marintrace-7c31a.firebaseio.com",
+    projectId: "marintrace-7c31a",
+    storageBucket: "marintrace-7c31a.appspot.com",
+    messagingSenderId: "932772973963",
+    appId: "1:932772973963:web:90dd713cc42c2a4c2c738e",
+    measurementId: "G-RQSKEVJ22B"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -45,36 +45,36 @@ firebase.analytics();
 
 function createHTTPClientInstance() {
     var token = ""
-    if(typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
+    if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
         token = authToken
     }
-		if (token = "") {
-			//const claims = await auth0.getIdTokenClaims();
-			//token = claims.__raw
-		}
+    if (token = "") {
+        //const claims = await auth0.getIdTokenClaims();
+        //token = claims.__raw
+    }
     return axios.create({
-    baseURL: 'https://api.marintracingapp.org',
-    headers: {'Content-type':'application/json','Authorization': 'Bearer ' + token},
-    timeout: 1000 * 10
+        baseURL: 'https://api.marintracingapp.org',
+        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + token},
+        timeout: 1000 * 10
     });
 }
 
 /*//', 'Access-Control-Allow-Credentials':true, 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': ['GET', 'POST', 'OPTIONS']*/
 
 async function reportTest(testType) {
-    const instance = createHTTPClientInstance()
+    const instance = createHTTPClientInstance();
     await instance.post('/test', {
         'test_type': testType
     })
-    .then(function (response) {
-        console.log(response);
-				$('#positiveModal').modal('hide'); //close modals
-				$('#negativeModal').modal('hide'); //close modals
-    })
-    .catch(function (error) {
-        alert("Couldn't report test result. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. "+ error);
-        console.log(error);
-    })
+        .then(function (response) {
+            console.log(response);
+            $('#positiveModal').modal('hide'); //close modals
+            $('#negativeModal').modal('hide'); //close modals
+        })
+        .catch(function (error) {
+            alert("Couldn't report test result. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
+            console.log(error);
+        })
 }
 
 async function getContacts() {
@@ -94,65 +94,45 @@ async function getContacts() {
 async function reportContacts(targets) {
     const instance = createHTTPClientInstance()
     await instance.post('/interaction', {
-        'targets':targets
+        'targets': targets
     }).then(function (response) {
-        document.location.href="/home.html";
+        document.location.href = "/home.html";
         console.log(response);
     })
-    .catch(function (error) {
-        alert("Couldn't report contacts. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. "+ error);
-        console.log(error);
-    })
+        .catch(function (error) {
+            alert("Couldn't report contacts. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
+            console.log(error);
+        })
 }
 
 async function reportSymptoms(object) {
     const instance = createHTTPClientInstance()
     instance.data = object
     await instance.post('/symptoms', {
-    data: object
+        data: object
     })
-    .then(function (response) {
-        document.location.href="/home.html";
-        console.log(response);
-    })
-    .catch(function (error) {
-        alert("Couldn't report symptoms. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. "+ error);
-        console.log(error);
-    })
+        .then(function (response) {
+            document.location.href = "/home.html";
+            console.log(response);
+        })
+        .catch(function (error) {
+            alert("Couldn't report symptoms. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
+            console.log(error);
+        })
 }
 
 async function markUserAsActive() {
     const instance = createHTTPClientInstance()
     await instance.post('/set-active-user')
-    .then(function (response) {
-        document.location.href="/home.html";
-        console.log(response);
-    })
-    .catch(function (error) {
-        alert("Couldn't mark you as an active user. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. "+ error);
-        console.log(error);
-    })
+        .then(function (response) {
+            document.location.href = "/home.html";
+            console.log(response);
+        })
+        .catch(function (error) {
+            alert("Couldn't mark you as an active user. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
+            console.log(error);
+        })
 }
-
-
-/*!
-
-=========================================================
-* Argon Dashboard - v1.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard
-* Copyright 2020 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md)
-
-* Coded by www.creative-tim.com
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
 
 
 //
@@ -161,13 +141,13 @@ async function markUserAsActive() {
 
 'use strict';
 
-var Layout = (function() {
+var Layout = (function () {
 
     function pinSidenav() {
         $('.sidenav-toggler').addClass('active');
         $('.sidenav-toggler').data('action', 'sidenav-unpin');
         $('body').removeClass('g-sidenav-hidden').addClass('g-sidenav-show g-sidenav-pinned');
-        $('body').append('<div class="backdrop d-xl-none" data-action="sidenav-unpin" data-target='+$('#sidenav-main').data('target')+' />');
+        $('body').append('<div class="backdrop d-xl-none" data-action="sidenav-unpin" data-target=' + $('#sidenav-main').data('target') + ' />');
 
         // Store the sidenav state in a cookie session
         Cookies.set('sidenav-state', 'pinned');
@@ -187,35 +167,34 @@ var Layout = (function() {
 
     var $sidenavState = Cookies.get('sidenav-state') ? Cookies.get('sidenav-state') : 'pinned';
 
-    if($(window).width() > 1200) {
-        if($sidenavState == 'pinned') {
+    if ($(window).width() > 1200) {
+        if ($sidenavState == 'pinned') {
             pinSidenav()
         }
 
-        if(Cookies.get('sidenav-state') == 'unpinned') {
+        if (Cookies.get('sidenav-state') == 'unpinned') {
             unpinSidenav()
         }
 
-        $(window).resize(function() {
-            if( $('body').hasClass('g-sidenav-show') && !$('body').hasClass('g-sidenav-pinned')) {
+        $(window).resize(function () {
+            if ($('body').hasClass('g-sidenav-show') && !$('body').hasClass('g-sidenav-pinned')) {
                 $('body').removeClass('g-sidenav-show').addClass('g-sidenav-hidden');
             }
         })
     }
 
-    if($(window).width() < 1200){
-      $('body').removeClass('g-sidenav-hide').addClass('g-sidenav-hidden');
-      $('body').removeClass('g-sidenav-show');
-      $(window).resize(function() {
-          if( $('body').hasClass('g-sidenav-show') && !$('body').hasClass('g-sidenav-pinned')) {
-              $('body').removeClass('g-sidenav-show').addClass('g-sidenav-hidden');
-          }
-      })
+    if ($(window).width() < 1200) {
+        $('body').removeClass('g-sidenav-hide').addClass('g-sidenav-hidden');
+        $('body').removeClass('g-sidenav-show');
+        $(window).resize(function () {
+            if ($('body').hasClass('g-sidenav-show') && !$('body').hasClass('g-sidenav-pinned')) {
+                $('body').removeClass('g-sidenav-show').addClass('g-sidenav-hidden');
+            }
+        })
     }
 
 
-
-    $("body").on("click", "[data-action]", function(e) {
+    $("body").on("click", "[data-action]", function (e) {
 
         e.preventDefault();
 
@@ -229,58 +208,58 @@ var Layout = (function() {
         switch (action) {
             case 'sidenav-pin':
                 pinSidenav();
-            break;
+                break;
 
             case 'sidenav-unpin':
                 unpinSidenav();
-            break;
+                break;
 
             case 'search-show':
                 target = $this.data('target');
                 $('body').removeClass('g-navbar-search-show').addClass('g-navbar-search-showing');
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $('body').removeClass('g-navbar-search-showing').addClass('g-navbar-search-show');
                 }, 150);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $('body').addClass('g-navbar-search-shown');
                 }, 300)
-            break;
+                break;
 
             case 'search-close':
                 target = $this.data('target');
                 $('body').removeClass('g-navbar-search-shown');
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $('body').removeClass('g-navbar-search-show').addClass('g-navbar-search-hiding');
                 }, 150);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $('body').removeClass('g-navbar-search-hiding').addClass('g-navbar-search-hidden');
                 }, 300);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $('body').removeClass('g-navbar-search-hidden');
                 }, 500);
-            break;
+                break;
         }
     })
 
 
     // Add sidenav modifier classes on mouse events
 
-    $('.sidenav').on('mouseenter', function() {
-        if(! $('body').hasClass('g-sidenav-pinned')) {
+    $('.sidenav').on('mouseenter', function () {
+        if (!$('body').hasClass('g-sidenav-pinned')) {
             $('body').removeClass('g-sidenav-hide').removeClass('g-sidenav-hidden').addClass('g-sidenav-show');
         }
     })
 
-    $('.sidenav').on('mouseleave', function() {
-        if(! $('body').hasClass('g-sidenav-pinned')) {
+    $('.sidenav').on('mouseleave', function () {
+        if (!$('body').hasClass('g-sidenav-pinned')) {
             $('body').removeClass('g-sidenav-show').addClass('g-sidenav-hide');
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $('body').removeClass('g-sidenav-hide').addClass('g-sidenav-hidden');
             }, 300);
         }
@@ -288,8 +267,8 @@ var Layout = (function() {
 
 
     // Make the body full screen size if it has not enough content inside
-    $(window).on('load resize', function() {
-        if($('body').height() < 800) {
+    $(window).on('load resize', function () {
+        if ($('body').height() < 800) {
             $('body').css('min-height', '100vh');
             $('#footer-main').addClass('footer-auto-bottom')
         }
@@ -297,353 +276,45 @@ var Layout = (function() {
 
 })();
 
-//
-// Charts
-//
-
 'use strict';
 
-var Charts = (function() {
+var CopyIcon = (function () {
 
-	// Variable
+    // Variables
 
-	var $toggle = $('[data-toggle="chart"]');
-	var mode = 'light';//(themeMode) ? themeMode : 'light';
-	var fonts = {
-		base: 'Open Sans'
-	}
-
-	// Colors
-	var colors = {
-		gray: {
-			100: '#f6f9fc',
-			200: '#e9ecef',
-			300: '#dee2e6',
-			400: '#ced4da',
-			500: '#adb5bd',
-			600: '#8898aa',
-			700: '#525f7f',
-			800: '#32325d',
-			900: '#212529'
-		},
-		theme: {
-			'default': '#172b4d',
-			'primary': '#5e72e4',
-			'secondary': '#f4f5f7',
-			'info': '#11cdef',
-			'success': '#2dce89',
-			'danger': '#f5365c',
-			'warning': '#fb6340'
-		},
-		black: '#12263F',
-		white: '#FFFFFF',
-		transparent: 'transparent',
-	};
+    var $element = '.btn-icon-clipboard',
+        $btn = $($element);
 
 
-	// Methods
+    // Methods
 
-	// Chart.js global options
-	function chartOptions() {
+    function init($this) {
+        $this.tooltip().on('mouseleave', function () {
+            // Explicitly hide tooltip, since after clicking it remains
+            // focused (as it's a button), so tooltip would otherwise
+            // remain visible until focus is moved away
+            $this.tooltip('hide');
+        });
 
-		// Options
-		var options = {
-			defaults: {
-				global: {
-					responsive: true,
-					maintainAspectRatio: false,
-					defaultColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
-					defaultFontColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
-					defaultFontFamily: fonts.base,
-					defaultFontSize: 13,
-					layout: {
-						padding: 0
-					},
-					legend: {
-						display: false,
-						position: 'bottom',
-						labels: {
-							usePointStyle: true,
-							padding: 16
-						}
-					},
-					elements: {
-						point: {
-							radius: 0,
-							backgroundColor: colors.theme['primary']
-						},
-						line: {
-							tension: .4,
-							borderWidth: 4,
-							borderColor: colors.theme['primary'],
-							backgroundColor: colors.transparent,
-							borderCapStyle: 'rounded'
-						},
-						rectangle: {
-							backgroundColor: colors.theme['warning']
-						},
-						arc: {
-							backgroundColor: colors.theme['primary'],
-							borderColor: (mode == 'dark') ? colors.gray[800] : colors.white,
-							borderWidth: 4
-						}
-					},
-					tooltips: {
-						enabled: true,
-						mode: 'index',
-						intersect: false,
-					}
-				},
-				doughnut: {
-					cutoutPercentage: 83,
-					legendCallback: function(chart) {
-						var data = chart.data;
-						var content = '';
+        var clipboard = new ClipboardJS($element);
 
-						data.labels.forEach(function(label, index) {
-							var bgColor = data.datasets[0].backgroundColor[index];
+        clipboard.on('success', function (e) {
+            $(e.trigger)
+                .attr('title', 'Copied!')
+                .tooltip('_fixTitle')
+                .tooltip('show')
+                .attr('title', 'Copy to clipboard')
+                .tooltip('_fixTitle');
 
-							content += '<span class="chart-legend-item">';
-							content += '<i class="chart-legend-indicator" style="background-color: ' + bgColor + '"></i>';
-							content += label;
-							content += '</span>';
-						});
-
-						return content;
-					}
-				}
-			}
-		}
-
-		// yAxes
-		Chart.scaleService.updateScaleDefaults('linear', {
-			gridLines: {
-				borderDash: [2],
-				borderDashOffset: [2],
-				color: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
-				drawBorder: false,
-				drawTicks: false,
-				drawOnChartArea: true,
-				zeroLineWidth: 0,
-				zeroLineColor: 'rgba(0,0,0,0)',
-				zeroLineBorderDash: [2],
-				zeroLineBorderDashOffset: [2]
-			},
-			ticks: {
-				beginAtZero: true,
-				padding: 10,
-				callback: function(value) {
-					if (!(value % 10)) {
-						return value
-					}
-				}
-			}
-		});
-
-		// xAxes
-		Chart.scaleService.updateScaleDefaults('category', {
-			gridLines: {
-				drawBorder: false,
-				drawOnChartArea: false,
-				drawTicks: false
-			},
-			ticks: {
-				padding: 20
-			},
-			maxBarThickness: 10
-		});
-
-		return options;
-
-	}
-
-	// Parse global options
-	function parseOptions(parent, options) {
-		for (var item in options) {
-			if (typeof options[item] !== 'object') {
-				parent[item] = options[item];
-			} else {
-				parseOptions(parent[item], options[item]);
-			}
-		}
-	}
-
-	// Push options
-	function pushOptions(parent, options) {
-		for (var item in options) {
-			if (Array.isArray(options[item])) {
-				options[item].forEach(function(data) {
-					parent[item].push(data);
-				});
-			} else {
-				pushOptions(parent[item], options[item]);
-			}
-		}
-	}
-
-	// Pop options
-	function popOptions(parent, options) {
-		for (var item in options) {
-			if (Array.isArray(options[item])) {
-				options[item].forEach(function(data) {
-					parent[item].pop();
-				});
-			} else {
-				popOptions(parent[item], options[item]);
-			}
-		}
-	}
-
-	// Toggle options
-	function toggleOptions(elem) {
-		var options = elem.data('add');
-		var $target = $(elem.data('target'));
-		var $chart = $target.data('chart');
-
-		if (elem.is(':checked')) {
-
-			// Add options
-			pushOptions($chart, options);
-
-			// Update chart
-			$chart.update();
-		} else {
-
-			// Remove options
-			popOptions($chart, options);
-
-			// Update chart
-			$chart.update();
-		}
-	}
-
-	// Update options
-	function updateOptions(elem) {
-		var options = elem.data('update');
-		var $target = $(elem.data('target'));
-		var $chart = $target.data('chart');
-
-		// Parse options
-		parseOptions($chart, options);
-
-		// Toggle ticks
-		toggleTicks(elem, $chart);
-
-		// Update chart
-		$chart.update();
-	}
-
-	// Toggle ticks
-	function toggleTicks(elem, $chart) {
-
-		if (elem.data('prefix') !== undefined || elem.data('prefix') !== undefined) {
-			var prefix = elem.data('prefix') ? elem.data('prefix') : '';
-			var suffix = elem.data('suffix') ? elem.data('suffix') : '';
-
-			// Update ticks
-			$chart.options.scales.yAxes[0].ticks.callback = function(value) {
-				if (!(value % 10)) {
-					return prefix + value + suffix;
-				}
-			}
-
-			// Update tooltips
-			$chart.options.tooltips.callbacks.label = function(item, data) {
-				var label = data.datasets[item.datasetIndex].label || '';
-				var yLabel = item.yLabel;
-				var content = '';
-
-				if (data.datasets.length > 1) {
-					content += '<span class="popover-body-label mr-auto">' + label + '</span>';
-				}
-
-				content += '<span class="popover-body-value">' + prefix + yLabel + suffix + '</span>';
-				return content;
-			}
-
-		}
-	}
+            e.clearSelection()
+        });
+    }
 
 
-	// Events
-
-	// Parse global options
-	if (window.Chart) {
-		parseOptions(Chart, chartOptions());
-	}
-
-	// Toggle options
-	$toggle.on({
-		'change': function() {
-			var $this = $(this);
-
-			if ($this.is('[data-add]')) {
-				toggleOptions($this);
-			}
-		},
-		'click': function() {
-			var $this = $(this);
-
-			if ($this.is('[data-update]')) {
-				updateOptions($this);
-			}
-		}
-	});
-
-
-	// Return
-
-	return {
-		colors: colors,
-		fonts: fonts,
-		mode: mode
-	};
-
-})();
-
-//
-// Icon code copy/paste
-//
-
-'use strict';
-
-var CopyIcon = (function() {
-
-	// Variables
-
-	var $element = '.btn-icon-clipboard',
-		$btn = $($element);
-
-
-	// Methods
-
-	function init($this) {
-		$this.tooltip().on('mouseleave', function() {
-			// Explicitly hide tooltip, since after clicking it remains
-			// focused (as it's a button), so tooltip would otherwise
-			// remain visible until focus is moved away
-			$this.tooltip('hide');
-		});
-
-		var clipboard = new ClipboardJS($element);
-
-		clipboard.on('success', function(e) {
-			$(e.trigger)
-				.attr('title', 'Copied!')
-				.tooltip('_fixTitle')
-				.tooltip('show')
-				.attr('title', 'Copy to clipboard')
-				.tooltip('_fixTitle')
-
-			e.clearSelection()
-		});
-	}
-
-
-	// Events
-	if ($btn.length) {
-		init($btn);
-	}
+    // Events
+    if ($btn.length) {
+        init($btn);
+    }
 
 })();
 
@@ -653,44 +324,44 @@ var CopyIcon = (function() {
 
 'use strict';
 
-var Navbar = (function() {
+var Navbar = (function () {
 
-	// Variables
+    // Variables
 
-	var $nav = $('.navbar-nav, .navbar-nav .nav');
-	var $collapse = $('.navbar .collapse');
-	var $dropdown = $('.navbar .dropdown');
+    var $nav = $('.navbar-nav, .navbar-nav .nav');
+    var $collapse = $('.navbar .collapse');
+    var $dropdown = $('.navbar .dropdown');
 
-	// Methods
+    // Methods
 
-	function accordion($this) {
-		$this.closest($nav).find($collapse).not($this).collapse('hide');
-	}
+    function accordion($this) {
+        $this.closest($nav).find($collapse).not($this).collapse('hide');
+    }
 
     function closeDropdown($this) {
         var $dropdownMenu = $this.find('.dropdown-menu');
 
         $dropdownMenu.addClass('close');
 
-    	setTimeout(function() {
-    		$dropdownMenu.removeClass('close');
-    	}, 200);
-	}
+        setTimeout(function () {
+            $dropdownMenu.removeClass('close');
+        }, 200);
+    }
 
 
-	// Events
+    // Events
 
-	$collapse.on({
-		'show.bs.collapse': function() {
-			accordion($(this));
-		}
-	})
+    $collapse.on({
+        'show.bs.collapse': function () {
+            accordion($(this));
+        }
+    })
 
-	$dropdown.on({
-		'hide.bs.dropdown': function() {
-			closeDropdown($(this));
-		}
-	})
+    $dropdown.on({
+        'hide.bs.dropdown': function () {
+            closeDropdown($(this));
+        }
+    })
 
 })();
 
@@ -700,65 +371,65 @@ var Navbar = (function() {
 //
 
 
-var NavbarCollapse = (function() {
+var NavbarCollapse = (function () {
 
-	// Variables
+    // Variables
 
-	var $nav = $('.navbar-nav'),
-		$collapse = $('.navbar .navbar-custom-collapse');
-
-
-	// Methods
-
-	function hideNavbarCollapse($this) {
-		$this.addClass('collapsing-out');
-	}
-
-	function hiddenNavbarCollapse($this) {
-		$this.removeClass('collapsing-out');
-	}
+    var $nav = $('.navbar-nav'),
+        $collapse = $('.navbar .navbar-custom-collapse');
 
 
-	// Events
+    // Methods
 
-	if ($collapse.length) {
-		$collapse.on({
-			'hide.bs.collapse': function() {
-				hideNavbarCollapse($collapse);
-			}
-		})
+    function hideNavbarCollapse($this) {
+        $this.addClass('collapsing-out');
+    }
 
-		$collapse.on({
-			'hidden.bs.collapse': function() {
-				hiddenNavbarCollapse($collapse);
-			}
-		})
-	}
+    function hiddenNavbarCollapse($this) {
+        $this.removeClass('collapsing-out');
+    }
 
-	var navbar_menu_visible = 0;
 
-	$( ".sidenav-toggler" ).click(function() {
-		if(navbar_menu_visible == 1){
-		  $('body').removeClass('nav-open');
-			navbar_menu_visible = 0;
-			$('.bodyClick').remove();
+    // Events
 
-		} else {
+    if ($collapse.length) {
+        $collapse.on({
+            'hide.bs.collapse': function () {
+                hideNavbarCollapse($collapse);
+            }
+        })
 
-		var div = '<div class="bodyClick"></div>';
-		$(div).appendTo('body').click(function() {
-				 $('body').removeClass('nav-open');
-					navbar_menu_visible = 0;
-					$('.bodyClick').remove();
+        $collapse.on({
+            'hidden.bs.collapse': function () {
+                hiddenNavbarCollapse($collapse);
+            }
+        })
+    }
 
-			 });
+    var navbar_menu_visible = 0;
 
-		 $('body').addClass('nav-open');
-			navbar_menu_visible = 1;
+    $(".sidenav-toggler").click(function () {
+        if (navbar_menu_visible == 1) {
+            $('body').removeClass('nav-open');
+            navbar_menu_visible = 0;
+            $('.bodyClick').remove();
 
-		}
+        } else {
 
-	});
+            var div = '<div class="bodyClick"></div>';
+            $(div).appendTo('body').click(function () {
+                $('body').removeClass('nav-open');
+                navbar_menu_visible = 0;
+                $('.bodyClick').remove();
+
+            });
+
+            $('body').addClass('nav-open');
+            navbar_menu_visible = 1;
+
+        }
+
+    });
 
 })();
 
@@ -768,37 +439,37 @@ var NavbarCollapse = (function() {
 
 'use strict';
 
-var Popover = (function() {
+var Popover = (function () {
 
-	// Variables
+    // Variables
 
-	var $popover = $('[data-toggle="popover"]'),
-		$popoverClass = '';
-
-
-	// Methods
-
-	function init($this) {
-		if ($this.data('color')) {
-			$popoverClass = 'popover-' + $this.data('color');
-		}
-
-		var options = {
-			trigger: 'focus',
-			template: '<div class="popover ' + $popoverClass + '" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
-		};
-
-		$this.popover(options);
-	}
+    var $popover = $('[data-toggle="popover"]'),
+        $popoverClass = '';
 
 
-	// Events
+    // Methods
 
-	if ($popover.length) {
-		$popover.each(function() {
-			init($(this));
-		});
-	}
+    function init($this) {
+        if ($this.data('color')) {
+            $popoverClass = 'popover-' + $this.data('color');
+        }
+
+        var options = {
+            trigger: 'focus',
+            template: '<div class="popover ' + $popoverClass + '" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+        };
+
+        $this.popover(options);
+    }
+
+
+    // Events
+
+    if ($popover.length) {
+        $popover.each(function () {
+            init($(this));
+        });
+    }
 
 })();
 
@@ -808,42 +479,42 @@ var Popover = (function() {
 
 'use strict';
 
-var ScrollTo = (function() {
+var ScrollTo = (function () {
 
-	//
-	// Variables
-	//
+    //
+    // Variables
+    //
 
-	var $scrollTo = $('.scroll-me, [data-scroll-to], .toc-entry a');
+    var $scrollTo = $('.scroll-me, [data-scroll-to], .toc-entry a');
 
 
-	//
-	// Methods
-	//
+    //
+    // Methods
+    //
 
-	function scrollTo($this) {
-		var $el = $this.attr('href');
+    function scrollTo($this) {
+        var $el = $this.attr('href');
         var offset = $this.data('scroll-to-offset') ? $this.data('scroll-to-offset') : 0;
-		var options = {
-			scrollTop: $($el).offset().top - offset
-		};
+        var options = {
+            scrollTop: $($el).offset().top - offset
+        };
 
         // Animate scroll to the selected section
         $('html, body').stop(true, true).animate(options, 600);
 
         event.preventDefault();
-	}
+    }
 
 
-	//
-	// Events
-	//
+    //
+    // Events
+    //
 
-	if ($scrollTo.length) {
-		$scrollTo.on('click', function(event) {
-			scrollTo($(this));
-		});
-	}
+    if ($scrollTo.length) {
+        $scrollTo.on('click', function (event) {
+            scrollTo($(this));
+        });
+    }
 
 })();
 
@@ -853,260 +524,25 @@ var ScrollTo = (function() {
 
 'use strict';
 
-var Tooltip = (function() {
+var Tooltip = (function () {
 
-	// Variables
+    // Variables
 
-	var $tooltip = $('[data-toggle="tooltip"]');
-
-
-	// Methods
-
-	function init() {
-		$tooltip.tooltip();
-	}
+    var $tooltip = $('[data-toggle="tooltip"]');
 
 
-	// Events
+    // Methods
 
-	if ($tooltip.length) {
-		init();
-	}
-
-})();
-
-//
-// Form control
-//
-
-'use strict';
-
-var FormControl = (function() {
-
-	// Variables
-
-	var $input = $('.form-control');
-
-
-	// Methods
-
-	function init($this) {
-		$this.on('focus blur', function(e) {
-        $(this).parents('.form-group').toggleClass('focused', (e.type === 'focus'));
-    }).trigger('blur');
-	}
-
-
-	// Events
-
-	if ($input.length) {
-		init($input);
-	}
-
-})();
-
-//
-// Google maps
-//
-
-var $map = $('#map-default'),
-    map,
-    lat,
-    lng,
-    color = "#5e72e4";
-
-function initMap() {
-
-    map = document.getElementById('map-default');
-    lat = map.getAttribute('data-lat');
-    lng = map.getAttribute('data-lng');
-
-    var myLatlng = new google.maps.LatLng(lat, lng);
-    var mapOptions = {
-        zoom: 12,
-        scrollwheel: false,
-        center: myLatlng,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
+    function init() {
+        $tooltip.tooltip();
     }
 
-    map = new google.maps.Map(map, mapOptions);
 
-    var marker = new google.maps.Marker({
-        position: myLatlng,
-        map: map,
-        animation: google.maps.Animation.DROP,
-        title: 'Hello World!'
-    });
+    // Events
 
-    var contentString = '<div class="info-window-content"><h2>Argon Dashboard</h2>' +
-        '<p>A beautiful Dashboard for Bootstrap 4. It is Free and Open Source.</p></div>';
-
-    var infowindow = new google.maps.InfoWindow({
-        content: contentString
-    });
-
-    google.maps.event.addListener(marker, 'click', function() {
-        infowindow.open(map, marker);
-    });
-}
-
-if($map.length) {
-    google.maps.event.addDomListener(window, 'load', initMap);
-}
-
-//
-// Bars chart
-//
-
-var BarsChart = (function() {
-
-	//
-	// Variables
-	//
-
-	var $chart = $('#chart-bars');
-
-
-	//
-	// Methods
-	//
-
-	// Init chart
-	function initChart($chart) {
-
-		// Create chart
-		var ordersChart = new Chart($chart, {
-			type: 'bar',
-			data: {
-				labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-				datasets: [{
-					label: 'Sales',
-					data: [25, 20, 30, 22, 17, 29]
-				}]
-			}
-		});
-
-		// Save to jQuery object
-		$chart.data('chart', ordersChart);
-	}
-
-
-	// Init chart
-	if ($chart.length) {
-		initChart($chart);
-	}
-
-})();
-
-'use strict';
-
-//
-// Sales chart
-//
-
-var SalesChart = (function() {
-
-  // Variables
-
-  var $chart = $('#chart-sales-dark');
-
-
-  // Methods
-
-  function init($chart) {
-
-    var salesChart = new Chart($chart, {
-      type: 'line',
-      options: {
-        scales: {
-          yAxes: [{
-            gridLines: {
-              lineWidth: 1,
-              color: Charts.colors.gray[900],
-              zeroLineColor: Charts.colors.gray[900]
-            },
-            ticks: {
-              callback: function(value) {
-                if (!(value % 10)) {
-                  return '$' + value + 'k';
-                }
-              }
-            }
-          }]
-        },
-        tooltips: {
-          callbacks: {
-            label: function(item, data) {
-              var label = data.datasets[item.datasetIndex].label || '';
-              var yLabel = item.yLabel;
-              var content = '';
-
-              if (data.datasets.length > 1) {
-                content += '<span class="popover-body-label mr-auto">' + label + '</span>';
-              }
-
-              content += '<span class="popover-body-value">$' + yLabel + 'k</span>';
-              return content;
-            }
-          }
-        }
-      },
-      data: {
-        labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [{
-          label: 'Performance',
-          data: [0, 20, 10, 30, 15, 40, 20, 60, 60]
-        }]
-      }
-    });
-
-    // Save to jQuery object
-
-    $chart.data('chart', salesChart);
-
-  };
-
-
-  // Events
-
-  if ($chart.length) {
-    init($chart);
-  }
-
-})();
-
-//
-// Bootstrap Datepicker
-//
-
-'use strict';
-
-var Datepicker = (function() {
-
-	// Variables
-
-	var $datepicker = $('.datepicker');
-
-
-	// Methods
-
-	function init($this) {
-		var options = {
-			disableTouchKeyboard: true,
-			autoclose: false
-		};
-
-		$this.datepicker(options);
-	}
-
-
-	// Events
-
-	if ($datepicker.length) {
-		$datepicker.each(function() {
-			init($(this));
-		});
-	}
+    if ($tooltip.length) {
+        init();
+    }
 
 })();
 
@@ -1116,82 +552,89 @@ var Datepicker = (function() {
 
 'use strict';
 
-var noUiSlider = (function() {
+var FormControl = (function () {
 
-	// Variables
+    // Variables
 
-	// var $sliderContainer = $('.input-slider-container'),
-	// 		$slider = $('.input-slider'),
-	// 		$sliderId = $slider.attr('id'),
-	// 		$sliderMinValue = $slider.data('range-value-min');
-	// 		$sliderMaxValue = $slider.data('range-value-max');;
+    var $input = $('.form-control');
 
 
-	// // Methods
-	//
-	// function init($this) {
-	// 	$this.on('focus blur', function(e) {
-  //       $this.parents('.form-group').toggleClass('focused', (e.type === 'focus' || this.value.length > 0));
-  //   }).trigger('blur');
-	// }
-	//
-	//
-	// // Events
-	//
-	// if ($input.length) {
-	// 	init($input);
-	// }
+    // Methods
+
+    function init($this) {
+        $this.on('focus blur', function (e) {
+            $(this).parents('.form-group').toggleClass('focused', (e.type === 'focus'));
+        }).trigger('blur');
+    }
 
 
+    // Events
 
-	if ($(".input-slider-container")[0]) {
-			$('.input-slider-container').each(function() {
+    if ($input.length) {
+        init($input);
+    }
 
-					var slider = $(this).find('.input-slider');
-					var sliderId = slider.attr('id');
-					var minValue = slider.data('range-value-min');
-					var maxValue = slider.data('range-value-max');
+})();
 
-					var sliderValue = $(this).find('.range-slider-value');
-					var sliderValueId = sliderValue.attr('id');
-					var startValue = sliderValue.data('range-value-low');
+//
+// Form control
+//
 
-					var c = document.getElementById(sliderId),
-							d = document.getElementById(sliderValueId);
+'use strict';
 
-					noUiSlider.create(c, {
-							start: [parseInt(startValue)],
-							connect: [true, false],
-							//step: 1000,
-							range: {
-									'min': [parseInt(minValue)],
-									'max': [parseInt(maxValue)]
-							}
-					});
+var noUiSlider = (function () {
 
-					c.noUiSlider.on('update', function(a, b) {
-							d.textContent = a[b];
-					});
-			})
-	}
+    // Variables
 
-	if ($("#input-slider-range")[0]) {
-			var c = document.getElementById("input-slider-range"),
-					d = document.getElementById("input-slider-range-value-low"),
-					e = document.getElementById("input-slider-range-value-high"),
-					f = [d, e];
 
-			noUiSlider.create(c, {
-					start: [parseInt(d.getAttribute('data-range-value-low')), parseInt(e.getAttribute('data-range-value-high'))],
-					connect: !0,
-					range: {
-							min: parseInt(c.getAttribute('data-range-value-min')),
-							max: parseInt(c.getAttribute('data-range-value-max'))
-					}
-			}), c.noUiSlider.on("update", function(a, b) {
-					f[b].textContent = a[b]
-			})
-	}
+    if ($(".input-slider-container")[0]) {
+        $('.input-slider-container').each(function () {
+
+            var slider = $(this).find('.input-slider');
+            var sliderId = slider.attr('id');
+            var minValue = slider.data('range-value-min');
+            var maxValue = slider.data('range-value-max');
+
+            var sliderValue = $(this).find('.range-slider-value');
+            var sliderValueId = sliderValue.attr('id');
+            var startValue = sliderValue.data('range-value-low');
+
+            var c = document.getElementById(sliderId),
+                d = document.getElementById(sliderValueId);
+
+            noUiSlider.create(c, {
+                start: [parseInt(startValue)],
+                connect: [true, false],
+                //step: 1000,
+                range: {
+                    'min': [parseInt(minValue)],
+                    'max': [parseInt(maxValue)]
+                }
+            });
+
+            c.noUiSlider.on('update', function (a, b) {
+                d.textContent = a[b];
+            });
+        })
+    }
+
+    if ($("#input-slider-range")[0]) {
+        var c = document.getElementById("input-slider-range"),
+            d = document.getElementById("input-slider-range-value-low"),
+            e = document.getElementById("input-slider-range-value-high"),
+            f = [d, e];
+
+        noUiSlider.create(c, {
+            start: [parseInt(d.getAttribute('data-range-value-low')), parseInt(e.getAttribute('data-range-value-high'))],
+            connect: !0,
+            range: {
+                min: parseInt(c.getAttribute('data-range-value-min')),
+                max: parseInt(c.getAttribute('data-range-value-max'))
+            }
+        }), c.noUiSlider.on("update", function (a, b) {
+            f[b].textContent = a[b]
+        })
+    }
 
 })();
 
@@ -1201,24 +644,24 @@ var noUiSlider = (function() {
 
 'use strict';
 
-var Scrollbar = (function() {
+var Scrollbar = (function () {
 
-	// Variables
+    // Variables
 
-	var $scrollbar = $('.scrollbar-inner');
-
-
-	// Methods
-
-	function init() {
-		$scrollbar.scrollbar().scrollLock()
-	}
+    var $scrollbar = $('.scrollbar-inner');
 
 
-	// Events
+    // Methods
 
-	if ($scrollbar.length) {
-		init();
-	}
+    function init() {
+        $scrollbar.scrollbar().scrollLock()
+    }
+
+
+    // Events
+
+    if ($scrollbar.length) {
+        init();
+    }
 
 })();
