@@ -108,9 +108,7 @@ async function reportContacts(targets) {
 async function reportSymptoms(object) {
     const instance = createHTTPClientInstance()
     instance.data = object
-    await instance.post('/symptoms', {
-        data: object
-    })
+    await instance.post('/symptoms', object)
         .then(function (response) {
             document.location.href = "/home.html";
             console.log(response);
