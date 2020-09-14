@@ -33,20 +33,31 @@ spec:
       containers:
         - env:
             - name: VAULT_ADDRESS
-              value: https://{{ .Release.Name }}-vault
-            - name: REDIS_ADDRESS
-              value: redis://{{ .Release.Name }}-redis
+              value: "https://{{ .Release.Name }}-vault"
+            - name: RABBITMQ_ADDRESS
+              value: "{{ .Release.Name }}-rabbitmq:{{ .Values.rabbitmq.port }}"
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
+            - name: GUNICORN_CMD_ARGS
+              value: "--keyfile=/var/run/ssl/rest-key.pem --certfile=/var/run/ssl/rest.pem"
+            - name: PORT
+              value: "{{ .Values.exposePort }}"
           image: gcr.io/vault-159468/dashboard:{{ .Values.imageVersion }}
           name: {{ template "admin.fullname" .}}
+          volumeMounts:
+            - mountPath: /var/run/rmq-tls
+              name: {{ template "rabbitmq.fullname" . }}-tls
+              readOnly: true
+            - mountPath: /var/run/ssl
+              name: {{ template "rest.fullname" . }}-tls
+              readOnly: true
           ports:
             - containerPort: {{ .Values.exposePort }}
           {{ if eq .Values.readinessProbe.enabled "true" }}
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: {{ .Values.exposePort }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
             periodSeconds: {{ .Values.readinessProbe.interval}}
           {{ end }}
@@ -54,7 +65,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: {{ .Values.exposePort }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}
           {{ end }}
@@ -62,3 +73,10 @@ spec:
       serviceAccountName: {{ template "admin.fullname" . }}-serviceaccount
       imagePullSecrets:
         - name: gcp-registry
+      volumes:
+        - name: {{ template "rabbitmq.fullname" . }}-tls
+          secret:
+            secretName: {{ template "rabbitmq.fullname" . }}-tls
+        - name: {{ template "admin.fullname" . }}-tls
+          secret:
+            secretName: {{ template "admin.fullname" . }}-tls

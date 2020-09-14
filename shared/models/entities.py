@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from shared.service.celery_config import celery
+from shared.service.celery_config import get_celery
 from shared.utilities import pst_timestamp
 
 
@@ -244,7 +244,7 @@ class User(BaseModel):
 
     def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None) -> str:
         """
-        Send a task to service via redis
+        Send a task to service via rabbitmq
         :param task_name: the task name to queue the task to
         :param task_data: data to send to the target worker
         :return: the task id
@@ -254,7 +254,7 @@ class User(BaseModel):
         if task_data:
             task_params['task_data'] = task_data
 
-        queued_task = celery.send_task(
+        queued_task = get_celery().send_task(
             name=task_name, args=[], kwargs=task_params,
             queue='default'
         )

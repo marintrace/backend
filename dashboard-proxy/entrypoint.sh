@@ -20,12 +20,15 @@ MATCH_CLAIMS=$(echo "$OIDC_SECRET" | jq .data.data.match_claims -r)
 
 echo "Starting Louketo Proxy"
 /opt/louketo/louketo-proxy \
-  --listen 0.0.0.0:80 \
-  --upstream-url http://tracing-admin \
+  --listen 0.0.0.0:443 \
+  --upstream-url https://tracing-admin \
   --discovery-url "$DISCOVERY_URL" \
   --client-id "$CLIENT_ID" \
   --client-secret "$CLIENT_SECRET" \
   --preserve-host \
   --match-claims="$MATCH_CLAIMS" \
   --oauth-uri "$INGRESS_BASE/oauth" \
-  --enable-logout-redirect
+  --enable-logout-redirect \
+  --tls-cert "/var/run/ssl/admin-oidc.pem" \
+  --tls-private-key "/var/run/ssl/admin-oidc-key.pem" \
+  --tls-ca-certificate "/var/run/ssl/ca.pem"

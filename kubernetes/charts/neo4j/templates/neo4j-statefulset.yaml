@@ -71,7 +71,7 @@ spec:
             - mountPath: /data
               name: {{ template "neo4j.fullname" . }}-claim1
             - mountPath: /var/run/ssl
-              name: {{ template "neo4j.fullname" . }}-ssl
+              name: {{ template "neo4j.fullname" . }}-tls
               readOnly: true
           ports:
             - containerPort: {{ .Values.exposePort }}
@@ -109,4 +109,4 @@ spec:
               claimName: {{ template "neo4j.fullname" . }}-claim1
           - name: {{ template "neo4j.fullname" . }}-ssl
             secret:
-              secretName: {{ template "neo4j.fullname" . }}-ssl
+              secretName: {{ template "neo4j.fullname" . }}-tls

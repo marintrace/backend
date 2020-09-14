@@ -27,17 +27,21 @@ spec:
         - name: wait-for-vault-service
           image: busybox:1.28
           command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-vault; do sleep 1.5; echo "Waiting for Vault to start..."; done']
-        - name: wait-for-redis-service
+        - name: wait-for-rabbitmq-service
           image: busybox:1.28
-          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-redis; do sleep 1.5; echo "Waiting for Redis to start..."; done']
+          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-rabbitmq; do sleep 1.5; echo "Waiting for Redis to start..."; done']
       containers:
         - env:
             - name: VAULT_ADDRESS
               value: https://{{ .Release.Name }}-vault
-            - name: REDIS_ADDRESS
-              value: redis://{{ .Release.Name }}-redis
+            - name: RABBITMQ_ADDRESS
+              value: {{ .Release.Name }}-rabbitmq:{{ .Values.rabbitmq.port }}
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
+          volumeMounts:
+            - mountPath: /var/run/rmq-tls
+              name: {{ template "rabbitmq.fullname" . }}-ssl
+              readOnly: true
           image: gcr.io/vault-159468/celery:{{ .Values.imageVersion }}
           args:
             - sh
@@ -65,3 +69,7 @@ spec:
       serviceAccountName: {{ template "flower.fullname" . }}-serviceaccount
       imagePullSecrets:
           - name: gcp-registry
+      volumes:
+          - name: {{ template "rabbitmq.fullname" . }}-tls
+            secret:
+              secretName: {{ template "rabbitmq.fullname" .}}-tls

@@ -15,7 +15,7 @@ cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem - | 
   "CN": "$1",
   "key": {
     "algo": "ecdsa",
-    "size": 256
+    "size": 384
   }
 }
 EOF

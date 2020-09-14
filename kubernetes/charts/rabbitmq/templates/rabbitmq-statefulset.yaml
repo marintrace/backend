@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: {{ template "rabbitmq.fullname" . }}
+  labels:
+    name: {{ template "rabbitmq.fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+spec:
+  replicas: {{ .Values.replicas }}
+  serviceName: {{ template "rabbitmq.fullname" . }}
+  selector:
+    matchLabels:
+      name: {{ template "rabbitmq.fullname" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "rabbitmq.fullname" . }}
+    spec:
+      containers:
+        - image: gcr.io/vault-159468/rabbitmq:{{ .Values.imageVersion }}
+          env:
+            - name: VAULT_ADDRESS
+              value: https://{{ .Release.Name }}-vault
+            - name: VAULT_ROLE
+              value: {{ .Values.vault.vaultRole }}
+            - name: RABBITMQ_SSL_CERTFILE
+              value: /var/run/ssl/rabbitmq.pem
+            - name: RABBITMQ_SSL_KEYFILE
+              value: /var/run/ssl/rabbitmq-key.pem
+            - name: RABBITMQ_SSL_CACERTFILE
+              value: /var/run/ssl/ca.pem
+            - name: RABBITMQ_CTL_ERL_ARGS # https://github.com/docker-library/rabbitmq/issues/165
+              value: "-proto_dist inet_tls server_certfile /var/run/ssl/rabbitmq.pem server_keyfile /var/run/ssl/rabbitmq-key.pem"
+            - name: RABBITMQ_SSL_VERIFY
+              value: verify_none
+            - name: RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT
+              value: "false"
+          name:  {{ template "rabbitmq.fullname" . }}-pod
+          volumeMounts:
+            - mountPath: /var/lib/rabbitmq
+              name: {{ template "rabbitmq.fullname" . }}-claim0
+            - mountPath: /var/run/ssl
+              name: {{ template "rabbitmq.fullname" . }}-tls
+              readOnly: true
+          ports:
+            - containerPort: {{ .Values.exposePort }}
+              name: rabbitmq
+            - containerPort: {{ .Values.mgmtExposePort}}
+              name: rabbitmq-mgmt
+          {{ if eq .Values.readinessProbe.enabled "true" }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - rabbitmqctl node_health_check
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
+            periodSeconds: {{ .Values.readinessProbe.interval }}
+          {{ end }}
+          {{ if eq .Values.livenessProbe.enabled "true" }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - rabbitmqctl node_health_check
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
+            periodSeconds: {{ .Values.livenessProbe.interval }}
+          {{ end }}
+      restartPolicy: Always
+      serviceAccountName: {{ template "rabbitmq.fullname" . }}-serviceaccount
+      volumes:
+          - name: {{ template "rabbitmq.fullname" . }}-claim0
+            persistentVolumeClaim:
+              claimName: {{ template "rabbitmq.fullname" . }}-claim0
+          - name: {{ template "rabbitmq.fullname" . }}-tls
+            secret:
+              secretName: {{ template "rabbitmq.fullname" . }}-tls

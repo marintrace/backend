@@ -1,9 +1,9 @@
-FROM neo4j:4.1
+FROM rabbitmq:3-management
 ARG CA_URL="https://storage.googleapis.com/vault-159468-cert-storage/ca.pem"
 
-# Install CLI for Entrypoint
+# Install Dependencies for Entrypoint
 RUN apt-get -y update && \
-    apt-get install -y curl wget jq ca-certificates
+    apt-get -y install wget curl ca-certificates jq
 
 # Trust Internal CA Certificate
 RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
@@ -11,7 +11,9 @@ RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
     update-ca-certificates --fresh
 
 # Setup Entrypoint
-COPY entrypoint.sh /config/entrypoint.sh
-RUN chmod +x /config/entrypoint.sh
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["/config/entrypoint.sh"]
+USER rabbitmq
+CMD ["/entrypoint.sh"]
+

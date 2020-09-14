@@ -18,23 +18,23 @@ cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem - | 
   "CN": "tracing-$1.default.svc.cluster.local",
   "key": {
     "algo": "ecdsa",
-    "size": 256
+    "size": 384
   }
 }
 EOF
 
 echo "Generating Kubernetes Secret"
 
-cat <<EOF > "$1"-ssl-secret.yaml
+cat <<EOF > "$1"-tls-secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
   creationTimestamp: null
-  name: {{ template "$1.fullname" . }}-ssl
+  name: {{ template "$1.fullname" . }}-tls
 data:
   ca.pem: $(base64 < authority/ca.pem )
   $1-key.pem: $(base64 < $1-key.pem )
   $1.pem: $(base64 < $1.pem)
 EOF
 
-echo "Created $1-ssl-secret.yaml."
+echo "Created $1-tls-secret.yaml."
