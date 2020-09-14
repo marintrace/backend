@@ -27,18 +27,6 @@ spec:
               value: https://{{ .Release.Name }}-vault
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
-            - name: RABBITMQ_SSL_CERTFILE
-              value: /var/run/ssl/rabbitmq.pem
-            - name: RABBITMQ_SSL_KEYFILE
-              value: /var/run/ssl/rabbitmq-key.pem
-            - name: RABBITMQ_SSL_CACERTFILE
-              value: /var/run/ssl/ca.pem
-            - name: RABBITMQ_CTL_ERL_ARGS # https://github.com/docker-library/rabbitmq/issues/165
-              value: "-proto_dist inet_tls server_certfile /var/run/ssl/rabbitmq.pem server_keyfile /var/run/ssl/rabbitmq-key.pem"
-            - name: RABBITMQ_SSL_VERIFY
-              value: verify_none
-            - name: RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT
-              value: "false"
           name:  {{ template "rabbitmq.fullname" . }}-pod
           volumeMounts:
             - mountPath: /var/lib/rabbitmq
@@ -57,7 +45,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - rabbitmqctl node_health_check
+                - rabbitmq-diagnostics -q ping
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
             periodSeconds: {{ .Values.readinessProbe.interval }}
           {{ end }}
@@ -67,7 +55,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - rabbitmqctl node_health_check
+                - rabbitmq-diagnostics -q ping
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}
           {{ end }}

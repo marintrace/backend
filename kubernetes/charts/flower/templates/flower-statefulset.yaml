@@ -40,7 +40,7 @@ spec:
               value: {{ .Values.vault.vaultRole }}
           volumeMounts:
             - mountPath: /var/run/rmq-tls
-              name: {{ template "rabbitmq.fullname" . }}-ssl
+              name: {{ template "flower.fullname" . }}-rmq-tls
               readOnly: true
           image: gcr.io/vault-159468/celery:{{ .Values.imageVersion }}
           args:
@@ -70,6 +70,6 @@ spec:
       imagePullSecrets:
           - name: gcp-registry
       volumes:
-          - name: {{ template "rabbitmq.fullname" . }}-tls
+          - name: {{ template "flower.fullname" . }}-rmq-tls
             secret:
-              secretName: {{ template "rabbitmq.fullname" .}}-tls
+              secretName: {{ .Release.Name }}-rabbitmq-tls

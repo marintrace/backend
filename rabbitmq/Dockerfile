@@ -10,9 +10,13 @@ RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
     echo "ca.crt" >> /etc/ca-certificates.conf && \
     update-ca-certificates --fresh
 
-# Setup Entrypoint
+# Setup RabbitMQ
+COPY ./rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+
+# Setup Permissions
+RUN chmod +x /entrypoint.sh && \
+    chmod 755 /etc/rabbitmq/rabbitmq.conf
 
 USER rabbitmq
 CMD ["/entrypoint.sh"]

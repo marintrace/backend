@@ -39,17 +39,17 @@ spec:
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
             - name: GUNICORN_CMD_ARGS
-              value: "--keyfile=/var/run/ssl/rest-key.pem --certfile=/var/run/ssl/rest.pem"
+              value: "--keyfile=/var/run/ssl/admin-key.pem --certfile=/var/run/ssl/admin.pem"
             - name: PORT
               value: "{{ .Values.exposePort }}"
           image: gcr.io/vault-159468/dashboard:{{ .Values.imageVersion }}
           name: {{ template "admin.fullname" .}}
           volumeMounts:
             - mountPath: /var/run/rmq-tls
-              name: {{ template "rabbitmq.fullname" . }}-tls
+              name: {{ template "admin.fullname" . }}-rmq-tls
               readOnly: true
             - mountPath: /var/run/ssl
-              name: {{ template "rest.fullname" . }}-tls
+              name: {{ template "admin.fullname" . }}-tls
               readOnly: true
           ports:
             - containerPort: {{ .Values.exposePort }}
@@ -74,9 +74,9 @@ spec:
       imagePullSecrets:
         - name: gcp-registry
       volumes:
-        - name: {{ template "rabbitmq.fullname" . }}-tls
+        - name: {{ template "admin.fullname" . }}-rmq-tls
           secret:
             secretName: {{ template "rabbitmq.fullname" . }}-tls
         - name: {{ template "admin.fullname" . }}-tls
           secret:
-            secretName: {{ template "admin.fullname" . }}-tls
+            secretName: {{ .Release.Name }}-rabbitmq-tls

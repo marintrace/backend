@@ -3,12 +3,13 @@ from py2neo import Relationship, RelationshipMatcher
 from shared.logger import logger
 from shared.models import (InteractionReport, RiskNotification, SymptomReport,
                            TestReport, TestType, User, UserStatus)
-from shared.service.celery_config import CELERY_RETRY_OPTIONS, celery
+from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.neo_config import acquire_db_graph
 from shared.service.vault_config import VaultConnection
 from shared.utilities import pst_timestamp
-
 from .utilities import update_active_user_report
+
+celery = get_celery()
 
 
 @celery.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)

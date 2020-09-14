@@ -5,17 +5,18 @@ from uuid import uuid4
 
 from shared.logger import logger
 from shared.models import RiskNotification, User
-from shared.service.celery_config import CELERY_RETRY_OPTIONS, celery
+from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import acquire_db_graph
 from shared.service.vault_config import VaultConnection
 
 EMAIL_CLIENT = EmailClient()
-
 RiskTier = namedtuple('RiskTier', ['name', 'depth'])
 HighestRisk = RiskTier('highest_risk', depth=1)  # direct interaction with positive/symptomatic member
 HighRisk = RiskTier('high_risk', depth=2)  # 2nd degree interaction with positive/symptomatic member
 LowMediumRisk = RiskTier('medium_risk', depth=None)  # 3rd+ degree interaction with positive/symptomatic member
+
+celery = get_celery()
 
 
 def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, cohort: Optional[int] = None):

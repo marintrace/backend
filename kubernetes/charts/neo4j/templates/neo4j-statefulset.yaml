@@ -107,6 +107,6 @@ spec:
           - name: {{ template "neo4j.fullname" . }}-claim1
             persistentVolumeClaim:
               claimName: {{ template "neo4j.fullname" . }}-claim1
-          - name: {{ template "neo4j.fullname" . }}-ssl
+          - name: {{ template "neo4j.fullname" . }}-tls
             secret:
               secretName: {{ template "neo4j.fullname" . }}-tls

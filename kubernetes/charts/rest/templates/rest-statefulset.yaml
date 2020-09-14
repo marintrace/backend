@@ -46,7 +46,7 @@ spec:
           name: {{ template "rest.fullname" . }}
           volumeMounts:
             - mountPath: /var/run/rmq-tls
-              name: {{ template "rabbitmq.fullname" . }}-tls
+              name: {{ template "rest.fullname" . }}-rmq-tls
               readOnly: true
             - mountPath: /var/run/ssl
               name: {{ template "rest.fullname" . }}-tls
@@ -77,6 +77,6 @@ spec:
         - name: {{ template "rabbitmq.fullname" . }}-tls
           secret:
             secretName: {{ template "rabbitmq.fullname" . }}-tls
-        - name: {{ template "rest.fullname" . }}-tls
+        - name: {{ template "rest.fullname" . }}-rmq-tls
           secret:
-            secretName: {{ template "rest.fullname" . }}-tls
+            secretName: {{ .Release.Name }}-rabbitmq-tls

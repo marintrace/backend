@@ -6,7 +6,7 @@ if [[ -z "$1" ]]; then
 fi
 
 echo "Generating CSR and PEM for service $1..."
-cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem - | cfssljson -bare $1
+cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem.old - | cfssljson -bare $1
 {
   "hosts": [
     "*.$1",
@@ -15,7 +15,7 @@ cat <<EOF | cfssl gencert -ca=authority/ca.pem -ca-key=authority/ca-key.pem - | 
   "CN": "$1",
   "key": {
     "algo": "ecdsa",
-    "size": 384
+    "size": 256
   }
 }
 EOF
