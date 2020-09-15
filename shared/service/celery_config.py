@@ -50,7 +50,7 @@ class RabbitMQCredentials:
             logger.info("No Cached RabbitMQ Connection String... Retrieving from Vault.")
             with VaultConnection() as vault:
                 rmq_auth = vault.read_secret(secret_path="rabbitmq")
-                self.connection_string = f"amqp://{rmq_auth['username']}:{rmq_auth['password']}@" \
+                self.connection_string = f"{rmq_auth['username']}:{rmq_auth['password']}@" \
                                          f"{os.environ['RABBITMQ_ADDRESS']}/{rmq_auth['vhost']}"
             logger.info("Retrieved new connection string and added to cache.")
         return self.connection_string
@@ -64,7 +64,8 @@ def get_celery():
     global CELERY_CONNECTION
     if not CELERY_CONNECTION:
         connection_string = RabbitMQCredentials().create_connection_string()
-        CELERY_CONNECTION = Celery("tasks", broker=connection_string, backend=connection_string)
+        CELERY_CONNECTION = Celery("tasks", broker=f'amqp://{connection_string}',
+                                   backend=f'rpc://{connection_string}')
         CELERY_CONNECTION.conf.update(CELERY_CONFIG_OPTIONS)
     return CELERY_CONNECTION
 

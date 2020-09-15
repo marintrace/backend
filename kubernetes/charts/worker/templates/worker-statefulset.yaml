@@ -50,8 +50,6 @@ spec:
             - worker
             - -A
             - tasks
-            - -Q
-            - default
           name: {{ template "worker.fullname" .}}
           {{ if eq .Values.livenessProbe.enabled "true" }}
           livenessProbe:
@@ -70,4 +68,4 @@ spec:
       volumes:
         - name: {{ template "worker.fullname" . }}-rmq-tls
           secret:
-            secretName: {{ .Release.Name }}-rabbitmq-tls
+            secretName: {{ .Release.Name }}-rabbitmq-client-tls

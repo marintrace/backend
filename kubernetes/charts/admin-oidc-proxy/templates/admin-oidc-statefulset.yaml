@@ -38,10 +38,6 @@ spec:
               value: {{ .Values.vault.vaultRole }}
             - name: INGRESS_BASE
               value: "/admin"
-          volumeMounts:
-            - mountPath: /var/run/ssl
-              name: {{ template "admin-oidc.fullname" . }}-tls
-              readOnly: true
           image: gcr.io/vault-159468/oidc-proxy:{{ .Values.imageVersion }}
           name: {{ template "admin-oidc.fullname" .}}
           ports:
@@ -66,7 +62,3 @@ spec:
       serviceAccountName: {{ template "admin-oidc.fullname" . }}-serviceaccount
       imagePullSecrets:
         - name: gcp-registry
-      volumes:
-        - name: {{ template "admin-oidc.fullname" . }}-tls
-          secret:
-            secretName: {{ template "admin-oidc.fullname" . }}-tls

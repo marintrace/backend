@@ -50,12 +50,20 @@ spec:
               value: 1G
             - name: NEO4J_dbms_memory_pagecache_size
               value: 1G
+            - name: NEO4J_bolt_ssl__policy
+              value: default
+            - name: NEO4J_https_ssl__policy
+              value: default
+            - name: NEO4J_dbms_connector_bolt_tls__level
+              value: REQUIRED
+            - name: NEO4J_dbms_ssl_policy_default_base__directory
+              value: "/var/lib/neo4j/certificates/https"
+            - name: NEO4J_dbms_ssl_policy_default_trust__all
+              value: "false"
             - name: NEO4J_dbms_connector_https_enabled
               value: "true"
-            - name: NEO4J_dbms_ssl_policy_https_enabled
+            - name: NEO4J_dbms_connector_bolt_enabled
               value: "true"
-            - name: NEO4J_dbms_ssl_policy_https_base__directory
-              value: "/var/lib/neo4j/certificates/https"
           image: gcr.io/vault-159468/neo4j:{{ .Values.imageVersion }}
           {{ if eq .Values.resourceRequests.enabled "true" }}
           resources:

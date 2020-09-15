@@ -255,8 +255,7 @@ class User(BaseModel):
             task_params['task_data'] = task_data
 
         queued_task = get_celery().send_task(
-            name=task_name, args=[], kwargs=task_params,
-            queue='default'
+            name=task_name, args=[], kwargs=task_params
         )
         return queued_task.id
 

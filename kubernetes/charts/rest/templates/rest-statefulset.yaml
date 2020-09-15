@@ -36,8 +36,6 @@ spec:
               value: "https://{{ .Release.Name }}-vault"
             - name: RABBITMQ_ADDRESS
               value: "{{ .Release.Name }}-rabbitmq:{{ .Values.rabbitmq.port }}"
-            - name: GUNICORN_CMD_ARGS
-              value: "--keyfile=/var/run/ssl/rest-key.pem --certfile=/var/run/ssl/rest.pem"
             - name: VAULT_ROLE
               value: {{ .Values.vault.vaultRole }}
             - name: PORT
@@ -47,9 +45,6 @@ spec:
           volumeMounts:
             - mountPath: /var/run/rmq-tls
               name: {{ template "rest.fullname" . }}-rmq-tls
-              readOnly: true
-            - mountPath: /var/run/ssl
-              name: {{ template "rest.fullname" . }}-tls
               readOnly: true
           ports:
             - containerPort: {{ .Values.exposePort }}
@@ -74,9 +69,6 @@ spec:
       imagePullSecrets:
         - name: gcp-registry
       volumes:
-        - name: {{ template "rabbitmq.fullname" . }}-tls
-          secret:
-            secretName: {{ template "rabbitmq.fullname" . }}-tls
         - name: {{ template "rest.fullname" . }}-rmq-tls
           secret:
-            secretName: {{ .Release.Name }}-rabbitmq-tls
+            secretName: {{ .Release.Name }}-rabbitmq-client-tls

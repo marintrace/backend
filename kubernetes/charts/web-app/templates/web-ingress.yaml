@@ -8,7 +8,7 @@ spec:
   tls:
     - hosts:
         - marintracingapp.org
-      secretName: tls-secret
+      secretName: ingress-tls
   rules:
     - host: marintracingapp.org
       http:

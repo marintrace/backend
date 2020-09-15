@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-CERTIFICATES_ROOT="/var/lib/neo4j/certificates/https"
+HTTPS_CERTIFICATES_ROOT="/var/lib/neo4j/certificates/https"
+BOLT_CERTIFICATES_ROOT="/var/lib/neo4j/certificates/bolt"
 
-echo "Copying over SSL Certificates from mounted secret"
-mkdir -p "$CERTIFICATES_ROOT/trusted" "$CERTIFICATES_ROOT/revoked" # Create mandatory directories
+echo "Copying over SSL Certificates from mounted secret - HTTPS"
+mkdir -p "$HTTPS_CERTIFICATES_ROOT/trusted" "$HTTPS_CERTIFICATES_ROOT/revoked" # Create mandatory directories
+cp /var/run/ssl/neo4j.pem "$HTTPS_CERTIFICATES_ROOT/trusted/public.crt"
+cp /var/run/ssl/neo4j.pem "$HTTPS_CERTIFICATES_ROOT/public.crt"
+cp /var/run/ssl/neo4j-key.pem "$HTTPS_CERTIFICATES_ROOT/private.key"
 
-cp /var/run/ssl/neo4j.pem "$CERTIFICATES_ROOT/trusted/public.crt"
-cp /var/run/ssl/neo4j.pem "$CERTIFICATES_ROOT/public.crt"
-cp /var/run/ssl/neo4j-key.pem "$CERTIFICATES_ROOT/private.key"
-
+echo "Copying over SSL Certificates from mounted secret - Bolt"
+mkdir -p "$BOLT_CERTIFICATES_ROOT/trusted" "$BOLT_CERTIFICATES_ROOT/revoked" # Create mandatory directories
+cp /var/run/ssl/neo4j.pem "$BOLT_CERTIFICATES_ROOT/trusted/public.crt"
+cp /var/run/ssl/neo4j.pem "$BOLT_CERTIFICATES_ROOT/public.crt"
+cp /var/run/ssl/neo4j-key.pem "$BOLT_CERTIFICATES_ROOT/private.key"
 echo "Done."
 
 echo "Obtaining Kubernetes Client Token from Vault Server..."

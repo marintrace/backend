@@ -8,7 +8,7 @@ spec:
   tls:
     - hosts:
         - {{ .Values.ingressSubdomain }}.marintracingapp.org
-      secretName: tls-secret
+      secretName: ingress-tls
   rules:
     - host: {{ .Values.ingressSubdomain }}.marintracingapp.org
       http:

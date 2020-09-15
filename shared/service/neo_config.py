@@ -45,9 +45,10 @@ def acquire_db_graph():
     logger.debug("Acquiring Database Credentials if not present...")
     credentials: Optional[Dict] = _CREDENTIALS.retrieve_credentials()
     logger.info("Establishing new graph connection to Neo4J")
+    # Bolt+S is an encrypted TLS connection with certificate verification
     graph = Graph(
-        host=env_vars.get('NEO4J_HOST', 'tracing-neo4j'), scheme='bolt',
-        auth=(credentials['username'], credentials['password']), port=7687
+        f"bolt+s://{env_vars.get('NEO4J_HOST', 'tracing-neo4j')}:7687",
+        auth=(credentials['username'], credentials['password'])
     )
     try:
         yield graph

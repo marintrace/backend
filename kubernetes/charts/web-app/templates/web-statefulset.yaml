@@ -26,10 +26,6 @@ spec:
       containers:
         - image: gcr.io/vault-159468/web-app:{{ .Values.imageVersion }}
           name: {{ template "web.fullname" .}}
-          volumeMounts:
-            - mountPath: /var/run/ssl
-              name: {{ template "web.fullname" . }}-tls
-              readOnly: true
           ports:
             - containerPort: {{ .Values.exposePort }}
           {{ if eq .Values.readinessProbe.enabled "true" }}
@@ -51,7 +47,3 @@ spec:
       restartPolicy: Always
       imagePullSecrets:
         - name: gcp-registry
-      volumes:
-        - name: {{ template "web.fullname" . }}-tls
-          secret:
-            secretName: {{ template "web.fullname" . }}-tls

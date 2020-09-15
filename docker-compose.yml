@@ -10,34 +10,34 @@ services:
     build:
       context: .
       dockerfile: rest-api/Dockerfile
-    image: gcr.io/vault-159468/rest:0.1.0
+    image: gcr.io/vault-159468/rest:0.1.3
   neo4j:
     build:
       context: neo4j
       dockerfile: Dockerfile
-    image: gcr.io/vault-1594687/neo4j:0.1.0
+    image: gcr.io/vault-159468/neo4j:0.1.1
   web:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.1.0
+    image: gcr.io/vault-159468/web-app:0.1.3
   admin-oidc:
     build:
       context: dashboard-proxy
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/oidc-proxy:0.1.0
+    image: gcr.io/vault-159468/oidc-proxy:0.1.3
   admin:
     build:
       context: .
       dockerfile: dashboard/Dockerfile
-    image: gcr.io/vault-159468/dashboard:0.1.0
+    image: gcr.io/vault-159468/dashboard:0.1.3
   rabbitmq:
     build:
       context: rabbitmq
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/rabbitmq:0.1.0
+    image: gcr.io/vault-159468/rabbitmq:0.1.1
   celery:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.1.0
+    image: gcr.io/vault-159468/celery:0.1.3
