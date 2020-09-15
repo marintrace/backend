@@ -9,7 +9,7 @@ from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummary
     PaginatedUserEmailIdentifer, OptionalPaginatedUserEmailIdentifier, DashboardUserInteractions, \
     DashboardUserInteraction
 from shared.service.jwt_auth_config import JWTAuthManager
-from shared.service.neo_config import acquire_db_graph, current_day_node
+from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import get_pst_time, pst_date, parse_timestamp, DATE_FORMAT
 
 # Mounted on the main router
@@ -68,7 +68,7 @@ async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
     that the admin belongs to
     """
     logger.info(f"Retrieving number of submitted symptom reports for school '{user.school}'")
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         current_day = current_day_node(school=user.school)
         matcher = RelationshipMatcher(graph=graph)
         submitted_reports = len(matcher.match(nodes=(None, current_day), r_type='reported'))
@@ -82,7 +82,7 @@ async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, use
     Paginate through a user's report history
     """
     logger.info("Paginating user report history")
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         query = f"""
         MATCH (m: Member {{school: "{user.school}", email: "{request.email}"}})-[report:reported]-(d: DailyReport)
         RETURN report, report.timestamp as timestamp ORDER BY report.timestamp DESC
@@ -105,7 +105,7 @@ async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentif
     """
     logger.info(f"Paginating through user summary records")
 
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         query = f"""
         MATCH (m: Member {{school: "{user.school}"}})
         {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
@@ -128,7 +128,7 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
     Get the user info from the database for the specified user
     """
     logger.info("Retrieving user info")
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         # Scope User Retrieval to the Admin Dashboard's Logged In School
         member_node = graph.nodes.match("Member", email=identifier.email, school=user.school).first()
         return DashboardUserInfoDetail(
@@ -147,7 +147,7 @@ async def paginate_user_interactions(request: PaginatedUserEmailIdentifer, user:
     """
     Paginate through a user's interactions
     """
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         query = f"""
         MATCH (m:Member {{email: "{request.email}", school: "{user.school}"}})-[i:interacted_with]-(target:Member)
         RETURN target.email as email, i.timestamp as timestamp 
@@ -173,7 +173,7 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
     """
     logger.info("Acquiring User Summary Status")
 
-    with acquire_db_graph() as graph:
+    with Neo4JGraph() as graph:
         query = f"""
         MATCH (m:Member {{email:'{identifier.email}',school:'{user.school}'}})-[r:reported]-(d:DailyReport {{date: '{pst_date()}'}}) 
         RETURN r as report

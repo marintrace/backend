@@ -7,7 +7,7 @@ from shared.logger import logger
 from shared.models import RiskNotification, User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
-from shared.service.neo_config import acquire_db_graph
+from shared.service.neo_config import Neo4JGraph
 from shared.service.vault_config import VaultConnection
 
 EMAIL_CLIENT = EmailClient()
@@ -33,7 +33,7 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
     seen_individuals = {email}  # prevent infinite circular traversal if user links back to itself.
     individual_risk_tiers = dict()
 
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         for tier in [HighestRisk, HighRisk, LowMediumRisk]:
             individual_risk_tiers[tier] = []
             tier_depth = tier.depth if tier.depth else ''
@@ -62,7 +62,7 @@ def notify_risk(self, *, user: User, task_data: RiskNotification):
     :param task_data: risk notification model
     """
     EMAIL_CLIENT.setup()
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
 
     with VaultConnection() as vault:

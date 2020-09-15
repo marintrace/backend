@@ -4,7 +4,7 @@ from shared.logger import logger
 from shared.models import (InteractionReport, RiskNotification, SymptomReport,
                            TestReport, TestType, User, UserStatus)
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
-from shared.service.neo_config import acquire_db_graph
+from shared.service.neo_config import Neo4JGraph
 from shared.service.vault_config import VaultConnection
 from shared.utilities import pst_timestamp
 from .utilities import update_active_user_report
@@ -20,7 +20,7 @@ def report_interaction(self, *, user: User, task_data: InteractionReport):
     :param task_data: interaction report model
     """
     logger.info("Reporting interaction for the authorized user.")
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=user.email, school=user.school).first()
         for target_member in task_data.targets:
             interacted_user = g.nodes.match('Member', email=target_member, school=user.school).first()
@@ -81,7 +81,7 @@ def report_active_user(self, *, user: User):
     :param user: authorized user model
     """
     logger.info("Setting authorized user's state to active...")
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=user.email, school=user.school).first()
         authorized_user_node['status'] = UserStatus.ACTIVE.value
         g.push(authorized_user_node)

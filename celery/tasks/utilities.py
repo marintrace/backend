@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from shared.logger import logger
 from shared.models import User
-from shared.service.neo_config import acquire_db_graph, current_day_node
+from shared.service.neo_config import Neo4JGraph, current_day_node
 
 
 def update_active_user_report(user: User, report: BaseModel):
@@ -13,7 +13,7 @@ def update_active_user_report(user: User, report: BaseModel):
     :param user: authorized user
     :param report: the report model
     """
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=user.email, school=user.school).first()
         day_node = current_day_node(school=user.school)
         graph_edge = RelationshipMatcher(graph=g).match(nodes={authorized_user_node, day_node}).first()

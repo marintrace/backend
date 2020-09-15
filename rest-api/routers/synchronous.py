@@ -7,7 +7,7 @@ from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
 from shared.models import ListUsersResponse, User
-from shared.service.neo_config import acquire_db_graph
+from shared.service.neo_config import Neo4JGraph
 
 from .authorization import AUTH_USER
 
@@ -22,7 +22,7 @@ async def list_users(user: User = AUTH_USER):
     List the users who belong to a specified school
     """
     logger.info(f"Listing Users for school: {user.school}")
-    with acquire_db_graph() as g:
+    with Neo4JGraph() as g:
         logger.info("Acquired Neo4J Graph... Running Selection query")
         result_set = list(NodeMatcher(graph=g).match("Member").where(f"_.school = '{user.school}'"))
     return ListUsersResponse(users=[User(**member) for member in result_set])
