@@ -70,6 +70,7 @@ async function reportTest(testType) {
             console.log(response);
             $('#positiveModal').modal('hide'); //close modals
             $('#negativeModal').modal('hide'); //close modals
+            alert("Successfully reported test result.")
         })
         .catch(function (error) {
             alert("Couldn't report test result. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
@@ -97,6 +98,7 @@ async function reportContacts(targets) {
         'targets': targets
     }).then(function (response) {
         document.location.href = "/home.html";
+        alert("Successfully reported interactions.")
         console.log(response);
     })
         .catch(function (error) {
@@ -111,6 +113,7 @@ async function reportSymptoms(object) {
     await instance.post('/symptoms', object)
         .then(function (response) {
             document.location.href = "/home.html";
+            alert("Successfully reported symptoms.")
             console.log(response);
         })
         .catch(function (error) {
