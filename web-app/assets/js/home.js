@@ -1,11 +1,22 @@
 //positive test
 $(document).ready(function() {
+
+    //check local storage firsts
+    if (window.localStorage.getItem('agreed') != "true") {
+      $('#policyModal').modal({backdrop: 'static', keyboard: false})
+    }
+
+    $("#acceptButton").click(function(){
+      $('#policyModal').modal('hide');
+      window.localStorage.setItem('agreed', 'true')
+    });
+
     $("#positiveButton").click(function(){
         //$(this).prop("disabled", true);
         //$(this).html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Report`);
 		$(this).addClass('disabled')
 		$(this).html(`Loading...`);
-        
+
         reportTest('positive').then(function() {
             $(document).ready(function() {
 				$("#positiveButton").removeClass("disabled")
@@ -15,13 +26,13 @@ $(document).ready(function() {
             });
         })
     });
-    
+
     $("#negativeButton").click(function(){
         //$(this).prop("disabled", true);
         //$(this).html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Report`);
 		$(this).addClass('disabled')
 		$(this).html(`Loading...`);
-        
+
         reportTest('negative').then(function() {
             $(document).ready(function() {
 				$("#negativeButton").removeClass("disabled")
@@ -31,18 +42,18 @@ $(document).ready(function() {
             });
         })
     });
-    
+
     $("#reportContacts").click(function(){
         //$(this).prop("disabled", true);
         //$(this).html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Report contacts »`);
 		$(this).addClass('disabled')
 		$(this).html(`Loading...`);
-        
+
         //get contacts
         getContacts().then(function() {
             $(document).ready(function() {
 				$("#reportContacts").removeClass("disabled"), $("#reportContacts").html("Report contacts »"), null != localStorage.getItem("users") && (window.location.href = "/report-contacts.html")
-				
+
             });
         });
     });
