@@ -38,6 +38,10 @@ spec:
               value: {{ .Values.vault.vaultRole }}
             - name: INGRESS_BASE
               value: "/admin"
+            - name: SRV_NAME
+              value: admin
+            - name: UPSTREAM_URL
+              value: http://tracing-admin
           image: gcr.io/vault-159468/oidc-proxy:{{ .Values.imageVersion }}
           name: {{ template "admin-oidc.fullname" .}}
           ports:

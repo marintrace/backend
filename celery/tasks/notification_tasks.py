@@ -11,10 +11,10 @@ from shared.service.neo_config import Neo4JGraph
 from shared.service.vault_config import VaultConnection
 
 EMAIL_CLIENT = EmailClient()
-RiskTier = namedtuple('RiskTier', ['name', 'depth'])
-HighestRisk = RiskTier('highest_risk', depth=1)  # direct interaction with positive/symptomatic member
-HighRisk = RiskTier('high_risk', depth=2)  # 2nd degree interaction with positive/symptomatic member
-LowMediumRisk = RiskTier('medium_risk', depth=None)  # 3rd+ degree interaction with positive/symptomatic member
+RiskTier = namedtuple('RiskTier', ['depth'])
+
+HighRisk = RiskTier(depth=1)  # direct interaction with positive/symptomatic member
+LowMediumRisk = RiskTier(depth=2)  # 2nd degree interaction with positive/symptomatic member
 
 celery = get_celery()
 
@@ -32,25 +32,25 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
     timestamp_limit = round((datetime.now() - timedelta(days=lookback_days)).timestamp())
     seen_individuals = {email}  # prevent infinite circular traversal if user links back to itself.
     individual_risk_tiers = dict()
-
     with Neo4JGraph() as g:
-        for tier in [HighestRisk, HighRisk, LowMediumRisk]:
+        for tier in [HighRisk, LowMediumRisk]:
+            logger.info(f"Computing Risk for Tier {tier}")
             individual_risk_tiers[tier] = []
-            tier_depth = tier.depth if tier.depth else ''
             cohort_filter = f'WHERE m1.cohort <> {cohort}' if cohort else ''  # see whether or not school uses cohorts
             record_set = list(g.run(f'''
-                MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier_depth}]-(m1:Member) 
-                {cohort_filter} WITH *, relationships(p) as rel WHERE all(r in rel WHERE r.timestamp >= 
-                {timestamp_limit}) return m1'''))
+                    MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth}]-(m1:Member) 
+                    {cohort_filter} WITH *, relationships(p) as rel WHERE all(r in rel WHERE r.timestamp >= 
+                    {timestamp_limit}) return m1'''))
+            logger.info("Retrieved user risk list for tier...")
 
-            for record in record_set:
-                node = record.data()['m1']
-                if node['email'] in seen_individuals:
-                    continue
-                seen_individuals.add(node['email'])
-                individual_risk_tiers[tier].append(f'{node["first_name"]} {node["last_name"]}')
+        for record in record_set:
+            node = record.data()['m1']
+            if node['email'] in seen_individuals:
+                continue
 
-    del seen_individuals
+            seen_individuals.add(node['email'])
+            individual_risk_tiers[tier].append(f'{node["first_name"]} {node["last_name"]}')
+
     return individual_risk_tiers
 
 
@@ -62,21 +62,21 @@ def notify_risk(self, *, user: User, task_data: RiskNotification):
     :param task_data: risk notification model
     """
     EMAIL_CLIENT.setup()
-    with Neo4JGraph() as g:
-        member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
-
     with VaultConnection() as vault:
         risk_notification_secrets = vault.read_secret(secret_path=f'schools/{user.school}/risk_notification')
-    individuals_at_risk = calculate_interaction_risks(email=user.email, school=user.school,
-                                                      lookback_days=int(risk_notification_secrets['lookback_days']),
-                                                      **({'cohort': member_node['cohort']} or {}))
+
+    with Neo4JGraph() as g:
+        member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
+        logger.info("Located Start Member Node...")
+        individuals_at_risk = calculate_interaction_risks(email=user.email, school=user.school,
+                                                          lookback_days=int(risk_notification_secrets['lookback_days']),
+                                                          **({'cohort': member_node['cohort']} or {}))
 
     logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     EMAIL_CLIENT.send_email(template_name='risk_notification',
                             recipients=risk_notification_secrets['recipients'].split(','),
                             template_data={
                                 'member': f'{user.email} (Cohort: {member_node["cohort"]})',
-                                'highest_risk_members': ', '.join(individuals_at_risk[HighestRisk]),
                                 'high_risk_members': ', '.join(individuals_at_risk[HighRisk]),
                                 'medium_risk_members': ', '.join(individuals_at_risk[LowMediumRisk]),
                                 'symptoms': task_data.criteria, 'request_id': str(uuid4()),

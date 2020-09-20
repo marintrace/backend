@@ -16,22 +16,23 @@ class Neo4JGraph:
     """
     Cache for Storing Neo4J Connection
     """
+    _GRAPH_CACHE = None  # Maintain Websocket Connection open so that
+    _CREDENTIAL_CACHE = None
 
     def __init__(self):
-        self.credentials = None
-        self.graph = None
+        logger.debug("Creating new Neo4J Context Manager")
 
     def retrieve_credentials(self):
         """
         Retrieve the Neo4j Credentials from the Vault
         :return: dictionary containing credentials
         """
-        if not self.credentials:
+        if not Neo4JGraph._CREDENTIAL_CACHE:
             logger.info("Acquiring new database credentials from Vault")
             with VaultConnection() as vault:
-                self.credentials = vault.read_secret(secret_path="database")
+                Neo4JGraph._CREDENTIAL_CACHE = vault.read_secret(secret_path="database")
             logger.info("Cached new credentials.")
-        return self.credentials
+        return Neo4JGraph._CREDENTIAL_CACHE
 
     def __enter__(self):
         """
@@ -39,26 +40,28 @@ class Neo4JGraph:
         if it doesn't exist, otherwise, retrieve it
         :return: Neo4J Graph connection
         """
-        if self.graph:
+        if Neo4JGraph._GRAPH_CACHE:
             logger.info("Using existing graph connection")
-            return self.graph
+            return Neo4JGraph._GRAPH_CACHE
 
-        credentials = self.credentials or self.retrieve_credentials()
+        credentials = self.retrieve_credentials()
 
         logger.info("Acquiring new Neo4J Encrypted Connection")
-        self.graph = Graph(
-            f"bolt+ssc://{env_vars.get('NEO4J_HOST', 'tracing-neo4j')}:7687",
-            auth=(credentials['username'], credentials['password'])
+        Neo4JGraph._GRAPH_CACHE = Graph(  # Connect to Neo4J over encrypted BOLT (websocket) connection
+            f"bolt+s://{env_vars.get('NEO4J_HOST', 'tracing-neo4j')}:7687",
+            secure=True, auth=(credentials['username'], credentials['password'])
         )
-
-        return self.graph
+        logger.info("Established Connection...")
+        return Neo4JGraph._GRAPH_CACHE
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
         Re-establish the connection on error
         """
         if exc_type is not None:
-            self.__enter__()
+            logger.error("Exception Encountered inside Context Manager... Resetting Cache")
+            Neo4JGraph._GRAPH_CACHE = None
+            Neo4JGraph._CREDENTIAL_CACHE = None
 
 
 def current_day_node(*, school: str) -> Node:

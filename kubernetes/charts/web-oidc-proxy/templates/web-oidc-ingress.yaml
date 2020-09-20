@@ -7,10 +7,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - {{ .Values.ingressSubdomain }}.marintracingapp.org
+        - marintracingapp.org
       secretName: ingress-tls
   rules:
-    - host: {{ .Values.ingressSubdomain }}.marintracingapp.org
+    - host: marintracingapp.org
       http:
         paths:
           - path: /

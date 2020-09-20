@@ -47,9 +47,9 @@ spec:
             - name: NEO4J_dbms.memory.heap.initial_size
               value: 1G
             - name: NEO4J_dbms_memory_heap_max__size
-              value: 1G
+              value: 2G
             - name: NEO4J_dbms_memory_pagecache_size
-              value: 1G
+              value: 2G
             - name: NEO4J_bolt_ssl__policy
               value: default
             - name: NEO4J_https_ssl__policy
@@ -62,6 +62,8 @@ spec:
               value: "false"
             - name: NEO4J_dbms_connector_https_enabled
               value: "true"
+            - name: NEO4J_dbms_connector_http_enabled
+              value: "false"
             - name: NEO4J_dbms_connector_bolt_enabled
               value: "true"
           image: gcr.io/vault-159468/neo4j:{{ .Values.imageVersion }}
@@ -82,7 +84,9 @@ spec:
               name: {{ template "neo4j.fullname" . }}-tls
               readOnly: true
           ports:
-            - containerPort: {{ .Values.exposePort }}
+            - containerPort: 7687
+              name: bolt
+            - containerPort: 7473
               name: https
           {{ if eq .Values.readinessProbe.enabled "true" }}
           readinessProbe:
@@ -90,7 +94,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - curl -i http://localhost:{{ .Values.exposePort }} 2>&1 | grep -e '200 OK'
+                - curl -i http://localhost:7474/db/data 2>&1 | grep -e '200 OK'
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
             periodSeconds: {{ .Values.readinessProbe.interval}}
           {{ end }}
@@ -100,7 +104,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - curl -i http://localhost:{{ .Values.exposePort }} 2>&1 | grep -e '200 OK'
+                - curl -i http://localhost:7474/db/data 2>&1 | grep -e '200 OK'
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}
           {{ end }}

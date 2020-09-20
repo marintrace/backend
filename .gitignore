@@ -163,11 +163,11 @@ certificates/*.pem
 # Proxy Files
 dashboard_proxy/*.go
 dashboard_proxy/*.sum
-dashboard-proxy/templates
-dashboard-proxy/tests
-dashboard-proxy/get-version.sh
-dashboard-proxy/release.sh
-dashboard-proxy/set-version.sh
+oidc-proxy/templates
+oidc-proxy/tests
+oidc-proxy/get-version.sh
+oidc-proxy/release.sh
+oidc-proxy/set-version.sh
 dashboard_proxy/*.mod
 dashboard_proxy/*.md
 

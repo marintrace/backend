@@ -20167,3 +20167,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 
     height: 3px;
 }
+
+.modal-backdrop {
+    opacity: 0.8 !important;
+}

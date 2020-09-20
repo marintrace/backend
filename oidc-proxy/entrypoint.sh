@@ -12,7 +12,7 @@ sleep 1
 
 echo "Obtained Client Token... Retrieving OIDC Configuration"
 
-OIDC_SECRET=$(curl -k --fail --location --request GET "${VAULT_ADDRESS}:8200/v1/secret/data/oidc/admin-lock" --header X-Vault-Token:"$CLIENT_TOKEN")
+OIDC_SECRET=$(curl -k --fail --location --request GET "${VAULT_ADDRESS}:8200/v1/secret/data/oidc/$SRV_NAME-lock" --header X-Vault-Token:"$CLIENT_TOKEN")
 CLIENT_ID=$(echo "$OIDC_SECRET" | jq .data.data.client_id -r)
 CLIENT_SECRET=$(echo "$OIDC_SECRET" | jq .data.data.client_secret -r)
 DISCOVERY_URL=$(echo "$OIDC_SECRET" | jq .data.data.discovery_url -r)
@@ -22,7 +22,7 @@ echo "Starting Louketo Proxy"
 # SSL Termination is at the Ingress Level
 /opt/louketo/louketo-proxy \
   --listen 0.0.0.0:80 \
-  --upstream-url http://tracing-admin \
+  --upstream-url "$UPSTREAM_URL" \
   --discovery-url "$DISCOVERY_URL" \
   --client-id "$CLIENT_ID" \
   --client-secret "$CLIENT_SECRET" \

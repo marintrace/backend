@@ -19,6 +19,7 @@ function requestFailure(data) {
 }
 
 function updateUserStatus(user_email) {
+    promptPolicyModal();
     $.post("/api/get-user-summary-status", JSON.stringify({"email": user_email}), function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
@@ -29,6 +30,7 @@ function updateUserStatus(user_email) {
 }
 
 function updateUserInfo(user_email) {
+    promptPolicyModal();
     $.post("/api/get-user-info", JSON.stringify({"email": user_email}), function () {
         console.log("User info Request Response Received");
     }, "json").done(function (data) {
@@ -45,6 +47,7 @@ function updateUserInfo(user_email) {
 }
 
 function updateUserInteractions(user_email) {
+    promptPolicyModal();
     $.post("/api/paginate-user-interactions",
         JSON.stringify({
             "email": user_email,
@@ -69,6 +72,7 @@ function updateUserInteractions(user_email) {
 }
 
 function updateUserReports(user_email) {
+    promptPolicyModal();
     $.post("/api/paginate-user-reports", JSON.stringify({
         "email": user_email,
         "pagination_token": userReportPagToken,
@@ -91,12 +95,13 @@ function updateUserReports(user_email) {
     }).fail(requestFailure)
 }
 
-function updateHomeStatusSummaries(email=null) {
+function updateHomeStatusSummaries(email = null) {
+    promptPolicyModal();
     let data = {
         "pagination_token": homeUserStatusPagToken,
         "limit": homeUserStatusPagLimit
     };
-    if (email != null){
+    if (email != null) {
         data['email'] = email
     }
 
@@ -104,6 +109,7 @@ function updateHomeStatusSummaries(email=null) {
         console.log("Update home status summaries request response received");
     }, "json").done(function (data) {
         if (data['records'].length === 0) {
+
             $("#home-footer").hide();
             return;
         }
@@ -120,6 +126,7 @@ function updateHomeStatusSummaries(email=null) {
 }
 
 function submitSearch() {
+    promptPolicyModal();
     homeUserStatusPagToken = 0;
     const email = $('#email-input').val();
     $("#summaries").html("");
@@ -129,6 +136,7 @@ function submitSearch() {
 }
 
 function clearSearch() {
+    promptPolicyModal();
     homeUserStatusPagToken = 0;
     $("#email-input").val("");
     $("#summaries").html("");
@@ -138,9 +146,26 @@ function clearSearch() {
 }
 
 function updateSubmittedWidget() {
+    promptPolicyModal();
     $.post("/api/submitted-symptom-reports", JSON.stringify({}), function () {
         console.log("Update submitted symptom reports received");
     }, "json").done(function (data) {
         $("#submitted-symptom-reports").html(data.value);
     }).fail(requestFailure);
 }
+
+function promptPolicyModal() {
+    if (!(localStorage.getItem("agreed") === "true")) {
+        $('#policyModal').modal({backdrop: 'static', keyboard: false})
+    }
+}
+
+function acceptPolicy() {
+    console.log("Policy agreed... caching");
+    localStorage.setItem("agreed", "true");
+    $("#policyModal").modal("hide");
+}
+
+$(document).ready(function () {
+    promptPolicyModal();
+});

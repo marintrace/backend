@@ -12,8 +12,11 @@ metadata:
 spec:
   ports:
     - name: "bolt"
-      port: {{ .Values.exposePort }}
+      port: 7687
       targetPort: {{ .Values.exposePort }}
+    - name: "https"
+      port: 7473
+      targetPort: {{ .Values.httpsExposePort }}
   selector:
     name: {{ template "neo4j.fullname" . }}
 status:
