@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: {{ template "web-oidc.fullname" . }}
+  labels:
+    name: {{ template "web-oidc.fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+spec:
+  replicas: {{ .Values.replicas }}
+  serviceName: {{ template "web-oidc.fullname" . }}
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      name: {{ template "web-oidc.fullname" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "web-oidc.fullname" . }}
+      creationTimestamp: null
+    spec:
+      initContainers:
+        - name: wait-for-vault-service
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-vault; do sleep 1.5; echo "Waiting for Vault to start..."; done']
+        - name: wait-for-dashboard-service
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-web; do sleep 1.5; echo "Waiting for Web to start..."; done']
+      containers:
+        - env:
+            - name: VAULT_ADDRESS
+              value: https://{{ .Release.Name }}-vault
+            - name: VAULT_ROLE
+              value: {{ .Values.vault.vaultRole }}
+            - name: SRV_NAME
+              value: web
+            - name: UPSTREAM_URL
+              value: http://tracing-web
+            - name: INGRESS_BASE
+              value: "/web"
+          image: gcr.io/vault-159468/oidc-proxy:{{ .Values.imageVersion }}
+          name: {{ template "web-oidc.fullname" .}}
+          ports:
+            - containerPort: {{ .Values.exposePort }}
+          {{ if eq .Values.readinessProbe.enabled "true" }}
+          readinessProbe:
+            httpGet:
+              path: /admin/oauth/health
+              port: {{ .Values.exposePort }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
+            periodSeconds: {{ .Values.readinessProbe.interval}}
+          {{ end }}
+          {{ if eq .Values.livenessProbe.enabled "true" }}
+          livenessProbe:
+            httpGet:
+              path: /admin/oauth/health
+              port: {{ .Values.exposePort }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
+            periodSeconds: {{ .Values.livenessProbe.interval }}
+          {{ end }}
+      restartPolicy: Always
+      serviceAccountName: {{ template "web-oidc.fullname" . }}-serviceaccount
+      imagePullSecrets:
+        - name: gcp-registry

@@ -1,19 +1,19 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: {{ template "web.fullname" . }}
+  name: {{ template "web-oidc.fullname" . }}
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
   tls:
     - hosts:
-        - marintracingapp.org
+        - {{ .Values.ingressSubdomain }}.marintracingapp.org
       secretName: ingress-tls
   rules:
-    - host: marintracingapp.org
+    - host: {{ .Values.ingressSubdomain }}.marintracingapp.org
       http:
         paths:
           - path: /
             backend:
-              serviceName: {{ template "web.fullname" . }}
+              serviceName: {{ template "web-oidc.fullname" . }}
               servicePort: {{ .Values.exposePort }}
