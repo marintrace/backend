@@ -1,3 +1,20 @@
+var auth0 = null;
+
+const configureClient = async () => {
+    auth0 = await createAuth0Client({
+        domain: 'marintrace.us.auth0.com',
+        client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
+        scope: 'openid profile email',
+        audience: 'tracing-rest-api'
+    }).catch(function (error) {
+        //TODO - ENABLE BEFORE RELEASE
+        alert("Couldn't initialize authentication");
+        console.log(error);
+        window.location = 'index.html'; //couldn't auth go to login
+    });
+}
+
+
 //register service worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
@@ -27,9 +44,17 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 function createHTTPClientInstance() {
+    var token = ""
+    if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
+			token = authToken
+    } else {
+			alert("Couldn't verify authentication status. Please log in again.")
+			document.location.href="/index.html"
+		}
+		console.log(token)
     return axios.create({
         baseURL: 'https://api.marintracingapp.org',
-        headers: {'Content-type': 'application/json'},
+        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + token},
         timeout: 1000 * 10
     });
 }
