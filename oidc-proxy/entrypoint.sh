@@ -10,7 +10,7 @@ CLIENT_TOKEN=$(curl -k --fail --location --request POST "${VAULT_ADDRESS}:8200/v
 
 sleep 1
 
-echo "Obtained Client Token... Retrieving OIDC Configuration"
+echo "Obtained Client Token... Retrieving OIDC Configuration for $SRV_NAME"
 
 OIDC_SECRET=$(curl -k --fail --location --request GET "${VAULT_ADDRESS}:8200/v1/secret/data/oidc/$SRV_NAME-lock" --header X-Vault-Token:"$CLIENT_TOKEN")
 CLIENT_ID=$(echo "$OIDC_SECRET" | jq .data.data.client_id -r)
@@ -18,8 +18,9 @@ CLIENT_SECRET=$(echo "$OIDC_SECRET" | jq .data.data.client_secret -r)
 DISCOVERY_URL=$(echo "$OIDC_SECRET" | jq .data.data.discovery_url -r)
 MATCH_CLAIMS=$(echo "$OIDC_SECRET" | jq .data.data.match_claims -r)
 
-echo "Starting Louketo Proxy"
+echo "Starting OIDC Proxy"
 # SSL Termination is at the Ingress Level
+
 /opt/louketo/louketo-proxy \
   --listen 0.0.0.0:80 \
   --upstream-url "$UPSTREAM_URL" \
@@ -29,4 +30,5 @@ echo "Starting Louketo Proxy"
   --preserve-host \
   --match-claims="$MATCH_CLAIMS" \
   --oauth-uri "$INGRESS_BASE/oauth" \
-  --enable-logout-redirect
+  --enable-logout-redirect \
+  --enable-authorization-header

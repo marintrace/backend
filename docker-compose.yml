@@ -20,17 +20,17 @@ services:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.1.9
+    image: gcr.io/vault-159468/web-app:0.1.22
   oidc-proxy:
     build:
       context: oidc-proxy
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/oidc-proxy:0.1.4
+    image: gcr.io/vault-159468/oidc-proxy:0.1.22
   admin:
     build:
       context: .
       dockerfile: dashboard/Dockerfile
-    image: gcr.io/vault-159468/dashboard:0.1.18
+    image: gcr.io/vault-159468/dashboard:0.1.14
   rabbitmq:
     build:
       context: rabbitmq
