@@ -8,10 +8,10 @@ RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
     update-ca-certificates --fresh
 
 # Install Python Requirements and Clean Up
-COPY ./dashboard/requirements.txt /tmp/requirements.txt
+COPY ./admin-dashboard/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
 
 # Copy code into container
-COPY ./dashboard /app
+COPY ./admin-dashboard /app
 COPY ./shared /app/shared

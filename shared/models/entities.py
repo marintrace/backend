@@ -62,7 +62,7 @@ class DashboardSummaryStatus(str, Enum):
 
 class DashboardSummaryColors(str, Enum):
     """
-    Summary Item colors for dashboard items
+    Summary Item colors for admin-dashboard items
     """
     UNHEALTHY = "danger"
     HEALTHY = "success"
@@ -162,7 +162,7 @@ class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
 
 class AdminDashboardUser(BaseModel):
     """
-    User who is using the admin dashboard
+    User who is using the admin admin-dashboard
     """
     first_name: str
     last_name: str
@@ -172,7 +172,7 @@ class AdminDashboardUser(BaseModel):
 
 class DashboardUserSummaryItem(BaseModel):
     """
-    Entity representing a summary item on the dashboard
+    Entity representing a summary item on the admin-dashboard
     """
     email: Optional[str]
     timestamp: Optional[str]
@@ -299,7 +299,7 @@ class CreatedAsyncTask(Response):
 
 class DashboardNumericalWidgetResponse(Response):
     """
-    Numerical Widget Value on the homescreen of the dashboard
+    Numerical Widget Value on the homescreen of the admin-dashboard
     """
     value: int
 
@@ -313,7 +313,7 @@ class DashboardUserSummaryResponse(Paginated):
 
 class DashboardUserInteraction(BaseModel):
     """
-    Interaction between two users on the dashboard
+    Interaction between two users on the admin-dashboard
     """
     email: str
     timestamp: str

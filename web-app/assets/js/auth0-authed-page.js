@@ -4,7 +4,7 @@ const updateUI = async () => {
 	if (isAuthenticated) {
 		//const token = await auth0.getTokenSilently()
 		//authToken = token
-		
+
 		const claims = await auth0.getIdTokenClaims();
 		authToken = claims.__raw
 	} else {

@@ -30,5 +30,4 @@ echo "Starting OIDC Proxy"
   --preserve-host \
   --match-claims="$MATCH_CLAIMS" \
   --oauth-uri "$INGRESS_BASE/oauth" \
-  --enable-logout-redirect \
-  --enable-authorization-header
+  --enable-logout-redirect

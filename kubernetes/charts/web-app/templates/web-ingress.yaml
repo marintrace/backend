@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: {{ template "web-oidc.fullname" . }}
+  name: {{ template "web.fullname" . }}
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
@@ -15,5 +15,5 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: {{ template "web-oidc.fullname" . }}
+              serviceName: {{ template "web.fullname" . }}
               servicePort: {{ .Values.exposePort }}

@@ -27,7 +27,7 @@ spec:
         - name: wait-for-vault-service
           image: busybox:1.28
           command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-vault; do sleep 1.5; echo "Waiting for Vault to start..."; done']
-        - name: wait-for-dashboard-service
+        - name: wait-for-admin-dashboard-service
           image: busybox:1.28
           command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-admin; do sleep 1.5; echo "Waiting for Dashboard to start..."; done']
       containers:

@@ -97,11 +97,11 @@ async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, use
 
 
 @BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=DashboardUserSummaryResponse,
-                     summary="Paginate through dashboard status records")
+                     summary="Paginate through admin-dashboard status records")
 async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentifier,
                                       user: AdminDashboardUser = OIDC_COOKIE):
     """
-    Paginate through the user summary items to render the home screen dashboard
+    Paginate through the user summary items to render the home screen admin-dashboard
     """
     logger.info(f"Paginating through user summary records")
 

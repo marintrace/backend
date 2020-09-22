@@ -41,16 +41,15 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
                     MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth}]-(m1:Member) 
                     {cohort_filter} WITH *, relationships(p) as rel WHERE all(r in rel WHERE r.timestamp >= 
                     {timestamp_limit}) return m1'''))
-            logger.info("Retrieved user risk list for tier...")
+            logger.info(f"Retrieved user risk list (n={len(record_set)}) for tier...")
 
-        for record in record_set:
-            node = record.data()['m1']
-            if node['email'] in seen_individuals:
-                continue
+            for record in record_set:
+                node = record.data()['m1']
+                if node['email'] in seen_individuals:
+                    continue
 
-            seen_individuals.add(node['email'])
-            individual_risk_tiers[tier].append(f'{node["first_name"]} {node["last_name"]}')
-
+                seen_individuals.add(node['email'])
+                individual_risk_tiers[tier].append(f'{node["first_name"]} {node["last_name"]}')
     return individual_risk_tiers
 
 

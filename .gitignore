@@ -14,8 +14,8 @@ __pycache__/
 **/*secret.yaml
 
 # Third Party Vendor Files
-dashboard/static/assets/vendor
-dashboard/static/assets/js/plugins
+admin-dashboard/static/assets/vendor
+admin-dashboard/static/assets/js/plugins
 
 # Neo4j files
 conf
