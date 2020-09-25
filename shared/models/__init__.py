@@ -3,16 +3,15 @@
 """
 Simplify the importing of models in other files
 """
-from shared.models.entities import (AdminDashboardUser, CreatedAsyncTask,
-                                    DashboardNumericalWidgetResponse,
-                                    DashboardUserInfoDetail,
-                                    DashboardUserInteraction,
-                                    DashboardUserInteractions,
-                                    DashboardUserSummaryItem,
-                                    DashboardUserSummaryResponse,
+from shared.models.dashboard_entities import (
+    AdminDashboardUser, DashboardNumericalWidgetResponse,
+    DashboardUserInfoDetail, DashboardUserInteraction,
+    DashboardUserInteractions, DashboardUserSummaryResponse,
+    OptionalPaginatedUserEmailIdentifier, PaginatedUserEmailIdentifer,
+    UserEmailIdentifier)
+from shared.models.entities import (CreatedAsyncTask, DailyReport,
                                     InteractionReport, ListUsersResponse,
-                                    Paginated, PaginatedUserEmailIdentifer,
-                                    OptionalPaginatedUserEmailIdentifier,
-                                    RiskNotification, SymptomReport,
-                                    TestReport, TestType, User,
-                                    UserEmailIdentifier, UserStatus)
+                                    Paginated, TestReport, User)
+from shared.models.enums import (ResponseStatus, SummaryColors, TestType,
+                                 UserStatus)
+from shared.models.risk_entities import UserRiskItem

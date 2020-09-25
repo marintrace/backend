@@ -5,7 +5,7 @@ Asynchronous API for long-running operations and non-response notifications
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models import (CreatedAsyncTask, InteractionReport, SymptomReport,
+from shared.models import (CreatedAsyncTask, DailyReport, InteractionReport,
                            TestReport, User)
 
 from .authorization import AUTH_USER
@@ -43,7 +43,7 @@ async def queue_test_report(test: TestReport, user: User = AUTH_USER):
 
 @ASYNC_ROUTER.post('/symptoms', operation_id='queue_symptom_report',
                    description="Log symptoms under the specified user", **GENERAL_ASYNC_PARAMS)
-async def queue_symptoms_report(symptoms: SymptomReport, user: User = AUTH_USER):
+async def queue_symptoms_report(symptoms: DailyReport, user: User = AUTH_USER):
     """
     Queue a symptom report asynchronously in the backend via service
     * Specify the symptoms model in the JSON Body

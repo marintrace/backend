@@ -4,13 +4,17 @@ from fastapi import APIRouter
 from py2neo import RelationshipMatcher
 
 from shared.logger import logger
-from shared.models import DashboardNumericalWidgetResponse, DashboardUserSummaryResponse, DashboardUserInfoDetail, \
-    DashboardUserSummaryItem, AdminDashboardUser, TestType, UserEmailIdentifier, \
-    PaginatedUserEmailIdentifer, OptionalPaginatedUserEmailIdentifier, DashboardUserInteractions, \
-    DashboardUserInteraction
+from shared.models import (AdminDashboardUser,
+                           DashboardNumericalWidgetResponse,
+                           DashboardUserInfoDetail, DashboardUserInteraction,
+                           DashboardUserInteractions,
+                           DashboardUserSummaryResponse,
+                           OptionalPaginatedUserEmailIdentifier,
+                           PaginatedUserEmailIdentifer, UserEmailIdentifier, UserRiskItem, DailyReport)
 from shared.service.jwt_auth_config import JWTAuthManager
 from shared.service.neo_config import Neo4JGraph, current_day_node
-from shared.utilities import get_pst_time, pst_date, parse_timestamp, DATE_FORMAT
+from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
+                              pst_date)
 
 # Mounted on the main router
 BACKEND_ROUTER = APIRouter()
@@ -27,37 +31,21 @@ AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
 OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 
-class RecordCreators:
-    """
-    Record Creators for Dashboard
-    """
-    incomplete = lambda message, code: dict(color='gray', message=message, code=code)
-    unhealthy = lambda message, code: dict(color='danger', message=message, code=code)
-    healthy = lambda message, code: dict(color='success', message=message, code=code)
-
-
-async def create_summary_item(record, with_email=None, with_timestamp=None) -> DashboardUserSummaryItem:
+async def create_summary_item(record, with_email=None, with_timestamp=None) -> UserRiskItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
     """
-    item = DashboardUserSummaryItem(
-        timestamp=parse_timestamp(with_timestamp).strftime(DATE_FORMAT) if with_timestamp else None,
-        email=with_email
+    risk_item = UserRiskItem(
+        email=with_email,
+        timestamp=parse_timestamp(with_timestamp).strftime(DATE_FORMAT) if with_timestamp else None
     )
+
     if not (record and record.get('report')):
-        return item.set_incomplete()
+        return risk_item.add_incomplete()
 
-    test_type = record['report'].get('test_type')
-    num_symptoms = record['report'].get('num_symptoms', 0)
-
-    if test_type == TestType.POSITIVE.value:
-        return item.set_positive_test(num_symptoms=num_symptoms)
-    elif test_type == TestType.NEGATIVE.value:
-        return item.set_negative_test(num_symptoms=num_symptoms)
-    elif num_symptoms > 0:  # check for positive symptoms
-        return item.set_symptomatic(num_symptoms)
-
-    return item.set_healthy()
+    return risk_item.from_daily_report(
+        daily_report=DailyReport(**dict(record['report'])),
+    )
 
 
 @BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,

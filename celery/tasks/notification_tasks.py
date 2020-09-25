@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import uuid4
 
 from shared.logger import logger
-from shared.models import RiskNotification, User
+from shared.models import User, UserRiskItem
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph
@@ -38,13 +38,13 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
             individual_risk_tiers[tier] = []
             cohort_filter = f'WHERE m1.cohort <> {cohort}' if cohort else ''  # see whether or not school uses cohorts
             record_set = list(g.run(f'''
-                    MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth}]-(m1:Member) 
+                    MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth}]-(member:Member) 
                     {cohort_filter} WITH *, relationships(p) as rel WHERE all(r in rel WHERE r.timestamp >= 
-                    {timestamp_limit}) return m1'''))
+                    {timestamp_limit}) return member'''))
             logger.info(f"Retrieved user risk list (n={len(record_set)}) for tier...")
 
             for record in record_set:
-                node = record.data()['m1']
+                node = record.data()['member']
                 if node['email'] in seen_individuals:
                     continue
 
@@ -54,7 +54,7 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
 
 
 @celery.task(name='tasks.notify_risk', **CELERY_RETRY_OPTIONS)
-def notify_risk(self, *, user: User, task_data: RiskNotification):
+def notify_risk(self, *, user: User, task_data: UserRiskItem):
     """
     Asynchronously report member risk from app
     :param user: authorized user model
@@ -78,6 +78,6 @@ def notify_risk(self, *, user: User, task_data: RiskNotification):
                                 'member': f'{user.email} (Cohort: {member_node["cohort"]})',
                                 'high_risk_members': ', '.join(individuals_at_risk[HighRisk]),
                                 'medium_risk_members': ', '.join(individuals_at_risk[LowMediumRisk]),
-                                'symptoms': task_data.criteria, 'request_id': str(uuid4()),
+                                'criteria': task_data.format_criteria(), 'request_id': str(uuid4()),
                             })
     logger.info("Sent email to relevant administrators")

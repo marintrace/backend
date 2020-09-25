@@ -5,9 +5,9 @@ Setup Celery Queue Access from Flask
 import os
 import ssl
 
+from celery import Celery
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
-from celery import Celery
 
 CELERY_CONFIG_OPTIONS = {
     'task_serializer': 'pickle',
