@@ -63,7 +63,7 @@ function createHTTPClientInstance() {
 
 async function reportTest(testType) {
     const instance = createHTTPClientInstance();
-    await instance.post('/test', {
+    await instance.post('/health-report', {
         'test_type': testType
     })
         .then(function (response) {
@@ -94,7 +94,7 @@ async function getContacts() {
 
 async function reportContacts(targets) {
     const instance = createHTTPClientInstance()
-    await instance.post('/interaction', {
+    await instance.post('/report-interaction', {
         'targets': targets
     }).then(function (response) {
         document.location.href = "/home.html";
@@ -110,7 +110,7 @@ async function reportContacts(targets) {
 async function reportSymptoms(object) {
     const instance = createHTTPClientInstance()
     instance.data = object
-    await instance.post('/symptoms', object)
+    await instance.post('/health-report', object)
         .then(function (response) {
             document.location.href = "/home.html";
             alert("Successfully reported symptoms.")

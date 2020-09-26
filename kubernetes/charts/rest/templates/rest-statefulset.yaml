@@ -51,7 +51,7 @@ spec:
           {{ if eq .Values.readinessProbe.enabled "true" }}
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: {{ .Values.exposePort }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
             periodSeconds: {{ .Values.readinessProbe.interval}}
@@ -59,7 +59,7 @@ spec:
           {{ if eq .Values.livenessProbe.enabled "true" }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: {{ .Values.exposePort }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
             periodSeconds: {{ .Values.livenessProbe.interval }}

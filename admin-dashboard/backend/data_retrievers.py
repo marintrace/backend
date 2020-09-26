@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import APIRouter
 from py2neo import RelationshipMatcher
 
@@ -10,7 +8,7 @@ from shared.models import (AdminDashboardUser,
                            DashboardUserInteractions,
                            DashboardUserSummaryResponse,
                            OptionalPaginatedUserEmailIdentifier,
-                           PaginatedUserEmailIdentifer, UserEmailIdentifier, UserRiskItem, DailyReport)
+                           PaginatedUserEmailIdentifier, UserEmailIdentifier, UserRiskItem, HealthReport)
 from shared.service.jwt_auth_config import JWTAuthManager
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
@@ -43,9 +41,7 @@ async def create_summary_item(record, with_email=None, with_timestamp=None) -> U
     if not (record and record.get('report')):
         return risk_item.add_incomplete()
 
-    return risk_item.from_daily_report(
-        daily_report=DailyReport(**dict(record['report'])),
-    )
+    return risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
 
 
 @BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
@@ -65,7 +61,7 @@ async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
 
 @BACKEND_ROUTER.post(path="/paginate-user-reports", response_model=DashboardUserSummaryResponse,
                      summary="Paginate through user report history")
-async def paginate_user_report_history(request: PaginatedUserEmailIdentifer, user: AdminDashboardUser = OIDC_COOKIE):
+async def paginate_user_report_history(request: PaginatedUserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate through a user's report history
     """
@@ -91,15 +87,13 @@ async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentif
     """
     Paginate through the user summary items to render the home screen admin-dashboard
     """
-    logger.info(f"Paginating through user summary records")
-
     with Neo4JGraph() as graph:
         query = f"""
         MATCH (m: Member {{school: "{user.school}"}})
         {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
         OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime(DATE_FORMAT)}"}})
         RETURN m.email as email, report, report.timestamp as timestamp 
-        ORDER BY COALESCE(report.num_symptoms, 0) + CASE report.test_type WHEN 'positive' THEN 100 ELSE 0 END DESC
+        ORDER BY COALESCE(report.risk_score, 0) DESC
         SKIP {request.pagination_token} LIMIT {request.limit}"""
 
     return DashboardUserSummaryResponse(
@@ -131,7 +125,7 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
 
 @BACKEND_ROUTER.post(path="/paginate-user-interactions", response_model=DashboardUserInteractions,
                      summary="Retrieve a user's interactions")
-async def paginate_user_interactions(request: PaginatedUserEmailIdentifer, user: AdminDashboardUser = OIDC_COOKIE):
+async def paginate_user_interactions(request: PaginatedUserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate through a user's interactions
     """
@@ -147,13 +141,13 @@ async def paginate_user_interactions(request: PaginatedUserEmailIdentifer, user:
             users=[
                 DashboardUserInteraction(
                     email=record['email'],
-                    timestamp=datetime.fromtimestamp(record['timestamp']).strftime("%Y-%m-%d")  # UNIX ts -> YYYY-MM-DD
+                    timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d")  # UNIX ts -> YYYY-MM-DD
                 ) for record in list(graph.run(query))],
             pagination_token=request.pagination_token + request.limit
         )
 
 
-@BACKEND_ROUTER.post(path="/get-user-summary-status", response_model=DashboardUserSummaryItem,
+@BACKEND_ROUTER.post(path="/get-user-summary-status", response_model=UserRiskItem,
                      summary="Retrieve a user's summary status and color")
 async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
@@ -163,7 +157,8 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
 
     with Neo4JGraph() as graph:
         query = f"""
-        MATCH (m:Member {{email:'{identifier.email}',school:'{user.school}'}})-[r:reported]-(d:DailyReport {{date: '{pst_date()}'}}) 
+        MATCH (m:Member {{email:'{identifier.email}',school:'{user.school}'}})-[r:reported]-(d:DailyReport
+        {{date: '{pst_date()}'}}) 
         RETURN r as report
         """
         query_result = list(graph.run(query))

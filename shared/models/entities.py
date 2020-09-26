@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from shared.models.enums import TestType, UserStatus, ResponseStatus
 from shared.service.celery_config import get_celery
 from shared.utilities import pst_timestamp
 
@@ -43,26 +44,7 @@ class InteractionReport(BaseModel):
     targets: List[str]
 
 
-class TestReport(Timestamped):
-    """
-    Report either a positive or negative test
-    """
-
-    test_type: TestType
-
-    def get_test(self):
-        """
-        Get the test type as a string
-        :return: string version of the test
-        """
-        if self.test_type == TestType.POSITIVE:
-            return "Positive Test"
-        elif self.test_type == TestType.NEGATIVE:
-            return "Negative Test"
-        raise Exception(f"Unknown Test Type {self.test_type}")
-
-
-class DailyReport(Timestamped):
+class HealthReport(Timestamped):
     """
     Symptom Report
     """
@@ -70,15 +52,6 @@ class DailyReport(Timestamped):
     proximity: bool = False
     test_type: Optional[TestType] = None
     commercial_flight: bool = False
-
-
-class Report(BaseModel):
-    """
-    Base Report Holder
-    """
-    interactions: List[InteractionReport] = []
-    tests: List[TestReport] = []
-    symptoms: List[DailyReport] = []
 
 
 # REST Entities
@@ -145,3 +118,10 @@ class CreatedAsyncTask(Response):
     """
     status = ResponseStatus.QUEUED
     task_id: str
+
+
+class UserHealthResponse(Response):
+    """
+    Whether user is healthy response
+    """
+

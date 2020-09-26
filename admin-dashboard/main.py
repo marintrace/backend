@@ -1,17 +1,21 @@
 # -*- encoding: utf-8 -*-
 from os import environ as env_vars
 
+from backend.data_retrievers import BACKEND_ROUTER
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi_utils.timing import add_timing_middleware
 
-from backend.data_retrievers import BACKEND_ROUTER
+from shared.logger import logger
 
 app = FastAPI(
     title="Admin Dashboard",
     debug=env_vars.get("DEBUG", False),
     description="Admin Dashboard for school analytics and tracing information"
 )
+
+add_timing_middleware(app=app, record=logger.info, exclude='health')
 
 # Serve up static CSS, Images, Fonts and JavaScript
 app.mount("/static", StaticFiles(directory="static"), name="static")

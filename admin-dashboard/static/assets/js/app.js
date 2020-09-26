@@ -18,13 +18,17 @@ function requestFailure(data) {
     console.log(data);
 }
 
+function truncate(str, n){
+  return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+}
+
 function updateUserStatus(user_email) {
     promptPolicyModal();
     $.post("/api/get-user-summary-status", JSON.stringify({"email": user_email}), function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
             $("#today-status-color").addClass("bg-" + data.color);
-            $("#today-status-description").html(data.message);
+            $("#today-status-description").html(data.criteria.join('&'));
         }
     ).fail(requestFailure)
 }
@@ -88,7 +92,8 @@ function updateUserReports(user_email) {
         data['records'].forEach(function (e) {
             let rows = [
                 e.timestamp,
-                "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.color + "'></i><span class='status'>" + e.message + "</span></span>",
+                "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.color + "'></i><span class='status'>" +
+                    truncate(e.criteria.join(' & '), 45) + "</span></span>",
             ];
             $("#reports").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
@@ -118,7 +123,8 @@ function updateHomeStatusSummaries(email = null) {
         data['records'].forEach(function (e) {
             let rows = [
                 "<a href='/user/" + e.email + "'>" + e.email + "</a>",
-                "<span class='badge badge-dot mr-4'><i class='bg-" + e.color + "'></i><span class='status'>" + e.message + "</span></span>"
+                "<span class='badge badge-dot mr-4'><i class='bg-" + e.color + "'></i><span class='status'>" +
+                    truncate(e.criteria.join(' & '), 45) + "</span></span>"
             ];
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })

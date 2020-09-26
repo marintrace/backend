@@ -7,6 +7,7 @@ from os import environ as env_vars
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_utils.timing import add_timing_middleware
 from uvicorn import run as run_server
 
 from routers.asynchronous import ASYNC_ROUTER
@@ -18,7 +19,7 @@ app = FastAPI(
     debug=env_vars.get('DEBUG', False),
     description="API for asynchronous and synchronous calls from contact tracing clients"
 )
-
+add_timing_middleware(app=app, record=logger.info, exclude='health')
 # Add CORS support from production and test domains
 app.add_middleware(
     middleware_class=CORSMiddleware,
@@ -49,8 +50,7 @@ async def on_shutdown():
     """
     logger.info("****** API IS SHUTTING DOWN ******")
 
-
-@app.get('/', description='Health check', response_model=str, operation_id='healthcheck', tags=['Mgmt'],
+@app.get('/health', description='Health check', response_model=str, operation_id='healthcheck', tags=['Mgmt'],
          status_code=status.HTTP_200_OK)
 async def health_check():
     """

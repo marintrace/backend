@@ -20,7 +20,7 @@ class OptionalPaginatedUserEmailIdentifier(Paginated):
     email: str = None
 
 
-class PaginatedUserEmailIdentifer(UserEmailIdentifier, Paginated):
+class PaginatedUserEmailIdentifier(UserEmailIdentifier, Paginated):
     """
     Pagination identification for a user by their email
     """

@@ -7,11 +7,11 @@ from shared.models.dashboard_entities import (
     AdminDashboardUser, DashboardNumericalWidgetResponse,
     DashboardUserInfoDetail, DashboardUserInteraction,
     DashboardUserInteractions, DashboardUserSummaryResponse,
-    OptionalPaginatedUserEmailIdentifier, PaginatedUserEmailIdentifer,
+    OptionalPaginatedUserEmailIdentifier, PaginatedUserEmailIdentifier,
     UserEmailIdentifier)
-from shared.models.entities import (CreatedAsyncTask, DailyReport,
+from shared.models.entities import (CreatedAsyncTask, HealthReport,
                                     InteractionReport, ListUsersResponse,
-                                    Paginated, TestReport, User)
+                                    Paginated, User)
 from shared.models.enums import (ResponseStatus, SummaryColors, TestType,
                                  UserStatus)
-from shared.models.risk_entities import UserRiskItem
+from shared.models.risk_entities import UserRiskItem, ScoredUserRiskItem
