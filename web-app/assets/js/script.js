@@ -43,15 +43,25 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-function createHTTPClientInstance() {
+async function createHTTPClientInstance() {
     var token = ""
     if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
 			token = authToken
     } else {
-			alert("Couldn't verify authentication status. Please log in again.")
-			document.location.href="/index.html"
+      var localAuth0 = await createAuth0Client({
+          domain: 'marintrace.us.auth0.com',
+          client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
+          scope: 'openid profile email',
+          audience: 'tracing-rest-api'
+      })
+      const claims = await localAuth0.getIdTokenClaims();
+      if (typeof claims.__raw !== "undefined") {
+        token = claims.__raw
+      } else {
+        alert("Couldn't verify authentication status. Please log in again.")
+  			document.location.href="/index.html"
+      }
 		}
-		console.log(token)
     return axios.create({
         baseURL: 'https://api.marintracingapp.org',
         headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + token},
@@ -62,8 +72,8 @@ function createHTTPClientInstance() {
 /*//', 'Access-Control-Allow-Credentials':true, 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': ['GET', 'POST', 'OPTIONS']*/
 
 async function reportTest(testType) {
-    const instance = createHTTPClientInstance();
-    await instance.post('/health-report', {
+    const instance = await createHTTPClientInstance();
+    await instance.post('/report-health', {
         'test_type': testType
     })
         .then(function (response) {
@@ -80,7 +90,7 @@ async function reportTest(testType) {
 
 async function getContacts() {
     if (localStorage.getItem("users") == null) {
-        const t = createHTTPClientInstance();
+        const t = await createHTTPClientInstance();
         await t.get("/list/users").then(function (t) {
             console.log("Cache not found... building");
             localStorage.setItem("users", JSON.stringify(t.data.users));
@@ -93,7 +103,7 @@ async function getContacts() {
 }
 
 async function reportContacts(targets) {
-    const instance = createHTTPClientInstance()
+    const instance = await createHTTPClientInstance()
     await instance.post('/report-interaction', {
         'targets': targets
     }).then(function (response) {
@@ -108,9 +118,9 @@ async function reportContacts(targets) {
 }
 
 async function reportSymptoms(object) {
-    const instance = createHTTPClientInstance()
+    const instance = await createHTTPClientInstance()
     instance.data = object
-    await instance.post('/health-report', object)
+    await instance.post('/report-health', object)
         .then(function (response) {
             document.location.href = "/home.html";
             alert("Successfully reported symptoms.")
@@ -123,7 +133,7 @@ async function reportSymptoms(object) {
 }
 
 async function markUserAsActive() {
-    const instance = createHTTPClientInstance()
+    const instance = await createHTTPClientInstance()
     await instance.post('/set-active-user')
         .then(function (response) {
             document.location.href = "/home.html";
@@ -133,6 +143,30 @@ async function markUserAsActive() {
             alert("Couldn't mark you as an active user. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
             console.log(error);
         })
+}
+
+async function getUserStatus(callback) {
+  const instance = await createHTTPClientInstance()
+  await instance.post('/user-status')
+      .then(function (response) {
+          callback(response.data)
+          console.log(response);
+      })
+      .catch(function (error) {
+          alert("Couldn't get your status. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
+          document.location.href = "/home.html";
+          /*var obj = {
+            "email": "blorsch@ma.org",
+  "timestamp": "string",
+  "color": "yellow",
+  "criteria": [
+    "Cough",
+    "XYZ",
+    "ABC"
+  ]
+}*/
+          console.log(error);
+      })
 }
 
 
@@ -166,7 +200,7 @@ var Layout = (function () {
 
     // Set sidenav state from cookie
 
-    var $sidenavState = Cookies.get('sidenav-state') ? Cookies.get('sidenav-state') : 'pinned';
+    /*var $sidenavState = Cookies.get('sidenav-state') ? Cookies.get('sidenav-state') : 'pinned';
 
     if ($(window).width() > 1200) {
         if ($sidenavState == 'pinned') {
@@ -182,7 +216,7 @@ var Layout = (function () {
                 $('body').removeClass('g-sidenav-show').addClass('g-sidenav-hidden');
             }
         })
-    }
+    }*/
 
     if ($(window).width() < 1200) {
         $('body').removeClass('g-sidenav-hide').addClass('g-sidenav-hidden');
