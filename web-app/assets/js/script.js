@@ -163,8 +163,8 @@ async function getUserStatus(callback) {
     "Cough",
     "XYZ",
     "ABC"
-  ]*/
-          }
+  ]
+}*/
           console.log(error);
       })
 }
