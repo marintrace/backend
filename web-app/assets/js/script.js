@@ -1,6 +1,9 @@
 var auth0 = null;
 
+var initializing = false;
+
 const configureClient = async () => {
+    initializing = true
     auth0 = await createAuth0Client({
         domain: 'marintrace.us.auth0.com',
         client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
@@ -12,6 +15,7 @@ const configureClient = async () => {
         console.log(error);
         window.location = 'index.html'; //couldn't auth go to login
     });
+    initializing = false
 }
 
 
@@ -40,31 +44,33 @@ var firebaseConfig = {
     measurementId: "G-RQSKEVJ22B"
 };
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-firebase.analytics();
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+} catch {
+  console.log("couldn't initalize firebase")
+}
 
 async function createHTTPClientInstance() {
-    var token = ""
-    if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
-			token = authToken
+    if (!(auth0 == null)) {
+      const claims = await auth0.getTokenClaims()
+      authToken = claims.__raw
+    } else if (initializing) {
+      await new Promise(r => setTimeout(r, 2000)); //wait a second or two
     } else {
-      var localAuth0 = await createAuth0Client({
-          domain: 'marintrace.us.auth0.com',
-          client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
-          scope: 'openid profile email',
-          audience: 'tracing-rest-api'
-      })
-      const claims = await localAuth0.getIdTokenClaims();
-      if (typeof claims.__raw !== "undefined") {
-        token = claims.__raw
+      await configureClient() //try again
+
+      if (typeof auth0 !== "undefined") {
+        createHTTPClientInstance()
       } else {
         alert("Couldn't verify authentication status. Please log in again.")
-  			document.location.href="/index.html"
+    		document.location.href="/index.html"
       }
-		}
+    }
+
     return axios.create({
         baseURL: 'https://api.marintracingapp.org',
-        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + token},
+        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + authToken},
         timeout: 1000 * 10
     });
 }
@@ -165,7 +171,6 @@ async function getUserStatus(callback) {
     "ABC"
   ]
 }*/
-          console.log(error);
       })
 }
 

@@ -31,6 +31,10 @@
   max-height: 99% !important;
 }
 
+.ui-front {
+    z-index: 9999999 !important;
+}
+
 .navigation-clean {
   background: #fff;
   padding-top: .75rem;
