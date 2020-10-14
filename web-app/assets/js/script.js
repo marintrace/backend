@@ -52,27 +52,16 @@ try {
 }
 
 async function createHTTPClientInstance() {
-    if (!(auth0 == null)) {
-      const claims = await auth0.getTokenClaims()
-      authToken = claims.__raw
-    } else if (initializing) {
-      await new Promise(r => setTimeout(r, 2000)); //wait a second or two
+    if (authToken == null) {
+      alert("Couldn't verify authentication status. Please log in again.")
+      document.location.href="/index.html"
     } else {
-      await configureClient() //try again
-
-      if (typeof auth0 !== "undefined") {
-        createHTTPClientInstance()
-      } else {
-        alert("Couldn't verify authentication status. Please log in again.")
-    		document.location.href="/index.html"
-      }
+      return axios.create({
+          baseURL: 'https://api.marintracingapp.org',
+          headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+          timeout: 1000 * 10
+      });
     }
-
-    return axios.create({
-        baseURL: 'https://api.marintracingapp.org',
-        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + authToken},
-        timeout: 1000 * 10
-    });
 }
 
 /*//', 'Access-Control-Allow-Credentials':true, 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': ['GET', 'POST', 'OPTIONS']*/
@@ -113,7 +102,7 @@ async function reportContacts(targets) {
     await instance.post('/report-interaction', {
         'targets': targets
     }).then(function (response) {
-        document.location.href = "/home.html";
+        $('#contactsModal').modal('hide');
         alert("Successfully reported interactions.")
         console.log(response);
     })
@@ -128,7 +117,7 @@ async function reportSymptoms(object) {
     instance.data = object
     await instance.post('/report-health', object)
         .then(function (response) {
-            document.location.href = "/home.html";
+            $('#symptomsModal').modal('hide');
             alert("Successfully reported symptoms.")
             console.log(response);
         })

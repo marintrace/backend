@@ -76,11 +76,11 @@
                      <div class="card-body">
                         <h2 style="font-weight: 400;">Symptoms</h2>
                         <p>Report your symptoms. They are required to be reported everyday.</p>
-                        <button
+                        <button id="reportSymptoms"
                            class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
                               data-target="#symptomsModal" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms
                         »</strong></button>
-                        <button
+                        <button id="triggerStatus"
                            class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
                               data-target="#statusModal" style="margin-bottom: 10px; width:100%;"><strong>View status card
                         »</strong></button>
@@ -93,10 +93,10 @@
                         <h2 style="font-weight: 400;">Tests</h2>
                         <p>When you get tested, you should report the result here.</p>
                         <div style="display: flex;flex-direction: column;width: 100%;">
-                           <button class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
+                           <button id="negativeTrigger" class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
                               data-target="#negativeModal" style="margin-bottom: 10px; width:100%;"><strong>Report
                            negative test »</strong><br></button>
-                           <button class="btn btn-primary text-nowrap"
+                           <button id="positiveTrigger" class="btn btn-primary text-nowrap"
                               type="button" data-toggle="modal" data-target="#positiveModal"
                               style="margin-bottom: 10px; width:100%;"><strong>Report positive test »</strong><br>
                            </button>
