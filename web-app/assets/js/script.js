@@ -164,13 +164,14 @@ async function getUserStatus(callback) {
           /*var obj = {
             "email": "blorsch@ma.org",
   "timestamp": "string",
-  "color": "yellow",
+  "color": "warning",
   "criteria": [
     "Cough",
     "XYZ",
     "ABC"
   ]
-}*/
+}
+      callback(obj)*/
       })
 }
 
