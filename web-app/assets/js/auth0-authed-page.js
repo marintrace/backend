@@ -13,8 +13,48 @@ const updateUI = async () => {
 };
 
 window.onload = async () => {
-  	await configureClient();
+  markAllAsLoading()
+  if (typeof authToken !== "undefined") {
+    finishedLoading()
+  } else {
+    await configureClient();
+    finishedLoading()
+  }
 	updateUI()
+}
+
+function markAllAsLoading() {
+  $('#negativeTrigger').addClass('disabled')
+  $('#negativeTrigger').html(`Loading...`);
+
+  $('#positiveTrigger').addClass('disabled')
+  $('#positiveTrigger').html(`Loading...`);
+
+  $('#reportContacts').addClass('disabled')
+  $('#reportContacts').html(`Loading...`);
+
+  $('#reportSymptoms').addClass('disabled')
+  $('#reportSymptoms').html(`Loading...`);
+
+  $('#triggerStatus').addClass('disabled')
+  $('#triggerStatus').html(`Loading...`);
+}
+
+function finishedLoading() {
+  $("#negativeTrigger").removeClass("disabled")
+  $("#negativeTrigger").html("Report negative test »")
+
+  $("#positiveTrigger").removeClass("disabled")
+  $("#positiveTrigger").html("Report positive test »")
+
+  $("#reportContacts").removeClass("disabled")
+  $("#reportContacts").html("Report contacts »")
+
+  $("#reportSymptoms").removeClass("disabled")
+  $("#reportSymptoms").html("Report symptoms »")
+
+  $("#triggerStatus").removeClass("disabled")
+  $("#triggerStatus").html("View status card »")
 }
 
 document.getElementById("logout").onclick = function() {logout()};

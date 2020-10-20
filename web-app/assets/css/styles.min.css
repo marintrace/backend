@@ -34,3 +34,7 @@
   min-height: 99% !important;
   max-height: 99% !important;
 }
+
+.ui-front {
+    z-index: 9999999 !important;
+}

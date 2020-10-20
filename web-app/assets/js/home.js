@@ -52,7 +52,7 @@ $(document).ready(function() {
         //get contacts
         getContacts().then(function() {
             $(document).ready(function() {
-				$("#reportContacts").removeClass("disabled"), $("#reportContacts").html("Report contacts »"), null != localStorage.getItem("users") && (window.location.href = "/report-contacts.html")
+				$("#reportContacts").removeClass("disabled"), $("#reportContacts").html("Report contacts »"), null != localStorage.getItem("users") && ($('#contactsModal').modal('show'))
 
             });
         });

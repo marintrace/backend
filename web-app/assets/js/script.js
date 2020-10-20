@@ -1,6 +1,9 @@
 var auth0 = null;
 
+var initializing = false;
+
 const configureClient = async () => {
+    initializing = true
     auth0 = await createAuth0Client({
         domain: 'marintrace.us.auth0.com',
         client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
@@ -12,6 +15,7 @@ const configureClient = async () => {
         console.log(error);
         window.location = 'index.html'; //couldn't auth go to login
     });
+    initializing = false
 }
 
 
@@ -40,33 +44,24 @@ var firebaseConfig = {
     measurementId: "G-RQSKEVJ22B"
 };
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-firebase.analytics();
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+} catch {
+  console.log("couldn't initalize firebase")
+}
 
 async function createHTTPClientInstance() {
-    var token = ""
-    if (typeof authToken !== "undefined") { //to prevent crashes if its null, will return unauth error instead
-			token = authToken
+    if (authToken == null) {
+      alert("Couldn't verify authentication status. Please log in again.")
+      document.location.href="/index.html"
     } else {
-      var localAuth0 = await createAuth0Client({
-          domain: 'marintrace.us.auth0.com',
-          client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
-          scope: 'openid profile email',
-          audience: 'tracing-rest-api'
-      })
-      const claims = await localAuth0.getIdTokenClaims();
-      if (typeof claims.__raw !== "undefined") {
-        token = claims.__raw
-      } else {
-        alert("Couldn't verify authentication status. Please log in again.")
-  			document.location.href="/index.html"
-      }
-		}
-    return axios.create({
-        baseURL: 'https://api.marintracingapp.org',
-        headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + token},
-        timeout: 1000 * 10
-    });
+      return axios.create({
+          baseURL: 'https://api.marintracingapp.org',
+          headers: {'Content-type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+          timeout: 1000 * 10
+      });
+    }
 }
 
 /*//', 'Access-Control-Allow-Credentials':true, 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': ['GET', 'POST', 'OPTIONS']*/
@@ -107,7 +102,7 @@ async function reportContacts(targets) {
     await instance.post('/report-interaction', {
         'targets': targets
     }).then(function (response) {
-        document.location.href = "/home.html";
+        $('#contactsModal').modal('hide');
         alert("Successfully reported interactions.")
         console.log(response);
     })
@@ -122,7 +117,7 @@ async function reportSymptoms(object) {
     instance.data = object
     await instance.post('/report-health', object)
         .then(function (response) {
-            document.location.href = "/home.html";
+            $('#symptomsModal').modal('hide');
             alert("Successfully reported symptoms.")
             console.log(response);
         })
@@ -158,14 +153,14 @@ async function getUserStatus(callback) {
           /*var obj = {
             "email": "blorsch@ma.org",
   "timestamp": "string",
-  "color": "yellow",
+  "color": "warning",
   "criteria": [
     "Cough",
     "XYZ",
     "ABC"
   ]
-}*/
-          console.log(error);
+}
+      callback(obj)*/
       })
 }
 

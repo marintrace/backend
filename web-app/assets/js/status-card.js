@@ -7,7 +7,9 @@ $(document).ready(function() {
   $("#status").addClass('disabled')
   $("#status").html(`Loading...`);
 
-  getUserStatus(getData)
+  $('#statusModal').on('shown.bs.modal', function (e) {
+    getUserStatus(getData)
+  });
 
   async function getData(status) {
     $("#email").removeClass("disabled")
@@ -17,28 +19,16 @@ $(document).ready(function() {
 
     switch (status.color) {
       case "danger":
-        $("#header").removeClass('bg-gradient-default')
-        $("#header").addClass('bg-gradient-danger')
-        $("#body").removeClass('bg-gradient-default')
-        $("#body").addClass('bg-gradient-danger')
-        $("#footer").removeClass('bg-gradient-default')
-        $("#footer").addClass('bg-gradient-danger')
+        $("#statusModal").removeClass('bg-gradient-default')
+        $("#statusModal").addClass('bg-gradient-danger')
         break
       case "yellow":
-        $("#header").removeClass('bg-gradient-default')
-        $("#header").addClass('bg-gradient-warning')
-        $("#body").removeClass('bg-gradient-default')
-        $("#body").addClass('bg-gradient-warning')
-        $("#footer").removeClass('bg-gradient-default')
-        $("#footer").addClass('bg-gradient-warning')
+        $("#statusModal").removeClass('bg-gradient-default')
+        $("#statusModal").addClass('bg-gradient-warning')
         break
       case "success":
-        $("#header").removeClass('bg-gradient-default')
-        $("#header").addClass('bg-gradient-success')
-        $("#body").removeClass('bg-gradient-default')
-        $("#body").addClass('bg-gradient-success')
-        $("#footer").removeClass('bg-gradient-default')
-        $("#footer").addClass('bg-gradient-success')
+        $("#statusModal").removeClass('bg-gradient-default')
+        $("#statusModal").addClass('bg-gradient-success')
         break
     }
   }

@@ -12,9 +12,7 @@ jQuery(function(){
 			"school": "string",
 			"signup_at": "inactive"
 	}
-	var users = [user1]*/
-
-	console.log(users)
+	var users = [user1, user1, user1, user1, user1, user1, user1, user1, user1, user1]*/
 
 	void 0 !== users && 0 != users.length || (alert("Couldn't find any other users to potentially report."), window.location = "home.html");
 
@@ -31,29 +29,31 @@ jQuery(function(){
         return object
     })
 
-    $('#tokenfield').tokenfield({
-        autocomplete: {
-        source: source,
-        delay: 100
-        },
-        showAutocompleteOnFocus: true
-    }).on('tokenfield:createtoken', function (event) {
-        //make sure token doesn't already exist and is a valid
-        var exists = true;
-        $.each(source, function(index, token) {
-            if (token.userEmail === event.attrs.userEmail)
-                exists = false;
-        });
-        if (exists === true)
-            event.preventDefault();
-        else {
-            var existingTokens = $(this).tokenfield('getTokens');
-            $.each(existingTokens, function(index, token) {
-                if (token.userEmail === event.attrs.userEmail )
-                    event.preventDefault();
-            });
-        }
-    });
+		$('#contactsModal').on('shown.bs.modal', function (e) {
+			$('#tokenfield').tokenfield({
+					autocomplete: {
+					source: source,
+					delay: 100
+					},
+					showAutocompleteOnFocus: true
+			}).on('tokenfield:createtoken', function (event) {
+					//make sure token doesn't already exist and is a valid
+					var exists = true;
+					$.each(source, function(index, token) {
+							if (token.userEmail === event.attrs.userEmail)
+									exists = false;
+					});
+					if (exists === true)
+							event.preventDefault();
+					else {
+							var existingTokens = $(this).tokenfield('getTokens');
+							$.each(existingTokens, function(index, token) {
+									if (token.userEmail === event.attrs.userEmail )
+											event.preventDefault();
+							});
+					}
+			});
+		})
 
     $('#submitButton').click(function() {
         let tokens = $('#tokenfield').tokenfield('getTokens')

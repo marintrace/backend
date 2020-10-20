@@ -76,14 +76,14 @@
                      <div class="card-body">
                         <h2 style="font-weight: 400;">Symptoms</h2>
                         <p>Report your symptoms. They are required to be reported everyday.</p>
-                        <a
-                           class="btn btn-primary text-nowrap" role="button" id="reportSymptoms"
-                           href="report-symptoms.html" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms
-                        »</strong></a>
-                        <a
-                           class="btn btn-primary text-nowrap" role="button"
-                           href="status-card.html" style="margin-bottom: 10px; width:100%;"><strong>View status card
-                        »</strong></a>
+                        <button id="reportSymptoms"
+                           class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
+                              data-target="#symptomsModal" style="margin-bottom: 10px; width:100%;"><strong>Report symptoms
+                        »</strong></button>
+                        <button id="triggerStatus"
+                           class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
+                              data-target="#statusModal" style="margin-bottom: 10px; width:100%;"><strong>View status card
+                        »</strong></button>
                      </div>
                   </div>
                </div>
@@ -93,10 +93,10 @@
                         <h2 style="font-weight: 400;">Tests</h2>
                         <p>When you get tested, you should report the result here.</p>
                         <div style="display: flex;flex-direction: column;width: 100%;">
-                           <button class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
+                           <button id="negativeTrigger" class="btn btn-primary text-nowrap" type="button" data-toggle="modal"
                               data-target="#negativeModal" style="margin-bottom: 10px; width:100%;"><strong>Report
                            negative test »</strong><br></button>
-                           <button class="btn btn-primary text-nowrap"
+                           <button id="positiveTrigger" class="btn btn-primary text-nowrap"
                               type="button" data-toggle="modal" data-target="#positiveModal"
                               style="margin-bottom: 10px; width:100%;"><strong>Report positive test »</strong><br>
                            </button>
@@ -107,7 +107,7 @@
             </div>
          </div>
       </div>
-      <div class="modal fade" role="dialog" tabindex="-1" id="positiveModal">
+      <div class="modal fade bg-gradient-warning" role="dialog" tabindex="-1" id="positiveModal">
          <div class="modal-dialog" role="document">
             <div class="modal-content">
                <div class="modal-header">
@@ -125,7 +125,7 @@
             </div>
          </div>
       </div>
-      <div class="modal fade" role="dialog" tabindex="-1" id="negativeModal">
+      <div class="modal fade bg-gradient-warning" role="dialog" tabindex="-1" id="negativeModal">
          <div class="modal-dialog" role="document">
             <div class="modal-content">
                <div class="modal-header">
@@ -166,20 +166,169 @@
             </div>
          </div>
       </div>
-      <footer class="footer" style="background:none;">
-         <div class="row">
-            <div class="col-md-6 offset-md-3">
-               <ul class="nav nav-footer justify-content-center">
-                  <li class="nav-item">
-                     <a href="https://marintracingapp.org/privacy.html" class="nav-link" target="_blank">Privacy Policy</a>
-                  </li>
-                  <li class="nav-item">
-                     <a href="https://marintracingapp.org/security.html" class="nav-link" target="_blank">Security Precautions</a>
-                  </li>
-               </ul>
+      <div class="modal fade bg-gradient-default" role="dialog" tabindex="-1" id="contactsModal">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h2 class="modal-title">Report Contacts</h2>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                     aria-hidden="true">×</span></button>
+               </div>
+               <div class="row justify-content-center">
+                   <div class="col col-10">
+                     <div class="form-group" style="/*padding: 10px;*/">
+                         <div class="input-group">
+                             <div class="input-group-prepend"></div>
+                             <input type="text" class="form-control" id="tokenfield" value=""
+                                    placeholder="Start typing a name." style="font-family:'Lato'"/>
+                             <div class="input-group-append">
+                                 <button id="submitButton" class="btn btn-primary" type="submit"
+                                         style="/*margin-top: 10px;*/">Report Contacts
+                                 </button>
+                             </div>
+                         </div>
+                     </div>
+                   </div>
+                </div>
             </div>
          </div>
-      </footer>
+      </div>
+      <div class="modal fade bg-gradient-default" role="dialog" tabindex="-1" id="contactsModal">
+        <div class="modal-dialog" role="document">
+           <div class="modal-content">
+              <div class="modal-header">
+                 <h2 class="modal-title">Report Contacts</h2>
+                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                    aria-hidden="true">×</span></button>
+              </div>
+              <div class="row justify-content-center">
+                  <div class="col col-10">
+                    <div class="form-group" style="/*padding: 10px;*/">
+                        <div class="input-group">
+                            <div class="input-group-prepend"></div>
+                            <input type="text" class="form-control" id="tokenfield" value=""
+                                   placeholder="Start typing a name." style="font-family:'Lato'"/>
+                            <div class="input-group-append">
+                                <button id="submitButton" class="btn btn-primary" type="submit"
+                                        style="/*margin-top: 10px;*/">Report Contacts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+               </div>
+           </div>
+        </div>
+     </div>
+      <div class="modal fade bg-gradient-default" role="dialog" tabindex="-1" id="symptomsModal">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h2 class="modal-title">Report Symptoms</h2>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                     aria-hidden="true">×</span></button>
+               </div>
+               <div class="row justify-content-center">
+                   <div class="col col-10">
+                     <form id="form">
+                       <div class="form-group">
+                         <p>Do you meet any of these conditions?</p>
+                           <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                          id="travel"><label class="form-check-label"
+                                                                                   for="travel">I have been outside the state in the last 14 days</label></div>
+                           <div class="form-check"><input class="form-check-input" type="checkbox" id="contact"><label
+                                   class="form-check-label" for="contact">I have been in contact with someone who has tested positive within the last 14 days</label></div>
+                         </div>
+                         <div class="form-group">
+                           <p>Have you experienced any of these symptoms in the last 2-14 days?</p>
+
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="fever_chills"><label class="form-check-label"
+                                                                                     for="fever_chills">Fever or
+                                 chills</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox" id="cough"><label
+                                     class="form-check-label" for="cough">Cough</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="shortness_breath"><label class="form-check-label"
+                                                                                         for="shortness_breath">Shortness
+                                 of breath</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="difficulty_breathing"><label class="form-check-label"
+                                                                                             for="difficulty_breathing">Difficulty
+                                 breathing</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox" id="fatigue"><label
+                                     class="form-check-label" for="fatigue">Fatigue</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="muscle_body_aches"><label class="form-check-label"
+                                                                                          for="muscle_body_aches">Muscle
+                                 or body aches</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox" id="headache"><label
+                                     class="form-check-label" for="headache">Headache</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="loss_taste_smell"><label class="form-check-label"
+                                                                                         for="loss_taste_smell">New loss
+                                 of taste or smell</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="sore_throat"><label class="form-check-label"
+                                                                                    for="sore_throat">Sore throat</label>
+                             </div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="congestion_runny_nose"><label class="form-check-label"
+                                                                                              for="congestion_runny_nose">Congestion
+                                 or runny nose</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                            id="nausea_vomiting"><label class="form-check-label"
+                                                                                        for="nausea_vomiting">Nausea or
+                                 vomiting</label></div>
+                             <div class="form-check"><input class="form-check-input" type="checkbox" id="diarrhea"><label
+                                     class="form-check-label" for="diarrhea">Diarrhea</label></div>
+                             <button class="btn btn-primary" id="report" type="submit" style="margin-top: 30px;">Report
+                             </button>
+                         </div>
+                     </form>
+                   </div>
+                </div>
+            </div>
+         </div>
+      </div>
+      <div class="modal fade bg-gradient-default" role="dialog" tabindex="-1" id="statusModal">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h2 class="modal-title">Report Contacts</h2>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                     aria-hidden="true">×</span></button>
+               </div>
+               <div class="row justify-content-center">
+                   <div class="col col-10">
+                     <div class="container">
+                         <h1 id="email" style="font-weight: 400;">user@school.org</h2>
+                         <h2 id="date" style="font-weight: 400;">0/0/00</h2>
+                         <h3 id="status" style="font-weight: 400;">No report yet today</h2>
+                     </div>
+                   </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+        <footer class="footer" style="background:none;">
+           <div class="row">
+              <div class="col-md-6 offset-md-3">
+                 <ul class="nav nav-footer justify-content-center">
+                    <li class="nav-item">
+                       <a href="https://marintracingapp.org/privacy.html" class="nav-link" target="_blank">Privacy Policy</a>
+                    </li>
+                    <li class="nav-item">
+                       <a href="https://marintracingapp.org/security.html" class="nav-link" target="_blank">Security Precautions</a>
+                    </li>
+                 </ul>
+              </div>
+           </div>
+        </footer>
+      </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
       <script src="https://code.jquery.com/jquery-migrate-3.0.1.js" async></script>
@@ -189,8 +338,11 @@
       <script src="https://cdn.auth0.com/js/auth0-spa-js/1.9/auth0-spa-js.production.js"></script>
       <script src="https://unpkg.com/axios/dist/axios.min.js" async></script>
     <script src="assets/js/script.js"></script>
+    <script src="assets/js/tokenfield.js"></script>
     <script src="assets/js/auth0-authed-page.js"></script>
     <script src="assets/js/home.js"></script>
+    <script src="assets/js/report-symptoms.js"></script>
+    <script src="assets/js/status-card.js"></script>
       <!--Start of Tawk.to Script-->
       <script type="text/javascript">
          var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
