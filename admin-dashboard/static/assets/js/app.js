@@ -28,7 +28,7 @@ function updateUserStatus(user_email) {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
             $("#today-status-color").addClass("bg-" + data.color);
-            $("#today-status-description").html(data.criteria.join('&'));
+            $("#today-status-description").html(data.criteria.join(' & '));
         }
     ).fail(requestFailure)
 }

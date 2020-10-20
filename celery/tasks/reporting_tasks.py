@@ -31,7 +31,10 @@ def update_active_user_report(user: User, report: BaseModel, additional_data=Non
                 graph_edge[additional_key] = additional_data[additional_key]
             g.push(graph_edge)
         else:
-            g.create(Relationship(authorized_user_node, "reported", day_node, **report.dict()))
+            serialized_report = report.dict()
+            for additional_key in ({} or additional_data):
+                serialized_report[additional_key] = additional_data[additional_key]
+            g.create(Relationship(authorized_user_node, "reported", day_node, **serialized_report.dict()))
 
 
 @celery.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)

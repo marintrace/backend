@@ -39,14 +39,18 @@ async def user_healthy(user: User = AUTH_USER):
 
     with Neo4JGraph() as g:
         query = f"""
-          MATCH (m:Member {{email:'{user.email}',school:'{user.school}'}})-[r:reported]-(d:DailyReport
-          {{date: '{pst_date()}'}}) RETURN r as report
+          MATCH (m:Member {{email:'{user.email}',school:'{user.school}'}})
+          OPTIONAL MATCH (m)-[r:reported]-(d:DailyReport {{date: '{pst_date()}'}})
+          RETURN r as report, m.first_name + " " + m.last_name as name
           """
-        query_result = list(g.run(query))
-        try:
-            return risk_item.from_health_report(HealthReport(**dict(query_result[0]['report'])))
-        except IndexError:
+        query_result = dict(list(g.run(query))[0])
+
+        risk_item.name = query_result['name']
+
+        if not query_result.get('report'):
             return risk_item.add_incomplete()
+        return risk_item.from_health_report(HealthReport(**query_result['report']))
+
 
 
 

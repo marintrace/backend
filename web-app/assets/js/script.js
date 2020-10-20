@@ -8,7 +8,8 @@ const configureClient = async () => {
         domain: 'marintrace.us.auth0.com',
         client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
         scope: 'openid profile email',
-        audience: 'tracing-rest-api'
+        audience: 'tracing-rest-api',
+        useRefreshTokens: true
     }).catch(function (error) {
         //TODO - ENABLE BEFORE RELEASE
         alert("Couldn't initialize authentication");
@@ -142,7 +143,7 @@ async function markUserAsActive() {
 
 async function getUserStatus(callback) {
   const instance = await createHTTPClientInstance()
-  await instance.post('/user-status')
+  await instance.get('/user-status')
       .then(function (response) {
           callback(response.data)
           console.log(response);

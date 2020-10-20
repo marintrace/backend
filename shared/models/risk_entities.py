@@ -12,6 +12,7 @@ class UserRiskItem(BaseModel):
     Entity representing user risk
     """
     email: Optional[str]
+    name: Optional[str]
     timestamp: Optional[str]
     color: str = None
     criteria: List[str] = []

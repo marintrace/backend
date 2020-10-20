@@ -13,7 +13,7 @@ $(document).ready(function() {
 
   async function getData(status) {
     $("#email").removeClass("disabled")
-    $("#email").html(status.email)
+    $("#email").html(status.name)
     $("#status").removeClass("disabled")
     $("#status").html(status.criteria.join(', '))
 
