@@ -113,7 +113,6 @@ class ScoredUserRiskItem(UserRiskItem):
         if health_report.commercial_flight:
             self.add_commercial_travel()
             self.risk_score += RiskScores.COMMERCIAL_FLIGHT
-
         if not self.color:
             self.color = SummaryColors.HEALTHY
             self.criteria.append('Healthy')

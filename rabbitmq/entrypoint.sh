@@ -17,7 +17,6 @@ RMQ_SECRET=$(curl --fail --location --request GET "${VAULT_ADDRESS}:8200/v1/secr
 export RABBITMQ_DEFAULT_USER=$(echo "$RMQ_SECRET" | jq .data.data.username -r)
 export RABBITMQ_DEFAULT_PASS=$(echo "$RMQ_SECRET" | jq .data.data.password -r)
 export RABBITMQ_DEFAULT_VHOST=$(echo "$RMQ_SECRET" | jq .data.data.vhost -r)
-#export RABBITMQ_ERLANG_COOKIE=$(echo "$RMQ_SECRET" | jq .data.data.erlang_cookie -r)
 
 echo "Starting Server..."
 docker-entrypoint.sh rabbitmq-server

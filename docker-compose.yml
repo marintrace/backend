@@ -30,14 +30,14 @@ services:
     build:
       context: .
       dockerfile: admin-dashboard/Dockerfile
-    image: gcr.io/vault-159468/admin-dashboard:0.1.33
+    image: gcr.io/vault-159468/admin-dashboard:0.1.36
   rabbitmq:
     build:
       context: rabbitmq
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/rabbitmq:0.1.3
+    image: gcr.io/vault-159468/rabbitmq:0.1.8
   celery:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.1.30
+    image: gcr.io/vault-159468/celery:0.1.32

@@ -16,8 +16,8 @@ COPY ./entrypoint.sh /entrypoint.sh
 
 # Setup Permissions
 RUN chmod +x /entrypoint.sh && \
+    chmod -R 777 /var/lib/rabbitmq/ && \
     chmod 755 /etc/rabbitmq/rabbitmq.conf
 
-USER rabbitmq
 CMD ["/entrypoint.sh"]
 

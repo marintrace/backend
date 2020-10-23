@@ -26,7 +26,7 @@ cat <<EOF | cfssl gencert -config=cert-config.json -ca=authority/ca.pem -ca-key=
       "C": "US",
       "L": "San Francisco",
       "O": "Marin Tracing",
-      "ST": "California",
+      "ST": "CA",
       "OU": "$SVC"
     }
   ],

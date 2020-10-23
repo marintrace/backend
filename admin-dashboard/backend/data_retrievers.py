@@ -41,7 +41,10 @@ async def create_summary_item(record, with_email=None, with_timestamp=None) -> U
     if not (record and record.get('report')):
         return risk_item.add_incomplete()
 
-    return risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
+    logger.info(record['report'])
+    risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
+    logger.info("RISK ITEM " + str(risk_item))
+    return risk_item
 
 
 @BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
