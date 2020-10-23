@@ -67,9 +67,10 @@ def notify_risk(self, *, user: User, task_data: UserRiskItem):
     with Neo4JGraph() as g:
         member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
         logger.info("Located Start Member Node...")
-        individuals_at_risk = calculate_interaction_risks(email=user.email, school=user.school,
-                                                          lookback_days=int(risk_notification_secrets['lookback_days']),
-                                                          **({'cohort': member_node['cohort']} or {}))
+        individuals_at_risk = calculate_interaction_risks(
+            email=user.email, school=user.school, lookback_days=int(risk_notification_secrets['lookback_days']),
+            **({'cohort': member_node['cohort']} or {})
+        )
 
     logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     EMAIL_CLIENT.send_email(template_name='risk_notification',
