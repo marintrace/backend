@@ -128,7 +128,7 @@ async function reportSymptoms(object) {
         })
 }
 
-async function markUserAsActive() {
+/*async function markUserAsActive() {
     const instance = await createHTTPClientInstance()
     await instance.post('/set-active-user')
         .then(function (response) {
@@ -139,6 +139,19 @@ async function markUserAsActive() {
             alert("Couldn't mark you as an active user. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
             console.log(error);
         })
+}*/
+
+function markUserAsActive() {
+  return new Promise(async (resolve, reject) => {
+    const instance = await createHTTPClientInstance()
+    await instance.post('/set-active-user')
+        .then(function (response) {
+          resolve()
+        })
+        .catch(function (error) {
+          reject()
+        })
+  })
 }
 
 async function getUserStatus(callback) {
