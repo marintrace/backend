@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: rest-api/Dockerfile
-    image: gcr.io/vault-159468/rest:0.1.28
+    image: gcr.io/vault-159468/rest:0.1.29
   neo4j:
     build:
       context: neo4j
@@ -20,17 +20,17 @@ services:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.1.41
+    image: gcr.io/vault-159468/web-app:0.1.43
   oidc-proxy:
     build:
       context: oidc-proxy
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/oidc-proxy:0.1.24
+    image: gcr.io/vault-159468/oidc-proxy:0.1.25
   admin:
     build:
       context: .
       dockerfile: admin-dashboard/Dockerfile
-    image: gcr.io/vault-159468/admin-dashboard:0.1.36
+    image: gcr.io/vault-159468/admin-dashboard:0.1.37
   rabbitmq:
     build:
       context: rabbitmq

@@ -15,6 +15,7 @@ app = FastAPI(
     description="Admin Dashboard for school analytics and tracing information"
 )
 
+# Add the middleware to capture the timing of requests
 add_timing_middleware(app=app, record=logger.info, exclude='health')
 
 # Serve up static CSS, Images, Fonts and JavaScript
@@ -26,7 +27,7 @@ templates = Jinja2Templates(directory="templates")
 @app.get('/health', description="Returns Bet", response_model=str, status_code=200)
 async def health():
     """
-    Healthcheck - Bet
+    Healthcheck - Bet -- retrieve our healtcheck
     :return: 'Bet'
     """
     return 'Bet'

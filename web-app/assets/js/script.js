@@ -5,7 +5,7 @@ var initializing = false;
 const configureClient = async () => {
     initializing = true
     auth0 = await createAuth0Client({
-        domain: 'marintrace.us.auth0.com',
+        domain: 'login.marintracingapp.org',
         client_id: 'rWrCmqGLtWscSLirUNufXW8p63R7xyCj',
         scope: 'openid profile email',
         audience: 'tracing-rest-api',
