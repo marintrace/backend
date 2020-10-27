@@ -32,6 +32,4 @@ $(document).ready(function() {
         break
     }
   }
-
-  getData()
 });
