@@ -20,7 +20,7 @@ services:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.1.43
+    image: gcr.io/vault-159468/web-app:0.1.45
   oidc-proxy:
     build:
       context: oidc-proxy
