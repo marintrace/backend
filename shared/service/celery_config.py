@@ -14,6 +14,7 @@ CELERY_CONFIG_OPTIONS = {
     'task_create_missing_queues': True,
     'accept_content': ['pickle', 'json'],
     'worker_hijack_root_logger': False,
+    'timezone': 'America/Los_Angeles',
     'broker_use_ssl': {
         'ca_certs': '/var/run/rmq-tls/ca.pem',
         'certfile': '/var/run/rmq-tls/rmq-client.pem',

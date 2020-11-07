@@ -68,7 +68,7 @@ class EmailClient:
             raise ValueError(f"Email template {template_name} is not known")
 
         api_payload = {
-            "from": EmailClient._format_target(email=self.from_email, name="Marin Tracing App"),
+            "from": EmailClient._format_target(email=self.from_email, name="MarinTrace"),
             "personalizations": [
                 {"to": [EmailClient._format_target(email=recipient) for recipient in recipients],
                  "bcc": [EmailClient._format_target(email=bcc_email) for bcc_email in self.bcc_emails],

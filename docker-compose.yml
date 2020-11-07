@@ -40,4 +40,4 @@ services:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.1.32
+    image: gcr.io/vault-159468/celery:0.1.34

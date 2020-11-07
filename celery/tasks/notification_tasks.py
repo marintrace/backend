@@ -1,7 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
 from typing import Optional
-from uuid import uuid4
 
 from shared.logger import logger
 from shared.models import User, UserRiskItem
@@ -76,9 +75,11 @@ def notify_risk(self, *, user: User, task_data: UserRiskItem):
     EMAIL_CLIENT.send_email(template_name='risk_notification',
                             recipients=risk_notification_secrets['recipients'].split(','),
                             template_data={
-                                'member': f'{user.email} (Cohort: {member_node["cohort"]})',
-                                'high_risk_members': ', '.join(individuals_at_risk[HighRisk]),
-                                'medium_risk_members': ', '.join(individuals_at_risk[LowMediumRisk]),
-                                'criteria': task_data.format_criteria(), 'request_id': str(uuid4()),
+                                'name': f"{member_node['first_name']} {member_node['last_name']}",
+                                'email': user.email,
+                                'cohort': member_node['cohort'] or 'N/A',
+                                'high_risk': individuals_at_risk[HighRisk],
+                                'medium_risk': individuals_at_risk[LowMediumRisk],
+                                'criteria': task_data.format_criteria(),
                             })
     logger.info("Sent email to relevant administrators")
