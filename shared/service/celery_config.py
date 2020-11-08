@@ -5,6 +5,8 @@ Setup Celery Queue Access from Flask
 import os
 import ssl
 
+from celery.schedules import crontab
+
 from celery import Celery
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
@@ -57,6 +59,30 @@ class RabbitMQCredentials:
         return self.connection_string
 
 
+def create_daily_admin_digest_beat():
+    """
+    Setup Daily Administrator "Digests" for schools who would like
+    them. Schools will configure their desired time in Vault (if they desire)
+    and we will create Celery periodic tasks for each one.
+    :return: Dictionary Config for Celery with Periodic Tasks
+    """
+    beat_tasks = {}
+
+    with VaultConnection() as vault:
+        logger.info("Reading School Digest from Vault")
+        school_report_times = vault.read_secret(secret_path='schools/daily_digest')
+
+        for school in school_report_times:
+            hour, minute = school_report_times[school].split(':')  # split 24hr time into hour and minute at colon
+            beat_tasks[f"{school}-daily-digest"] = dict(
+                task='tasks.send_daily_digest',
+                schedule=crontab(hour=hour, minute=minute, day_of_week='1-5'),
+                args=(school,)
+            )
+
+    return beat_tasks
+
+
 def get_celery():
     """
     Return Celery Object
@@ -67,6 +93,7 @@ def get_celery():
         connection_string = RabbitMQCredentials().create_connection_string()
         CELERY_CONNECTION = Celery("tasks", broker=f'amqp://{connection_string}',
                                    backend=f'rpc://{connection_string}')
+        CELERY_CONNECTION.conf.beat_schedule = create_daily_admin_digest_beat()
         CELERY_CONNECTION.conf.update(CELERY_CONFIG_OPTIONS)
     return CELERY_CONNECTION
 

@@ -1,33 +1,16 @@
-from celery.schedules import crontab
-
 from shared.logger import logger
 from shared.service.celery_config import get_celery, CELERY_RETRY_OPTIONS
+from shared.service.email_config import EmailClient
+from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
+from shared.utilities import get_pst_time
+
+EMAIL_CLIENT = EmailClient()
 
 celery = get_celery()
 
 
-@celery.on_after_configure.connect
-def create_daily_admin_digest_beat(sender, **kwargs):
-    """
-    Setup Daily Administrator "Digests" for schools who would like
-    them. Schools will configure their desired time in Vault (if they desire)
-    and we will create Celery periodic tasks for each one.
-    """
-
-    with VaultConnection() as vault:
-        logger.info("Reading School Digest from Vault")
-        school_report_times = vault.read_secret(secret_path='schools/daily_digest')
-
-        for school in school_report_times:
-            hour, minute = school_report_times[school].split(':')  # split 24hr time into hour and minute at colon
-            sender.add_periodic_task(
-                crontab(hour=hour, minute=minute, day_of_week='1-5'),  # every WEEKDAY only
-                send_daily_digest.s(school)  # define signature to be of school
-            )
-
-
-@celery.task(name='tasks.daily_digest', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.send_daily_digest', **CELERY_RETRY_OPTIONS)
 def send_daily_digest(school: str):
     """
     Periodically send a daily digest to a specified school
@@ -35,4 +18,28 @@ def send_daily_digest(school: str):
 
     :param school: school name (must match Neo4J)
     """
-    pass
+    logger.info(f"Sending Daily Digest for School: {school}")
+    day_node = current_day_node(school=school)  # get or create current day node in graph
+    with Neo4JGraph() as g:
+        no_report_members = [member['name'] for member in list(g.run(
+            f"""MATCH (member: Member {{school: '{school}'}}), (day: DailyReport {{date: '{day_node["date"]}'}})
+                WHERE NOT (member)-[:reported]-(day) RETURN member.first_name + " " + member.last_name as name"""
+        ))]
+        logger.info(f"Located {len(no_report_members)} members with no report.")
+
+    with VaultConnection() as vault:
+        digest_config = vault.read_secret(secret_path=f'schools/{school}/daily_digest_config')
+
+    truncated_members = no_report_members[int(digest_config['max_display'])] if digest_config['max_display'] else \
+        no_report_members
+
+    logger.info("Sending Daily Digest")
+    EMAIL_CLIENT.send_email(
+        template_name='daily_digest',
+        recipients=digest_config['recipients'].split(','),
+        template_data={
+            'no_report': truncated_members,
+            'date': get_pst_time().strftime('%m/%d/%Y')
+        }
+    )
+    logger.info("Done.")

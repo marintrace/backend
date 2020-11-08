@@ -16,7 +16,7 @@ class Neo4JGraph:
     """
     Cache for Storing Neo4J Connection
     """
-    _GRAPH_CACHE = None  # Maintain Websocket Connection open so that
+    _GRAPH_CACHE = None  # Maintain Websocket Connection open so that connection doesn't need to be reestablished
     _CREDENTIAL_CACHE = None
 
     def __init__(self):
@@ -47,7 +47,7 @@ class Neo4JGraph:
         credentials = self.retrieve_credentials()
 
         logger.info("Acquiring new Neo4J Encrypted Connection")
-        Neo4JGraph._GRAPH_CACHE = Graph(  # Connect to Neo4J over encrypted BOLT (websocket) connection
+        Neo4JGraph._GRAPH_CACHE = Graph(  # Connect to Neo4J over encrypted BOLT (websocket) connection with TLS 1.3
             f"bolt+s://{env_vars.get('NEO4J_HOST', 'tracing-neo4j')}:7687",
             secure=True, auth=(credentials['username'], credentials['password'])
         )
