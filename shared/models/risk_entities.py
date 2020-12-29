@@ -47,9 +47,12 @@ class UserRiskItem(BaseModel):
             self.criteria.append('Healthy')
         return self
 
-    def add_blocked(self, location: UserLocationStatus):
+    def add_blocked(self, location: Union[UserLocationStatus, str]):
         self.color = SummaryColors.URGENT
-        self.criteria.append(location.value)
+        if isinstance(location, Enum):
+            self.criteria.append(location.value.title())
+        else:
+            self.criteria.append(location.title())
         return self
 
     def add_incomplete(self):

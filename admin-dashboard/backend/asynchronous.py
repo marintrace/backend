@@ -23,6 +23,6 @@ async def queue_location_change(location_change: UpdateLocationRequest, user: Ad
     logger.info(f"Processing Location Change request")
     # build up the "authorized" user through request information. because an admin user is authenticated
     # they essentially "assume" the role of the target user to change their information - scoped to their school
-    assumed_user = User(email=location_change.email, school=user.email)
+    assumed_user = User(email=location_change.email, school=user.school)
     return CreatedAsyncTask(task_id=assumed_user.queue_task(task_name='tasks.report_location_status',
                                                             task_data=location_change))

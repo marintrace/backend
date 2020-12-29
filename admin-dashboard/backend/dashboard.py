@@ -33,6 +33,7 @@ async def create_summary_item(record, with_email=None, with_timestamp=None) -> U
         return risk_item.add_incomplete()
 
     if UserLocationStatus.blocked(record['location']):
+        logger.info("Location is blocked.")
         return risk_item.add_blocked(location=record['location'])
     return risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
 
@@ -157,8 +158,8 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
 
     with Neo4JGraph() as graph:
         records = list(graph.run(
-            """MATCH (m: Member {email: $email, school: $school}-[r:reported]-(d: DailyReport {date: $date})
-            RETURN r as report""",
+            """MATCH (m: Member {email: $email, school: $school})-[r:reported]-(d: DailyReport {date: $date})
+            RETURN r as report, m.location as location""",
             email=identifier.email, school=user.school, date=pst_date()
         ))
         return await create_summary_item(record=records[0] if len(records) > 0 else None)

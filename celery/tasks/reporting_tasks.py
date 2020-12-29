@@ -53,7 +53,7 @@ def update_user_properties(user: User, data: dict):
         authorized_user_node = graph.nodes.match("Member", email=user.email, school=user.school).first()
         for prop, value in data.items():
             authorized_user_node[prop] = value
-        g.push(authorized_user_node)
+        graph.push(authorized_user_node)
 
 
 @celery.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)

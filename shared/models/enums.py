@@ -46,9 +46,8 @@ class UserLocationStatus(str, Enum):
         Return whether or not the user is blocked from entry or not
         :return: bool
         """
-        if isinstance(location, Enum):
-            return location in {UserLocationStatus.QUARANTINE, UserLocationStatus.REMOTE}
-        return location in {UserLocationStatus.REMOTE, UserLocationStatus.QUARANTINE}
+        return (location.value if isinstance(location, Enum) else location) in {UserLocationStatus.REMOTE.value,
+                                                                                UserLocationStatus.QUARANTINE.value}
 
 
 class UserStatus(str, Enum):
