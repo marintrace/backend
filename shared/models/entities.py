@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from shared.models.enums import TestType, UserStatus, ResponseStatus
+from shared.models.enums import ResponseStatus, TestType, UserStatus
 from shared.service.celery_config import get_celery
 from shared.utilities import pst_timestamp
 
@@ -46,12 +46,12 @@ class InteractionReport(BaseModel):
 
 class HealthReport(Timestamped):
     """
-    Symptom Report
+    Health Report Report
     """
-    num_symptoms: int = 0
-    proximity: bool = False
-    test_type: Optional[TestType] = None
-    commercial_flight: bool = False
+    num_symptoms: Optional[int]
+    proximity: Optional[bool]
+    test_type: Optional[TestType]
+    commercial_flight: Optional[bool]
 
 
 # REST Entities
@@ -124,4 +124,3 @@ class UserHealthResponse(Response):
     """
     Whether user is healthy response
     """
-

@@ -6,27 +6,18 @@ from shared.models import (AdminDashboardUser,
                            DashboardNumericalWidgetResponse,
                            DashboardUserInfoDetail, DashboardUserInteraction,
                            DashboardUserInteractions,
-                           DashboardUserSummaryResponse,
+                           DashboardUserSummaryResponse, HealthReport,
                            OptionalPaginatedUserEmailIdentifier,
-                           PaginatedUserEmailIdentifier, UserEmailIdentifier, UserRiskItem, HealthReport)
-from shared.service.jwt_auth_config import JWTAuthManager
+                           PaginatedUserEmailIdentifier, UserEmailIdentifier,
+                           UserLocationStatus, UserRiskItem)
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
                               pst_date)
 
+from .authorization import OIDC_COOKIE
+
 # Mounted on the main router
 BACKEND_ROUTER = APIRouter()
-
-# JWT Authentication Manager
-AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
-                              object_creator=lambda claims, role: AdminDashboardUser(
-                                  last_name=claims['family_name'],
-                                  first_name=claims['given_name'],
-                                  email=claims['email'],
-                                  school=role.split('-')[0]
-                              ))
-
-OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 
 async def create_summary_item(record, with_email=None, with_timestamp=None) -> UserRiskItem:
@@ -41,10 +32,9 @@ async def create_summary_item(record, with_email=None, with_timestamp=None) -> U
     if not (record and record.get('report')):
         return risk_item.add_incomplete()
 
-    logger.info(record['report'])
-    risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
-    logger.info("RISK ITEM " + str(risk_item))
-    return risk_item
+    if UserLocationStatus.blocked(record['location']):
+        return risk_item.add_blocked(location=record['location'])
+    return risk_item.from_health_report(health_report=HealthReport(**dict(record['report'])))
 
 
 @BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=DashboardNumericalWidgetResponse,
@@ -70,15 +60,17 @@ async def paginate_user_report_history(request: PaginatedUserEmailIdentifier, us
     """
     logger.info("Paginating user report history")
     with Neo4JGraph() as graph:
-        query = f"""
-        MATCH (m: Member {{school: "{user.school}", email: "{request.email}"}})-[report:reported]-(d: DailyReport)
-        RETURN report, report.timestamp as timestamp ORDER BY report.timestamp DESC
-        SKIP {request.pagination_token} LIMIT {request.limit}
-        """
+        records = list(graph.run(
+            """MATCH (m: Member {school: $school, email: $email})-[report:reported]-(d: DailyReport)
+            RETURN report, m.location as location, report.timestamp as timestamp ORDER BY report.timestamp DESC
+            SKIP $pag_token LIMIT $limit""",
+            school=user.school, email=request.email, pag_token=request.pagination_token,
+            limit=request.limit
+        ))
 
         return DashboardUserSummaryResponse(
             records=[await create_summary_item(record, with_timestamp=record['timestamp'])
-                     for record in list(graph.run(query))],
+                     for record in records],
             pagination_token=request.pagination_token + request.limit
         )
 
@@ -91,17 +83,20 @@ async def paginate_user_summary_items(request: OptionalPaginatedUserEmailIdentif
     Paginate through the user summary items to render the home screen admin-dashboard
     """
     with Neo4JGraph() as graph:
-        query = f"""
-        MATCH (m: Member {{school: "{user.school}"}})
-        {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
-        OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date:"{get_pst_time().strftime(DATE_FORMAT)}"}})
-        RETURN m.email as email, report, report.timestamp as timestamp 
-        ORDER BY COALESCE(report.risk_score, 0) DESC
-        SKIP {request.pagination_token} LIMIT {request.limit}"""
+        records = list(graph.run(
+            f"""MATCH (m: Member {{school: $school}})
+            {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
+            OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
+            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp 
+            ORDER BY COALESCE(report.risk_score, 0) DESC
+            SKIP $pag_token LIMIT $limit""",
+            school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
+            limit=request.limit
+        ))
 
     return DashboardUserSummaryResponse(
         records=[await create_summary_item(record, with_email=record['email'], with_timestamp=record['timestamp'])
-                 for record in list(graph.run(query))],
+                 for record in records],
         pagination_token=request.pagination_token + request.limit
     )
 
@@ -122,7 +117,8 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
             cohort=member_node['cohort'],
             email=member_node['email'],
             school=member_node['school'],
-            active=member_node.get('status') == 'active'
+            active=member_node.get('status') == 'active',
+            location=member_node['location']
         )
 
 
@@ -133,19 +129,20 @@ async def paginate_user_interactions(request: PaginatedUserEmailIdentifier, user
     Paginate through a user's interactions
     """
     with Neo4JGraph() as graph:
-        query = f"""
-        MATCH (m:Member {{email: "{request.email}", school: "{user.school}"}})-[i:interacted_with]-(target:Member)
-        RETURN target.email as email, i.timestamp as timestamp 
-        ORDER BY i.timestamp DESC
-        SKIP {request.pagination_token} LIMIT {request.limit}
-        """
+        records = list(graph.run(
+            """MATCH (m:Member {email: $email, school: $school})-[i:interacted_with]-(target:Member)
+            RETURN target.email as email, i.timestamp as timestamp 
+            ORDER BY i.timestamp DESC
+            SKIP $pag_token LIMIT $limit""",
+            school=user.school, email=request.email, pag_token=request.pagination_token, limit=request.limit
+        ))
 
         return DashboardUserInteractions(
             users=[
                 DashboardUserInteraction(
                     email=record['email'],
                     timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d")  # UNIX ts -> YYYY-MM-DD
-                ) for record in list(graph.run(query))],
+                ) for record in records],
             pagination_token=request.pagination_token + request.limit
         )
 
@@ -159,10 +156,9 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
     logger.info("Acquiring User Summary Status")
 
     with Neo4JGraph() as graph:
-        query = f"""
-        MATCH (m:Member {{email:'{identifier.email}',school:'{user.school}'}})-[r:reported]-(d:DailyReport
-        {{date: '{pst_date()}'}}) 
-        RETURN r as report
-        """
-        query_result = list(graph.run(query))
-        return await create_summary_item(record=query_result[0] if len(query_result) > 0 else None)
+        records = list(graph.run(
+            """MATCH (m: Member {email: $email, school: $school}-[r:reported]-(d: DailyReport {date: $date})
+            RETURN r as report""",
+            email=identifier.email, school=user.school, date=pst_date()
+        ))
+        return await create_summary_item(record=records[0] if len(records) > 0 else None)

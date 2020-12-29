@@ -5,7 +5,8 @@ Asynchronous API for long-running operations and non-response notifications
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models import (CreatedAsyncTask, HealthReport, InteractionReport, User)
+from shared.models import (CreatedAsyncTask, HealthReport, InteractionReport,
+                           User)
 
 from .authorization import AUTH_USER
 

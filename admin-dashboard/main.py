@@ -1,19 +1,31 @@
 # -*- encoding: utf-8 -*-
 from os import environ as env_vars
 
-from backend.data_retrievers import BACKEND_ROUTER
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_utils.timing import add_timing_middleware
 
+from backend.data_retrievers import BACKEND_ROUTER
 from shared.logger import logger
+from shared.service.jwt_auth_config import JWTAuthManager
 
 app = FastAPI(
     title="Admin Dashboard",
     debug=env_vars.get("DEBUG", False),
     description="Admin Dashboard for school analytics and tracing information"
 )
+
+# JWT Authentication Manager
+AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
+                              object_creator=lambda claims, role: AdminDashboardUser(
+                                  last_name=claims['family_name'],
+                                  first_name=claims['given_name'],
+                                  email=claims['email'],
+                                  school=role.split('-')[0]
+                              ))
+
+OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access')  # KeyCloak Access Token set by OIDC Proxy (Auth0 Lock)
 
 # Add the middleware to capture the timing of requests
 add_timing_middleware(app=app, record=logger.info, exclude='health')

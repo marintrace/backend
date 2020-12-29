@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 
 class SummaryColors:
@@ -9,16 +10,6 @@ class SummaryColors:
     WARNING = 'yellow'
     NO_REPORT = "gray"
     HEALTHY = "success"
-
-
-class RiskScores:
-    """
-    Weights for Risks in calculating risk score
-    """
-    POSITIVE_TEST = 50
-    PROXIMITY = 20
-    PER_SYMPTOM = 5  # 5 Risk Score Points / symptom
-    COMMERCIAL_FLIGHT = 4
 
 
 # ENUMS - Use String Mixin to make JSON Serializeable: https://stackoverflow.com/a/51976841/4501002
@@ -41,10 +32,28 @@ class TestType(str, Enum):
     NEGATIVE = "negative"
 
 
+class UserLocationStatus(str, Enum):
+    """
+    User Report Permissions
+    """
+    CAMPUS = "campus"
+    REMOTE = "remote"
+    QUARANTINE = "quarantine"
+
+    @staticmethod
+    def blocked(location: Union[Enum, str]):
+        """
+        Return whether or not the user is blocked from entry or not
+        :return: bool
+        """
+        if isinstance(location, Enum):
+            return location in {UserLocationStatus.QUARANTINE, UserLocationStatus.REMOTE}
+        return location in {UserLocationStatus.REMOTE, UserLocationStatus.QUARANTINE}
+
+
 class UserStatus(str, Enum):
     """
     User status
     """
-
     INACTIVE = "inactive"
     ACTIVE = "active"

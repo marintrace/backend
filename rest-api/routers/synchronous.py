@@ -6,9 +6,11 @@ from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
-from shared.models import ListUsersResponse, User, UserRiskItem, HealthReport
+from shared.models import (HealthReport, ListUsersResponse, User,
+                           UserLocationStatus, UserRiskItem)
 from shared.service.neo_config import Neo4JGraph
 from shared.utilities import pst_date
+
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API
@@ -37,20 +39,20 @@ async def user_healthy(user: User = AUTH_USER):
     logger.info(f"Retrieving user status for school: {user.school}")
     risk_item = UserRiskItem()
 
-    with Neo4JGraph() as g:
-        query = f"""
-          MATCH (m:Member {{email:'{user.email}',school:'{user.school}'}})
-          OPTIONAL MATCH (m)-[r:reported]-(d:DailyReport {{date: '{pst_date()}'}})
-          RETURN r as report, m.first_name + " " + m.last_name as name
-          """
-        query_result = dict(list(g.run(query))[0])
+    with Neo4JGraph() as graph:
+        record = list(graph.run(
+            """MATCH (m:Member {email: $email,school: $school})
+              OPTIONAL MATCH (m)-[r:reported]-(d:DailyReport {date: $date})
+              RETURN r as report, m.location as location, m.first_name + " " + m.last_name as name""",
+            email=user.email, school=user.school, date=pst_date()
+        ))
+        record = dict(record[0])
+        risk_item.name = record['name']
 
-        risk_item.name = query_result['name']
-
-        if not query_result.get('report'):
+        if not record.get('report'):
             return risk_item.add_incomplete()
-        return risk_item.from_health_report(HealthReport(**query_result['report']))
 
+        if UserLocationStatus.blocked(record['location']):
+            return risk_item.add_blocked(location=record['location'])
 
-
-
+        return risk_item.from_health_report(HealthReport(**record['report']))

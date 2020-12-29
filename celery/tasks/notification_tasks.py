@@ -36,10 +36,12 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
             logger.info(f"Computing Risk for Tier {tier}")
             individual_risk_tiers[tier] = []
             cohort_filter = f'WHERE m1.cohort <> {cohort}' if cohort else ''  # see whether or not school uses cohorts
-            record_set = list(g.run(f'''
-                    MATCH p=(m {{email:"{email}", school:"{school}"}})-[:interacted_with *{tier.depth}]-(member:Member) 
+            record_set = list(g.run(
+                f'''MATCH p=(m {{email:$email, school:$school}})-[:interacted_with *$depth]-(member:Member) 
                     {cohort_filter} WITH *, relationships(p) as rel WHERE all(r in rel WHERE r.timestamp >= 
-                    {timestamp_limit}) return member'''))
+                    $min_timestamp) return member''',
+                email=email, school=school, depth=tier.depth, min_timestamp=timestamp_limit
+            ))
             logger.info(f"Retrieved user risk list (n={len(record_set)}) for tier...")
 
             for record in record_set:

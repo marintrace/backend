@@ -4,7 +4,8 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from shared.models.entities import HealthReport, TestType
-from shared.models.enums import SummaryColors, RiskScores
+from shared.models.enums import SummaryColors, UserLocationStatus
+from shared.service.vault_config import VaultConnection
 
 
 class UserRiskItem(BaseModel):
@@ -25,15 +26,15 @@ class UserRiskItem(BaseModel):
         return (self.color == SummaryColors.URGENT) or \
                (include_warning and self.color == SummaryColors.WARNING)
 
-    def from_health_report(self, health_report: HealthReport, min_risk_symptoms: int = 1):
+    def from_health_report(self, health_report: HealthReport, minimum_symptoms=1):
         """
         Create a new User Risk Item from a Daily Report Object
+        :param minimum_symptoms: number of minimum symptoms to trigger unhealthy state
         :param health_report: Daily Report Object
-        :param min_risk_symptoms: the minimum symptoms to trigger an urgent
-            status
+
         :return: UserRiskItem
         """
-        if health_report.num_symptoms >= min_risk_symptoms:
+        if health_report.num_symptoms >= minimum_symptoms:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
         if health_report.test_type:
             self.add_test(test_type=health_report.test_type)
@@ -41,11 +42,14 @@ class UserRiskItem(BaseModel):
             self.add_proximity()
         if health_report.commercial_flight:
             self.add_commercial_travel()
-
         if not self.color:
             self.color = SummaryColors.HEALTHY
             self.criteria.append('Healthy')
+        return self
 
+    def add_blocked(self, location: UserLocationStatus):
+        self.color = SummaryColors.URGENT
+        self.criteria.append(location.value)
         return self
 
     def add_incomplete(self):
@@ -73,8 +77,7 @@ class UserRiskItem(BaseModel):
         return self
 
     def add_commercial_travel(self):
-        if self.color != SummaryColors.URGENT:
-            self.color = SummaryColors.WARNING
+        self.color = SummaryColors.URGENT
         self.criteria.append('Commercial Travel')
         return self
 
@@ -91,28 +94,37 @@ class ScoredUserRiskItem(UserRiskItem):
     User Risk Item that keeps track of risk score
     """
     risk_score: int = 0
+    school: str
 
-    def from_health_report(self, health_report: HealthReport, min_risk_symptoms: int = 1):
+    def retrieve_symptom_criteria(self):
+        """
+        Retrieve symptom criteria from Vault for the specified school
+        :return: dictionary of risk scores
+        """
+        with VaultConnection() as vault:
+            return vault.read_secret(secret_path=f"schools/{self.school}/symptom_criteria")
+
+    def from_health_report(self, health_report: HealthReport, minimum_symptoms=1):
         """
         Create a new User Risk Item from a Health Report Object with score
+        :param minimum_symptoms: minimum symptoms to trigger alert
         :param health_report: Health Report Object
-        :param min_risk_symptoms: the minimum symptoms to trigger an urgent
-            status
         :return: ScoredUserRiskItem
         """
-        if health_report.num_symptoms >= min_risk_symptoms:
+        symptom_criteria = self.retrieve_symptom_criteria()
+        if health_report.num_symptoms >= minimum_symptoms:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
-            self.risk_score += RiskScores.PER_SYMPTOM * health_report.num_symptoms
+            self.risk_score += symptom_criteria['score_per_symptom'] * health_report.num_symptoms
         if health_report.test_type:
             self.add_test(test_type=health_report.test_type)
             if health_report.test_type == TestType.POSITIVE:
-                self.risk_score += RiskScores.POSITIVE_TEST
+                self.risk_score += symptom_criteria['score_positive_test']
         if health_report.proximity:
             self.add_proximity()
-            self.risk_score += RiskScores.PROXIMITY
+            self.risk_score += symptom_criteria['score_proximity']
         if health_report.commercial_flight:
             self.add_commercial_travel()
-            self.risk_score += RiskScores.COMMERCIAL_FLIGHT
+            self.risk_score += symptom_criteria['score_commerical_travel']
         if not self.color:
             self.color = SummaryColors.HEALTHY
             self.criteria.append('Healthy')

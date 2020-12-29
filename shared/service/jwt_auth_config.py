@@ -30,7 +30,7 @@ class JWTAuthManager:
             oidc_secrets = vault.read_secret(secret_path=oidc_vault_secret)
 
             self.domain = oidc_secrets["auth0_domain"]
-            self.issuer = oidc_secrets['issuer'].get('vault')
+            self.issuer = oidc_secrets['issuer']
             self.authorized_roles = oidc_secrets['authorized_roles'].split(',')
             self.role_claim_name = oidc_secrets["role_claim_name"]
             self.jwks = get_request(f"https://{self.domain}/.well-known/jwks.json").json()

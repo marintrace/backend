@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from shared.models.entities import Paginated, Response
+from shared.models.enums import UserLocationStatus
 from shared.models.risk_entities import UserRiskItem
 
 
@@ -11,6 +12,14 @@ class UserEmailIdentifier(BaseModel):
     Identification for a user by their email
     """
     email: str
+
+
+class UpdateLocationRequest(BaseModel):
+    """
+    Model for updating a user's location (to quarantined/remote/campus)
+    """
+    email: str
+    location: UserLocationStatus
 
 
 class OptionalPaginatedUserEmailIdentifier(Paginated):
@@ -46,6 +55,7 @@ class DashboardUserInfoDetail(BaseModel):
     first_name: str
     last_name: str
     cohort: Optional[int]
+    location: str
     active: bool
     school: str
 
