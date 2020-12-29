@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: admin-dashboard/Dockerfile
-    image: gcr.io/vault-159468/admin-dashboard:0.1.45
+    image: gcr.io/vault-159468/admin-dashboard:0.1.46
   rabbitmq:
     build:
       context: rabbitmq
