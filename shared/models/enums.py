@@ -1,15 +1,14 @@
 from enum import Enum
-from typing import Union
 
 
-class SummaryColors:
+class HTMLColors:
     """
     Summary Item colors for admin-dashboard items
     """
-    URGENT = "danger"
-    WARNING = 'yellow'
-    NO_REPORT = "gray"
-    HEALTHY = "success"
+    DANGER = "danger"
+    YELLOW = 'yellow'
+    GRAY = "gray"
+    SUCCESS = "success"
 
 
 # ENUMS - Use String Mixin to make JSON Serializeable: https://stackoverflow.com/a/51976841/4501002
@@ -38,16 +37,14 @@ class UserLocationStatus(str, Enum):
     """
     CAMPUS = "campus"
     REMOTE = "remote"
-    QUARANTINE = "quarantine"
+    QUARANTINE = "quarantined"
 
     @staticmethod
-    def blocked(location: Union[Enum, str]):
+    def get_blocked() -> frozenset:
         """
-        Return whether or not the user is blocked from entry or not
-        :return: bool
+        :return: set of blocked user locations
         """
-        return (location.value if isinstance(location, Enum) else location) in {UserLocationStatus.REMOTE.value,
-                                                                                UserLocationStatus.QUARANTINE.value}
+        return frozenset({UserLocationStatus.QUARANTINE, UserLocationStatus.REMOTE})
 
 
 class UserStatus(str, Enum):

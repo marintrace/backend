@@ -1,21 +1,34 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Union
 
 from pydantic import BaseModel
 
-from shared.models.entities import HealthReport, TestType
-from shared.models.enums import SummaryColors, UserLocationStatus
+from shared.models.enums import HTMLColors, UserLocationStatus
+from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
+
+
+class UserLocationItem(BaseModel):
+    """
+    Entity representing user location
+    """
+    color: HTMLColors = None
+    location: UserLocationStatus = None
+
+    def set_location(self, location: Union[UserLocationStatus, str]):
+        self.location = location
+        if UserLocationStatus.blocked(location):
+            self.color = HTMLColors.DANGER
+        else:
+            self.color = HTMLColors.SUCCESS
+        return self
 
 
 class UserRiskItem(BaseModel):
     """
     Entity representing user risk
     """
-    email: Optional[str]
-    name: Optional[str]
-    timestamp: Optional[str]
-    color: str = None
+    color: HTMLColors = None
     criteria: List[str] = []
 
     def at_risk(self, include_warning=False) -> bool:
@@ -23,8 +36,8 @@ class UserRiskItem(BaseModel):
         Whether the user has any urgent
         risk factors
         """
-        return (self.color == SummaryColors.URGENT) or \
-               (include_warning and self.color == SummaryColors.WARNING)
+        return (self.color == HTMLColors.DANGER) or \
+               (include_warning and self.color == HTMLColors.YELLOW)
 
     def from_health_report(self, health_report: HealthReport, minimum_symptoms=1):
         """
@@ -43,44 +56,44 @@ class UserRiskItem(BaseModel):
         if health_report.commercial_flight:
             self.add_commercial_travel()
         if not self.color:
-            self.color = SummaryColors.HEALTHY
+            self.color = HTMLColors.SUCCESS
             self.criteria.append('Healthy')
         return self
 
-    def add_blocked(self, location: Union[UserLocationStatus, str]):
-        self.color = SummaryColors.URGENT
+    def set_location_blocked(self, location: Union[UserLocationStatus, str]):
+        self.color = HTMLColors.DANGER
         if isinstance(location, Enum):
             self.criteria.append(location.value.title())
         else:
             self.criteria.append(location.title())
         return self
 
-    def add_incomplete(self):
-        self.color = SummaryColors.NO_REPORT
+    def set_incomplete(self):
+        self.color = HTMLColors.GRAY
         self.criteria.append('No Report')
         return self
 
     def add_test(self, test_type: Union[str, Enum]):
         if test_type == TestType.POSITIVE:
-            self.color = SummaryColors.URGENT
+            self.color = HTMLColors.DANGER
             self.criteria.append('Positive Test')
         elif test_type == TestType.NEGATIVE:
-            self.color = SummaryColors.HEALTHY
+            self.color = HTMLColors.SUCCESS
             self.criteria.append('Negative Test')
         return self
 
     def add_proximity(self):
-        self.color = SummaryColors.URGENT
+        self.color = HTMLColors.DANGER
         self.criteria.append('COVID Proximity')
         return self
 
     def add_symptoms(self, num_symptoms: int):
-        self.color = SummaryColors.URGENT
+        self.color = HTMLColors.DANGER
         self.criteria.append(f'{num_symptoms} symptoms')
         return self
 
     def add_commercial_travel(self):
-        self.color = SummaryColors.URGENT
+        self.color = HTMLColors.DANGER
         self.criteria.append('Commercial Travel')
         return self
 
@@ -129,7 +142,7 @@ class ScoredUserRiskItem(UserRiskItem):
             self.add_commercial_travel()
             self.risk_score += symptom_criteria['score_commercial_travel']
         if not self.color:
-            self.color = SummaryColors.HEALTHY
+            self.color = HTMLColors.SUCCESS
             self.criteria.append('Healthy')
 
         return self

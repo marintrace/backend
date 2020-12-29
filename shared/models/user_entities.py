@@ -118,8 +118,3 @@ class CreatedAsyncTask(Response):
     status = ResponseStatus.QUEUED
     task_id: str
 
-
-class UserHealthResponse(Response):
-    """
-    Whether user is healthy response
-    """

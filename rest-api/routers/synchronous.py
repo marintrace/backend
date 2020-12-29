@@ -6,11 +6,11 @@ from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
-from shared.models import (HealthReport, ListUsersResponse, User,
-                           UserLocationStatus, UserRiskItem)
+from shared.models.user_entities import (HealthReport, ListUsersResponse, User)
+from shared.models.risk_entities import UserRiskItem
+from shared.models.admin_entities import UserLocationStatus
 from shared.service.neo_config import Neo4JGraph
 from shared.utilities import pst_date
-
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API
@@ -50,9 +50,9 @@ async def user_healthy(user: User = AUTH_USER):
         risk_item.name = record['name']
 
         if not record.get('report'):
-            return risk_item.add_incomplete()
+            return risk_item.set_incomplete()
 
         if UserLocationStatus.blocked(record['location']):
-            return risk_item.add_blocked(location=record['location'])
+            return risk_item.set_location_blocked(location=record['location'])
 
         return risk_item.from_health_report(HealthReport(**record['report']))

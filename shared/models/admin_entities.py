@@ -2,14 +2,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from shared.models.entities import Paginated, Response, User
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserRiskItem
+from shared.models.risk_entities import UserRiskItem, UserLocationItem
+from shared.models.user_entities import Paginated, PaginatedResponse, Response, User
 
 
 class UserEmailIdentifier(BaseModel):
     """
-    Identification for a user  by their email
+    Identification for a user by their email
     """
     email: str
 
@@ -22,18 +22,48 @@ class UpdateLocationRequest(BaseModel):
     location: UserLocationStatus
 
 
-class OptionalPaginatedUserEmailIdentifier(Paginated):
+class OptIdPaginationRequest(Paginated):
     """
     Identification for a user pagination optionally by their email
     """
     email: str = None
 
 
-class PaginatedUserEmailIdentifier(UserEmailIdentifier, Paginated):
+class IdUserPaginationRequest(UserEmailIdentifier, Paginated):
     """
     Pagination identification for a user by their email
     """
     pass
+
+
+# Models
+class SingleUserDualStatus(BaseModel):
+    """
+    User Status Response for the Dashboard
+    """
+    health: UserRiskItem
+    location: UserLocationItem
+
+
+class IdSingleUserDualStatus(SingleUserDualStatus, UserEmailIdentifier):
+    """
+    Identified User Dual Status (with email)
+    """
+    pass
+
+
+class MultipleUserDualStatuses(BaseModel, PaginatedResponse):
+    """
+    Multiple users status in the admin dashboard
+    """
+    statuses: List[IdSingleUserDualStatus]
+
+
+class SingleUserHealthHistory(BaseModel, PaginatedResponse):
+    """
+    Health history of a single user
+    """
+    health_reports: List[UserRiskItem]
 
 
 class AdminDashboardUser(User):
@@ -43,7 +73,7 @@ class AdminDashboardUser(User):
     pass
 
 
-class DashboardUserInfoDetail(BaseModel):
+class UserInfoDetail(BaseModel):
     """
     Entity representing user info detail on the user
     detail page
@@ -57,21 +87,14 @@ class DashboardUserInfoDetail(BaseModel):
     school: str
 
 
-class DashboardNumericalWidgetResponse(Response):
+class NumericalWidgetResponse(Response):
     """
     Numerical Widget Value on the homescreen of the admin-dashboard
     """
     value: int
 
 
-class DashboardUserSummaryResponse(Paginated):
-    """
-    User Summary Response for the Dashboard
-    """
-    records: List[UserRiskItem]
-
-
-class DashboardUserInteraction(BaseModel):
+class UserInteraction(BaseModel):
     """
     Interaction between two users on the admin-dashboard
     """
@@ -79,8 +102,8 @@ class DashboardUserInteraction(BaseModel):
     timestamp: str
 
 
-class DashboardUserInteractions(Paginated):
+class UserInteractionHistory(Paginated):
     """
     User Interactions for the Dasboard
     """
-    users: List[DashboardUserInteraction]
+    users: List[UserInteraction]

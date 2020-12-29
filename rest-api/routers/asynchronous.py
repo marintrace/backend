@@ -5,9 +5,8 @@ Asynchronous API for long-running operations and non-response notifications
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models import (CreatedAsyncTask, HealthReport, InteractionReport,
-                           User)
-
+from shared.models.user_entities import (CreatedAsyncTask, HealthReport, InteractionReport,
+                                         User)
 from .authorization import AUTH_USER
 
 # Asynchronous API Router -- mountable to main API
@@ -29,6 +28,7 @@ async def queue_interaction_report(contact: InteractionReport, user: User = AUTH
     """
     logger.info(f"Processing Interaction Report Task...")
     return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_interaction', task_data=contact))
+
 
 @ASYNC_ROUTER.post('/report-health', operation_id='queue_health_report',
                    description="Log health report under the specified user", **GENERAL_ASYNC_PARAMS)

@@ -1,7 +1,7 @@
 """
 Authorization Utilities
 """
-from shared.models import User
+from shared.models.user_entities import User
 from shared.service.jwt_auth_config import JWTAuthManager
 
 manager = JWTAuthManager(oidc_vault_secret="oidc/rest",

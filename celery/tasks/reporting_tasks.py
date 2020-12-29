@@ -2,8 +2,10 @@ from py2neo import Relationship, RelationshipMatcher
 from pydantic import BaseModel
 
 from shared.logger import logger
-from shared.models import (HealthReport, InteractionReport, ScoredUserRiskItem,
-                           User, UpdateLocationRequest, UserStatus)
+from shared.models.admin_entities import UpdateLocationRequest
+from shared.models.user_entities import (HealthReport, InteractionReport,
+                                         User, UserStatus)
+from shared.models.risk_entities import ScoredUserRiskItem
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection

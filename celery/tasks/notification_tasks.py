@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from shared.logger import logger
-from shared.models import User, UserRiskItem
+from shared.models.risk_entities import UserRiskItem
+from shared.models.user_entities import User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph
