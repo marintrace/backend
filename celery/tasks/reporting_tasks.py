@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from shared.logger import logger
 from shared.models import (HealthReport, InteractionReport, ScoredUserRiskItem,
-                           User, UserLocationStatus, UserStatus)
+                           User, UpdateLocationRequest, UserStatus)
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
@@ -117,11 +117,11 @@ def report_active_user(self, *, user: User):
 
 
 @celery.task(name='tasks.report_location_status', **CELERY_RETRY_OPTIONS)
-def report_location_status(self, *, location: UserLocationStatus, user: User):
+def report_location_status(self, *, user: User, task_data: UpdateLocationRequest):
     """
     Asynchronously update authorized user's location status
-    :param location: the new location for the user
-    :param user: authorized user model
+    :param user: Assumed location change target user
+    :param task_data: API request from API
     """
-    logger.info(f"Setting authorized user's location state to {location}")
-    update_user_properties(user=user, data={'location': location})
+    logger.info(f"Setting authorized user's location state to {task_data.location}... authorized by {user.email}")
+    update_user_properties(user=user, data={'location': task_data.location})

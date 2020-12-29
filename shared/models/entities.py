@@ -59,11 +59,10 @@ class User(BaseModel):
     """
     User Schema for API validation and documentation
     """
-    first_name: str
-    last_name: str
+    first_name: Optional[str] # optional fields to provide more information but not required for ID
+    last_name: Optional[str]
     email: str
     school: str
-    status: UserStatus = None
 
     def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None) -> str:
         """

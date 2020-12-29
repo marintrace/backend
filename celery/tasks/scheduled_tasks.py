@@ -11,7 +11,7 @@ celery = get_celery()
 
 
 @celery.task(name='tasks.send_daily_digest', **CELERY_RETRY_OPTIONS)
-def send_daily_digest(school: str):
+def send_daily_digest(self, school: str):
     """
     Periodically send a daily digest to a specified school
     containing a list of individuals who haven't yet reported.
@@ -22,7 +22,7 @@ def send_daily_digest(school: str):
     day_node = current_day_node(school=school)  # get or create current day node in graph
     with Neo4JGraph() as g:
         no_report_members = [member['name'] for member in list(g.run(
-            """MATCH (member: Member {{school: $school}}), (day: DailyReport {{date: $date'}})
+            """MATCH (member: Member {school: $school}), (day: DailyReport {date: $date})
                 WHERE NOT (member)-[:reported]-(day) RETURN member.first_name + " " + member.last_name as name""",
             school=school, date=day_node["date"]
         ))]
@@ -35,6 +35,7 @@ def send_daily_digest(school: str):
         no_report_members
 
     logger.info("Sending Daily Digest")
+    EMAIL_CLIENT.setup()
     EMAIL_CLIENT.send_email(
         template_name='daily_digest',
         recipients=digest_config['recipients'].split(','),

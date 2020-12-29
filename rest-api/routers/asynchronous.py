@@ -27,7 +27,7 @@ async def queue_interaction_report(contact: InteractionReport, user: User = AUTH
     * Specify the interaction model in the JSON body (schema in docs)
     * Requires JWT
     """
-    logger.info(f"Processing Interaction Report Task... {contact}")
+    logger.info(f"Processing Interaction Report Task...")
     return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_interaction', task_data=contact))
 
 @ASYNC_ROUTER.post('/report-health', operation_id='queue_health_report',
@@ -38,7 +38,7 @@ async def queue_health_report(health_report: HealthReport, user: User = AUTH_USE
     * Specify the health report model in the JSON Body
     * Requires JWT
     """
-    logger.info(f"Processing Health Reporting Task... {health_report}")
+    logger.info(f"Processing Health Reporting Task...")
     return CreatedAsyncTask(task_id=user.queue_task(task_name='tasks.report_health', task_data=health_report))
 
 

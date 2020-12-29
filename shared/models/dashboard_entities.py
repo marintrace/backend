@@ -2,14 +2,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from shared.models.entities import Paginated, Response
+from shared.models.entities import Paginated, Response, User
 from shared.models.enums import UserLocationStatus
 from shared.models.risk_entities import UserRiskItem
 
 
 class UserEmailIdentifier(BaseModel):
     """
-    Identification for a user by their email
+    Identification for a user  by their email
     """
     email: str
 
@@ -36,14 +36,11 @@ class PaginatedUserEmailIdentifier(UserEmailIdentifier, Paginated):
     pass
 
 
-class AdminDashboardUser(BaseModel):
+class AdminDashboardUser(User):
     """
-    User who is using the admin admin-dashboard
+    User who is using the admin dashboard
     """
-    first_name: str
-    last_name: str
-    email: str
-    school: str
+    pass
 
 
 class DashboardUserInfoDetail(BaseModel):

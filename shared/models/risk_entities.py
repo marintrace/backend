@@ -124,7 +124,7 @@ class ScoredUserRiskItem(UserRiskItem):
             self.risk_score += symptom_criteria['score_proximity']
         if health_report.commercial_flight:
             self.add_commercial_travel()
-            self.risk_score += symptom_criteria['score_commerical_travel']
+            self.risk_score += symptom_criteria['score_commercial_travel']
         if not self.color:
             self.color = SummaryColors.HEALTHY
             self.criteria.append('Healthy')

@@ -32,25 +32,25 @@ spec:
           command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-rabbitmq; do sleep 1.5; echo "Waiting for RabbitMQ to start..."; done']
       containers:
         - env:
-#            - name: VAULT_ADDRESS
-#              value: https://{{ .Release.Name }}-vault
+            - name: VAULT_ADDRESS
+              value: https://{{ .Release.Name }}-vault
             - name: RABBITMQ_ADDRESS
               value: {{ .Release.Name }}-rabbitmq:{{ .Values.rabbitmq.port }}
-#            - name: VAULT_ROLE
-#              value: {{ .Values.vault.vaultRole }}
+            - name: VAULT_ROLE
+              value: {{ .Values.vault.vaultRole }}
             - name: C_FORCE_ROOT
               value: "true"
           volumeMounts:
             - mountPath: /var/run/rmq-tls
-              name: {{ template "worker.fullname" . }}-rmq-tls
+              name: {{ template "beat.fullname" . }}-rmq-tls
               readOnly: true
           image: gcr.io/vault-159468/celery:{{ .Values.imageVersion }}
           command:
             - celery
-            - worker
-            - -A
             - beat
-            - --loglevel DEBUG
+            - -A
+            - tasks
+            - --loglevel=DEBUG
           name: {{ template "beat.fullname" .}}
       restartPolicy: Always
       serviceAccountName: {{ template "beat.fullname" . }}-serviceaccount

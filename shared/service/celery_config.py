@@ -5,8 +5,9 @@ Setup Celery Queue Access from Flask
 import os
 import ssl
 
-from celery import Celery
 from celery.schedules import crontab
+
+from celery import Celery
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
 
@@ -92,7 +93,7 @@ def get_celery():
         connection_string = RabbitMQCredentials().create_connection_string()
         CELERY_CONNECTION = Celery("tasks", broker=f'amqp://{connection_string}',
                                    backend=f'rpc://{connection_string}')
-        # CELERY_CONNECTION.conf.beat_schedule = create_daily_admin_digest_beat()
+        CELERY_CONNECTION.conf.beat_schedule = create_daily_admin_digest_beat()
         CELERY_CONNECTION.conf.update(CELERY_CONFIG_OPTIONS)
     return CELERY_CONNECTION
 
