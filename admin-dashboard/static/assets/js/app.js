@@ -1,8 +1,8 @@
-const userInteractionPagLimit = 10;
+const userInteractionPagLimit = 15;
 let userInteractionPagToken = 0;
-const homeUserStatusPagLimit = 10;
+const homeUserStatusPagLimit = 500; // allow sorting without pagination
 let homeUserStatusPagToken = 0;
-const userReportPagLimit = 10;
+const userReportPagLimit = 15;
 let userReportPagToken = 0;
 
 $.ajaxSetup({
@@ -32,11 +32,13 @@ String.prototype.capitalize = function() {
 
 function updateUserStatus(user_email) {
     promptPolicyModal();
-    $.post("/api/get-user-summary-status", JSON.stringify({"email": user_email}), function () {
+    $.post("/api/user-summary-status", JSON.stringify({"email": user_email}), function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
-            $("#today-status-color").addClass("bg-" + data.color);
-            $("#today-status-description").html(data.criteria.join(' & '));
+            $("#today-status-color").addClass("bg-" + data.health.color);
+            $("#today-status-description").html(data.health.criteria.join(' & '));
+            $("#today-location-color").addClass("bg-" + data.location.color);
+            $("#today-location-description").html(data.location.location.capitalize());
         }
     ).fail(requestFailure)
 }
@@ -92,16 +94,16 @@ function updateUserReports(user_email) {
     }), function () {
         console.log("Paginating user reports request response received");
     }, "json").done(function (data) {
-        if (data['records'].length === 0) {
+        if (data['health_reports'].length === 0) {
             $("#report-footer").hide();
             return;
         }
         userReportPagToken = data['pagination_token'];
-        data['records'].forEach(function (e) {
+        data['health_reports'].forEach(function (e) {
             let rows = [
                 e.timestamp,
-                "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.color + "'></i><span class='status'>" +
-                truncate(e.criteria.join(' & '), 45) + "</span></span>",
+                "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.dated_report.color + "'></i><span class='status'>" +
+                truncate(e.dated_report.criteria.join(' & '), 45) + "</span></span>",
             ];
             $("#reports").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })

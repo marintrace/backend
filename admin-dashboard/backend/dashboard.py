@@ -8,12 +8,14 @@ from shared.models.admin_entities import (AdminDashboardUser,
                                           MultipleUserDualStatuses,
                                           NumericalWidgetResponse,
                                           OptIdPaginationRequest,
+                                          SingleUserDualStatus,
                                           SingleUserHealthHistory,
-                                          UserEmailIdentifier, UserInfoDetail,
+                                          UserEmailIdentifier,
+                                          UserInfoDetail,
                                           UserInteraction,
                                           UserInteractionHistory)
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserHealthItem, UserLocationItem
+from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
 from shared.models.user_entities import HealthReport
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
@@ -79,7 +81,8 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
             school=user.school, email=request.email, pag_token=request.pagination_token,
             limit=request.limit
         ))
-        health_reports = [await create_health_status(record) for record in records]
+        health_reports = [DatedUserHealthHolder(timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d"),
+                                                dated_report=await create_health_status(record)) for record in records]
         return SingleUserHealthHistory(
             health_reports=health_reports,
             pagination_token=request.pagination_token + request.limit
@@ -87,7 +90,7 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
 
 
 @BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=MultipleUserDualStatuses,
-                     summary="Paginate through admin-dashboard status records")
+                     summary="Paginate through admin dashboard status records")
 async def paginate_user_summary_items(request: OptIdPaginationRequest,
                                       user: AdminDashboardUser = OIDC_COOKIE):
     """
@@ -130,7 +133,6 @@ async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUse
             email=member_node['email'],
             school=member_node['school'],
             active=member_node.get('status') == 'active',
-            location=member_node['location']
         )
 
 
@@ -156,7 +158,7 @@ async def paginate_user_interactions(request: IdUserPaginationRequest, user: Adm
         return UserInteractionHistory(users=users, pagination_token=request.pagination_token + request.limit)
 
 
-@BACKEND_ROUTER.post(path="/user-summary-status", response_model=UserHealthItem,
+@BACKEND_ROUTER.post(path="/user-summary-status", response_model=SingleUserDualStatus,
                      summary="Retrieve a user's summary status and color")
 async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
@@ -166,9 +168,12 @@ async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDa
 
     with Neo4JGraph() as graph:
         records = list(graph.run(
-            """MATCH (m: Member {email: $email, school: $school})-[r:reported]-(d: DailyReport {date: $date})
-            RETURN r as report, m.location as location""",
+            """MATCH (m: Member {email: $email, school: $school})
+            OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {date: $date})
+            RETURN report, m.location as location""",
             email=identifier.email, school=user.school, date=pst_date()
         ))
         record = records[0] if len(records) > 0 else None
-        return await create_health_status(record)
+        location_item = await create_location_status(record['location'])
+        health_item = await create_health_status(record)
+        return SingleUserDualStatus(location=location_item, health=health_item)

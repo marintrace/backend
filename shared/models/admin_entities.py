@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserHealthItem, UserLocationItem
+from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
 from shared.models.user_entities import (Paginated, PaginatedResponse,
                                          Response, User, UserEmailIdentifier)
 
@@ -57,7 +57,7 @@ class SingleUserHealthHistory(PaginatedResponse):
     """
     Health history of a single user
     """
-    health_reports: List[UserHealthItem]
+    health_reports: List[DatedUserHealthHolder]
 
 
 class AdminDashboardUser(User):
@@ -76,7 +76,6 @@ class UserInfoDetail(BaseModel):
     first_name: str
     last_name: str
     cohort: Optional[int]
-    location: str
     active: bool
     school: str
 

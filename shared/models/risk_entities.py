@@ -118,6 +118,14 @@ class IdentifiedUserEntryItem(BaseModel):
     report: Union[UserLocationStatus, UserHealthItem]
 
 
+class DatedUserHealthHolder(BaseModel):
+    """
+    User health item with a timestamp for identification
+    """
+    timestamp: str
+    dated_report: UserHealthItem
+
+
 class ScoredUserRiskItem(UserHealthItem):
     """
     User Risk Item that keeps track of risk score
