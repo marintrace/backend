@@ -3,12 +3,17 @@ from py2neo import RelationshipMatcher
 
 from shared.logger import logger
 from shared.models.admin_entities import (AdminDashboardUser,
+                                          IdSingleUserDualStatus,
+                                          IdUserPaginationRequest,
+                                          MultipleUserDualStatuses,
                                           NumericalWidgetResponse,
-                                          UserInfoDetail, UserInteraction, IdSingleUserDualStatus,
-                                          UserInteractionHistory, SingleUserHealthHistory, MultipleUserDualStatuses,
-                                          IdUserPaginationRequest, UserEmailIdentifier)
+                                          OptIdPaginationRequest,
+                                          SingleUserHealthHistory,
+                                          UserEmailIdentifier, UserInfoDetail,
+                                          UserInteraction,
+                                          UserInteractionHistory)
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserLocationItem, UserHealthItem
+from shared.models.risk_entities import UserHealthItem, UserLocationItem
 from shared.models.user_entities import HealthReport
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
@@ -83,7 +88,7 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
 
 @BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=MultipleUserDualStatuses,
                      summary="Paginate through admin-dashboard status records")
-async def paginate_user_summary_items(request: IdUserPaginationRequest,
+async def paginate_user_summary_items(request: OptIdPaginationRequest,
                                       user: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate through the user summary items to render the home screen admin-dashboard
@@ -100,12 +105,12 @@ async def paginate_user_summary_items(request: IdUserPaginationRequest,
             limit=request.limit
         ))
 
-    users = [
+    statuses = [
         IdSingleUserDualStatus(health=await create_health_status(record), email=record['email'],
                                location=await create_location_status(record.get('location'))) for record in records
     ]
 
-    return MultipleUserDualStatuses(users=users, pagination_token=request.pagination_token + request.limit)
+    return MultipleUserDualStatuses(statuses=statuses, pagination_token=request.pagination_token + request.limit)
 
 
 @BACKEND_ROUTER.post(path="/get-user-info", response_model=UserInfoDetail,

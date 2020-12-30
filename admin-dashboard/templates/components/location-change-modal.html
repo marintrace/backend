@@ -1,0 +1,25 @@
+<div class="modal fade" role="dialog" tabindex="-1" id="location-change">
+    <div class="modal-dialog full_modal-dialog" role="document">
+        <div class="modal-content full_modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Change User Location: <a href="#" id="user-email"></a></h4>
+            </div>
+            <div class="modal-body">
+              <p style="font-size:15px;">Please note that changing a user's location to "remote" or "quarantine" will
+                  prevent them from receiving the green status card required for check-in.
+            </p>
+                <form id="location-form" action="#">
+                    <input type="radio" id="campus-loc" name="location" value="campus"/>
+                    <label for="campus-loc">Campus</label><br>
+                    <input type="radio" id="remote-loc" name="location" value="remote"/>
+                    <label for="remote-loc">Remote</label><br>
+                    <input type="radio" id="quarantine-loc" name="location" value="quarantined"/>
+                    <label for="quarantine-loc">Quarantine</label>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="submitLocationChange" type="button">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

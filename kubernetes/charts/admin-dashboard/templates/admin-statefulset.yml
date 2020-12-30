@@ -40,7 +40,7 @@ spec:
               value: {{ .Values.vault.vaultRole }}
             - name: PORT
               value: "{{ .Values.exposePort }}"
-          image: gcr.io/vault-159468/admin-dashboard:{{ .Values.imageVersion }}
+          image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           name: {{ template "admin.fullname" .}}
           volumeMounts:
             - mountPath: /var/run/rmq-tls

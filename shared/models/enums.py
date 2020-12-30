@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class HTMLColors:
+class HTMLColors(str, Enum):
     """
     Summary Item colors for admin-dashboard items
     """

@@ -24,7 +24,7 @@ spec:
       creationTimestamp: null
     spec:
       containers:
-        - image: gcr.io/vault-159468/web-app:{{ .Values.imageVersion }}
+        - image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           name: {{ template "web.fullname" .}}
           ports:
             - containerPort: {{ .Values.exposePort }}

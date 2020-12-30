@@ -42,7 +42,7 @@ spec:
             - mountPath: /var/run/rmq-tls
               name: {{ template "flower.fullname" . }}-rmq-tls
               readOnly: true
-          image: gcr.io/vault-159468/celery:{{ .Values.imageVersion }}
+          image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           args:
             - sh
             - ./monitor_entrypoint.sh

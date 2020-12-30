@@ -40,7 +40,7 @@ spec:
               value: {{ .Values.vault.vaultRole }}
             - name: PORT
               value: "{{ .Values.exposePort }}"
-          image: gcr.io/vault-159468/rest:{{ .Values.imageVersion }}
+          image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           name: {{ template "rest.fullname" . }}
           volumeMounts:
             - mountPath: /var/run/rmq-tls
@@ -67,7 +67,7 @@ spec:
       restartPolicy: Always
       serviceAccountName: {{ template "rest.fullname" . }}-serviceaccount
       imagePullSecrets:
-        - name: gcp-registry
+          - name: gcp-registry
       volumes:
         - name: {{ template "rest.fullname" . }}-rmq-tls
           secret:

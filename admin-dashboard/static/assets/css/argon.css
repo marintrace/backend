@@ -20179,3 +20179,11 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
   min-height: 99% !important;
   max-height: 99% !important;
 }
+
+#location-link {
+    color: #525f7f;
+}
+
+#location-link:hover{
+    color: #5e72e4;
+}

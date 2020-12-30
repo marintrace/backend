@@ -6,8 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_utils.timing import add_timing_middleware
 
-from backend.dashboard import BACKEND_ROUTER
 from backend.asynchronous import ASYNC_ROUTER
+from backend.dashboard import BACKEND_ROUTER
 from shared.logger import logger
 
 app = FastAPI(

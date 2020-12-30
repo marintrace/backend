@@ -21,7 +21,7 @@ spec:
         name: {{ template "rabbitmq.fullname" . }}
     spec:
       containers:
-        - image: gcr.io/vault-159468/rabbitmq:{{ .Values.imageVersion }}
+        - image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           env:
             - name: VAULT_ADDRESS
               value: https://{{ .Release.Name }}-vault

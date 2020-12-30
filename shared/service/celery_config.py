@@ -5,9 +5,8 @@ Setup Celery Queue Access from Flask
 import os
 import ssl
 
-from celery.schedules import crontab
-
 from celery import Celery
+from celery.schedules import crontab
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
 

@@ -7,11 +7,13 @@ from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
 from shared.models.admin_entities import UserLocationStatus
-from shared.models.risk_entities import UserHealthItem,IdentifiedUserEntryItem, UserLocationItem
-from shared.models.user_entities import (HealthReport, ListUsersResponse, User)
 from shared.models.enums import EntryReason
+from shared.models.risk_entities import (IdentifiedUserEntryItem,
+                                         UserHealthItem, UserLocationItem)
+from shared.models.user_entities import HealthReport, ListUsersResponse, User
 from shared.service.neo_config import Neo4JGraph
 from shared.utilities import pst_date
+
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API

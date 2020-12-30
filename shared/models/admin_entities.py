@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus
 from shared.models.risk_entities import UserHealthItem, UserLocationItem
-from shared.models.user_entities import Paginated, PaginatedResponse, Response, UserEmailIdentifier, User
+from shared.models.user_entities import (Paginated, PaginatedResponse,
+                                         Response, User, UserEmailIdentifier)
 
 
 class UpdateLocationRequest(BaseModel):
@@ -45,14 +46,14 @@ class IdSingleUserDualStatus(SingleUserDualStatus, UserEmailIdentifier):
     pass
 
 
-class MultipleUserDualStatuses(BaseModel, PaginatedResponse):
+class MultipleUserDualStatuses(PaginatedResponse):
     """
     Multiple users status in the admin dashboard
     """
     statuses: List[IdSingleUserDualStatus]
 
 
-class SingleUserHealthHistory(BaseModel, PaginatedResponse):
+class SingleUserHealthHistory(PaginatedResponse):
     """
     Health history of a single user
     """

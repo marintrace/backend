@@ -13,14 +13,22 @@ $.ajaxSetup({
 });
 
 function requestFailure(data) {
-    alert("Failed to obtain user information");
+    alert("[Error] Failed to communicate with backend services");
     console.log("Error while issuing POST request");
     console.log(data);
 }
 
-function truncate(str, n){
-  return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+function truncate(str, n) {
+    return (str.length > n) ? str.substr(0, n - 1) + '&hellip;' : str;
 }
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
 
 function updateUserStatus(user_email) {
     promptPolicyModal();
@@ -93,7 +101,7 @@ function updateUserReports(user_email) {
             let rows = [
                 e.timestamp,
                 "<span class=\"badge badge-dot mr-4\"><i class='bg-" + e.color + "'></i><span class='status'>" +
-                    truncate(e.criteria.join(' & '), 45) + "</span></span>",
+                truncate(e.criteria.join(' & '), 45) + "</span></span>",
             ];
             $("#reports").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
@@ -113,24 +121,55 @@ function updateHomeStatusSummaries(email = null) {
     $.post("/api/paginate-user-summary-items", JSON.stringify(data), function () {
         console.log("Update home status summaries request response received");
     }, "json").done(function (data) {
-        if (data['records'].length === 0) {
-
+        if (data['statuses'].length === 0) {
             $("#home-footer").hide();
             return;
         }
         homeUserStatusPagToken = data['pagination_token'];
 
-        data['records'].forEach(function (e) {
+        data['statuses'].forEach(function (e) {
             let rows = [
                 "<a href='/user/" + e.email + "'>" + e.email + "</a>",
-                "<span class='badge badge-dot mr-4'><i class='bg-" + e.color + "'></i><span class='status'>" +
-                    truncate(e.criteria.join(' & '), 45) + "</span></span>"
+                "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
+                truncate(e.health.criteria.join(' & '), 45) + "</span></span>",
+                "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
+                "<a id='location-link' onclick='changeLocation(\"" + e.email + "\")'>" +
+                e.location.location.capitalize() + "</span></span>"
             ];
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
     }).fail(requestFailure)
 }
 
+function changeLocation(email){
+    console.log('changing location for ' + email);
+    $("#user-email").html(email)
+    $("#submitLocationChange").attr("onclick", "submitLocationChange('" + email + "')");
+    $("#location-change").modal('show');
+}
+
+function submitLocationChange(email){
+    const location = $("input[name='location']:checked").val();
+    if (location == null){
+        alert("You must select an option to submit!");
+        return;
+    }
+    $("#submitLocationChange").prop('disabled', true);
+    let data = {
+        "location": location,
+        "email": email
+    };
+    $.post("/async/queue-location-change", JSON.stringify(data), function (){
+        console.log("Location change completed");
+    }, "json").done(function (data){
+        $("#submitLocationChange").html("Success");
+        sleep(500);
+        $("#location-change").modal("hide");
+        $("#submitLocationChange").prop('disabled', false);
+        $("#submitLocationChange").html("Submit");
+    })
+
+}
 function submitSearch() {
     promptPolicyModal();
     homeUserStatusPagToken = 0;

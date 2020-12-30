@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""
+Simple Script to bump versions of Docker Containers
+and Kubernetes Images
+"""
+import os
+from argparse import ArgumentParser, Namespace
+from typing import List
+
+import yaml
+
+COMPOSE_FILE_LOCATION = "docker-compose.yml"
+VALUES_FILE_LOCATION = "kubernetes/values.yaml"
+DEFAULT_GCR_REPO = 'gcr.io/vault-159468'
+
+
+def increment_images(options: Namespace):
+    """
+    Increment the images, and optionally build/push/deploy
+    """
+    compose_file = open(options.compose_file, 'r+')
+    container_config = yaml.load(compose_file, Loader=yaml.FullLoader)
+    values_file = open(options.helm_file, 'r+')
+    values_config = yaml.load(values_file, Loader=yaml.FullLoader)
+
+    service_versions = {}
+
+    for service in container_config['services']:
+        if service in options.containers:
+            image_name, previous_version = container_config['services'][service]["image"].split(":")
+            previous_version_components = [int(part) for part in previous_version.split(".")]
+            previous_version_components[options.increment] += 1
+            service_versions[image_name] = '.'.join(map(str, previous_version_components))
+            container_config['services'][service]["image"] = f'{image_name}:{service_versions[image_name]}'
+
+    for chart in values_config:
+        if not ('imageName' in values_config[chart] and 'imageVersion' in values_config[chart]):
+            print(f"No Container Built for Chart: {chart}... skipping")
+            continue
+        image_name = values_config[chart]['imageName']
+        if image_name not in service_versions:
+            print(f"No change to: {image_name}... skipping")
+            continue
+        values_config[chart]['imageVersion'] = service_versions[image_name]
+
+    if input(f"Confirm Docker Compose Contents:\n {container_config}\n[y/ctrl+c]") == 'y' and input(
+            f"Confirm Values File:\n {values_config}\n[y/ctrl+c]") == 'y':
+        print("Writing Files...")
+        compose_file.seek(0)
+        values_file.seek(0)
+        yaml.dump(container_config, compose_file)
+        yaml.dump(values_config, values_file)
+        compose_file.truncate()
+        values_file.truncate()
+    else:
+        raise Exception("Terminated!") from None
+
+    compose_file.close()
+    values_file.close()
+
+
+def build_push_images(containers: List[str], deploy=False):
+    """
+    Build and push the containers to docker hub
+    :param containers: list of containers to build and push
+    :param deploy: whether or not to deploy the images to kubernetes
+    """
+    os.system(f'docker-compose build {" ".join(containers)}')
+    os.system(f'docker-compose push {" ".join(containers)}')
+
+    if deploy:
+        os.system("helm upgrade tracing ./kubernetes")
+
+
+def main():
+    """
+    Parse arguments and execute main logic
+    """
+    parser = ArgumentParser(description='Increment the versions of (and optionally deploy) container images',
+                            epilog="For internal use only!")
+    parser.add_argument('-c', '--containers', action='store', dest='containers', type=str, default=[],
+                        nargs='*', help="Example: -c rest neo4j. Should match docker-compose.yaml images")
+    parser.add_argument('-ni', '--no-increment', action='store_true', dest='no_increment', default=False,
+                        help='Skip incrementing versions')
+    parser.add_argument('-bp', '--build-push', action='store_true', dest='build_push', default=False,
+                        help='Build and push containers to GCR')
+    parser.add_argument('-bpd', '--build-push-deploy', action='store_true', dest='build_push_deploy', default=False,
+                        help='Build and push containers to GCR, and start a helm upgrade')
+    parser.add_argument('-i', '--increment', action='store', dest='increment', type=int, default=2,
+                        choices=[0, 1, 2], help="Version increment type: major=0, minor=1, or bug=2")
+    parser.add_argument('--compose-file', action='store', dest='compose_file', type=str, default=COMPOSE_FILE_LOCATION,
+                        help='Override the Docker Compose File Location')
+    parser.add_argument('--helm-value-file', dest='helm_file', action='store', type=str, default=VALUES_FILE_LOCATION,
+                        help='Override the Helm Values.yaml file Location')
+    inputs = parser.parse_args()
+
+    if not inputs.no_increment and len(inputs.containers) > 0:
+        increment_images(inputs)
+
+    if inputs.build_push_deploy:
+        build_push_images(inputs.containers, deploy=True)
+    elif inputs.build_push:
+        build_push_images(inputs.containers)
+
+
+if __name__ == "__main__":
+    main()
