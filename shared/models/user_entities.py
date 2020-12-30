@@ -6,12 +6,19 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from shared.models.enums import ResponseStatus, TestType, UserStatus
+from shared.models.enums import ResponseStatus, TestType
 from shared.service.celery_config import get_celery
 from shared.utilities import pst_timestamp
 
 
 # Base Classes
+class UserEmailIdentifier(BaseModel):
+    """
+    Identification for a user by their email
+    """
+    email: str
+
+
 class Timestamped(BaseModel):
     """
     Base Timestamped model
@@ -59,7 +66,7 @@ class User(BaseModel):
     """
     User Schema for API validation and documentation
     """
-    first_name: Optional[str] # optional fields to provide more information but not required for ID
+    first_name: Optional[str]  # optional fields to provide more information but not required for ID
     last_name: Optional[str]
     email: str
     school: str
@@ -117,4 +124,3 @@ class CreatedAsyncTask(Response):
     """
     status = ResponseStatus.QUEUED
     task_id: str
-

@@ -8,7 +8,7 @@ from shared.models.admin_entities import (AdminDashboardUser,
                                           UserInteractionHistory, SingleUserHealthHistory, MultipleUserDualStatuses,
                                           IdUserPaginationRequest, UserEmailIdentifier)
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserLocationItem, UserRiskItem
+from shared.models.risk_entities import UserLocationItem, UserHealthItem
 from shared.models.user_entities import HealthReport
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
@@ -19,14 +19,14 @@ from .authorization import OIDC_COOKIE
 BACKEND_ROUTER = APIRouter()
 
 
-async def create_health_status(record: dict, returned_edge_name='report') -> UserRiskItem:
+async def create_health_status(record: dict, returned_edge_name='report') -> UserHealthItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
     :param record: JSON record of the response from Neo4J
     :param returned_edge_name: the name of the DailyReport-Member relationship returned
         by the query
     """
-    risk_item = UserRiskItem()
+    risk_item = UserHealthItem()
 
     if not (record and record.get(returned_edge_name)):
         return risk_item.set_incomplete()
@@ -151,7 +151,7 @@ async def paginate_user_interactions(request: IdUserPaginationRequest, user: Adm
         return UserInteractionHistory(users=users, pagination_token=request.pagination_token + request.limit)
 
 
-@BACKEND_ROUTER.post(path="/user-summary-status", response_model=UserRiskItem,
+@BACKEND_ROUTER.post(path="/user-summary-status", response_model=UserHealthItem,
                      summary="Retrieve a user's summary status and color")
 async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """

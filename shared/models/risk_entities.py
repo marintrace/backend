@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import List, Union
+from typing import List, Union, Optional
 
 from pydantic import BaseModel
 
-from shared.models.enums import HTMLColors, UserLocationStatus
+from shared.models.enums import HTMLColors, UserLocationStatus, EntryReason
 from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
 
@@ -17,14 +17,18 @@ class UserLocationItem(BaseModel):
 
     def set_location(self, location: Union[UserLocationStatus, str]):
         self.location = location
-        if UserLocationStatus.blocked(location):
+        comp_location = location.value if isinstance(location, Enum) else location
+        if comp_location in UserLocationStatus.get_blocked():
             self.color = HTMLColors.DANGER
         else:
             self.color = HTMLColors.SUCCESS
         return self
 
+    def entry_blocked(self):
+        return self.color == HTMLColors.DANGER
 
-class UserRiskItem(BaseModel):
+
+class UserHealthItem(BaseModel):
     """
     Entity representing user risk
     """
@@ -105,7 +109,16 @@ class UserRiskItem(BaseModel):
         return joiner.join(self.criteria)
 
 
-class ScoredUserRiskItem(UserRiskItem):
+class IdentifiedUserEntryItem(BaseModel):
+    """
+    Status of whether or not a user is permitted to enter the school
+    """
+    name: Optional[str]
+    reason: EntryReason
+    report: Union[UserLocationStatus, UserHealthItem]
+
+
+class ScoredUserRiskItem(UserHealthItem):
     """
     User Risk Item that keeps track of risk score
     """

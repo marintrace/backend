@@ -3,15 +3,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus
-from shared.models.risk_entities import UserRiskItem, UserLocationItem
-from shared.models.user_entities import Paginated, PaginatedResponse, Response, User
-
-
-class UserEmailIdentifier(BaseModel):
-    """
-    Identification for a user by their email
-    """
-    email: str
+from shared.models.risk_entities import UserHealthItem, UserLocationItem
+from shared.models.user_entities import Paginated, PaginatedResponse, Response, UserEmailIdentifier, User
 
 
 class UpdateLocationRequest(BaseModel):
@@ -41,7 +34,7 @@ class SingleUserDualStatus(BaseModel):
     """
     User Status Response for the Dashboard
     """
-    health: UserRiskItem
+    health: UserHealthItem
     location: UserLocationItem
 
 
@@ -63,7 +56,7 @@ class SingleUserHealthHistory(BaseModel, PaginatedResponse):
     """
     Health history of a single user
     """
-    health_reports: List[UserRiskItem]
+    health_reports: List[UserHealthItem]
 
 
 class AdminDashboardUser(User):

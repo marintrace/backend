@@ -44,7 +44,15 @@ class UserLocationStatus(str, Enum):
         """
         :return: set of blocked user locations
         """
-        return frozenset({UserLocationStatus.QUARANTINE, UserLocationStatus.REMOTE})
+        return frozenset({UserLocationStatus.QUARANTINE.value, UserLocationStatus.REMOTE.value})
+
+
+class EntryReason(str, Enum):
+    """
+    Reason for school entry
+    """
+    HEALTH = "health"
+    LOCATION = "location"
 
 
 class UserStatus(str, Enum):
