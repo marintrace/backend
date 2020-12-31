@@ -1,6 +1,7 @@
 $(document).ready(function() {
   var date = new Date()
-  $('#date').text((date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear())
+  var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+  $('#date').text(days[date.getDay()] + " " + (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear())
 
   $("#email").addClass('disabled')
   $("#email").html(`Loading...`);
