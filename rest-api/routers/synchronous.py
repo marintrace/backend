@@ -6,14 +6,12 @@ from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
-from shared.models.admin_entities import UserLocationStatus
 from shared.models.enums import EntryReason
 from shared.models.risk_entities import (IdentifiedUserEntryItem,
                                          UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport, ListUsersResponse, User
 from shared.service.neo_config import Neo4JGraph
 from shared.utilities import pst_date
-
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API
@@ -47,14 +45,20 @@ async def entry_card(user: User = AUTH_USER):
               RETURN r as report, m.location as location, m.first_name + " " + m.last_name as name""",
             email=user.email, school=user.school, date=pst_date()
         ))[0])
-
         location_risk = UserLocationItem().set_location(record['location'])
-        if location_risk.entry_blocked():
-            return IdentifiedUserEntryItem(name=record['name'], reason=EntryReason.LOCATION, report=location_risk)
-
-        health_risk = UserHealthItem()
         if not record.get('report'):
-            health_risk.set_incomplete()
+            health_risk = UserHealthItem().set_incomplete()
         else:
-            health_risk.from_health_report(HealthReport(**record['report']))
-        return IdentifiedUserEntryItem(name=record['name'], reason=EntryReason.HEALTH, report=health_risk)
+            health_risk = UserHealthItem().from_health_report(HealthReport(**record['report']))
+
+        identified_item_params = dict(name=record['name'])
+        if location_risk.entry_blocked():
+            identified_item_params.update(dict(entry=False, reason=EntryReason.LOCATION))
+        elif health_risk.is_incomplete():
+            identified_item_params.update(dict(entry=False, reason=EntryReason.HEALTH))
+        elif health_risk.at_risk(include_warning=True):
+            identified_item_params.update(dict(entry=False, reason=EntryReason.HEALTH))
+        else:
+            identified_item_params.update(dict(entry=True, reason=EntryReason.HEALTH))
+
+        return IdentifiedUserEntryItem(**identified_item_params).set_reports(health=health_risk, location=location_risk)

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from shared.models.enums import UserLocationStatus
 from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
 from shared.models.user_entities import (Paginated, PaginatedResponse,
-                                         Response, User, UserEmailIdentifier)
+                                         Response, User, UserIdentifier)
 
 
 class UpdateLocationRequest(BaseModel):
@@ -23,7 +23,7 @@ class OptIdPaginationRequest(Paginated):
     email: str = None
 
 
-class IdUserPaginationRequest(UserEmailIdentifier, Paginated):
+class IdUserPaginationRequest(UserIdentifier, Paginated):
     """
     Pagination identification for a user by their email
     """
@@ -39,7 +39,7 @@ class SingleUserDualStatus(BaseModel):
     location: UserLocationItem
 
 
-class IdSingleUserDualStatus(SingleUserDualStatus, UserEmailIdentifier):
+class IdSingleUserDualStatus(SingleUserDualStatus, UserIdentifier):
     """
     Identified User Dual Status (with email)
     """

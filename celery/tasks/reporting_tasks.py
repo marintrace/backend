@@ -28,13 +28,13 @@ def update_report_properties(user: User, report: BaseModel, additional_data: dic
         graph_edge = RelationshipMatcher(graph=g).match(nodes={authorized_user_node, day_node}).first()
         if graph_edge:
             logger.info("Found existing graph edge between user and school day node. Updating with new properties...")
-            for prop, value in report.dict(skip_defaults=True).items():
+            for prop, value in report.dict().items():
                 graph_edge[prop] = value
             for additional_key in ({} or additional_data):
                 graph_edge[additional_key] = additional_data[additional_key]
             g.push(graph_edge)
         else:
-            serialized_report = report.dict(skip_defaults=True)
+            serialized_report = report.dict()
             for additional_key in ({} or additional_data):
                 serialized_report[additional_key] = additional_data[additional_key]
 
@@ -100,6 +100,7 @@ def report_health(self, *, user: User, task_data: HealthReport):
 
     user_risk = ScoredUserRiskItem(school=user.school).from_health_report(health_report=task_data,
                                                                           minimum_symptoms=min_symptoms)
+    logger.info(f"Updating user risk: {task_data}")
     update_report_properties(user=user, report=task_data, additional_data={'risk_score': user_risk.risk_score})
 
     if user_risk.at_risk(include_warning=False):

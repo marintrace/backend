@@ -10,7 +10,7 @@ from shared.models.admin_entities import (AdminDashboardUser,
                                           OptIdPaginationRequest,
                                           SingleUserDualStatus,
                                           SingleUserHealthHistory,
-                                          UserEmailIdentifier,
+                                          UserIdentifier,
                                           UserInfoDetail,
                                           UserInteraction,
                                           UserInteractionHistory)
@@ -101,7 +101,8 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
             f"""MATCH (m: Member {{school: $school}})
             {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
-            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp 
+            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp,
+            m.first_name + " " + m.last_name as name
             ORDER BY COALESCE(report.risk_score, 0) DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
@@ -109,7 +110,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         ))
 
     statuses = [
-        IdSingleUserDualStatus(health=await create_health_status(record), email=record['email'],
+        IdSingleUserDualStatus(health=await create_health_status(record), email=record['email'], name=record['name'],
                                location=await create_location_status(record.get('location'))) for record in records
     ]
 
@@ -118,7 +119,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
 
 @BACKEND_ROUTER.post(path="/get-user-info", response_model=UserInfoDetail,
                      summary="Get a user's detail from the database")
-async def get_user_info(identifier: UserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
+async def get_user_info(identifier: UserIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the user info from the database for the specified user
     """
@@ -160,7 +161,7 @@ async def paginate_user_interactions(request: IdUserPaginationRequest, user: Adm
 
 @BACKEND_ROUTER.post(path="/user-summary-status", response_model=SingleUserDualStatus,
                      summary="Retrieve a user's summary status and color")
-async def get_user_summary_status(identifier: UserEmailIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
+async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the user's summary status
     """

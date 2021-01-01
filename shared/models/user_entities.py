@@ -12,10 +12,11 @@ from shared.utilities import pst_timestamp
 
 
 # Base Classes
-class UserEmailIdentifier(BaseModel):
+class UserIdentifier(BaseModel):
     """
     Identification for a user by their email
     """
+    name: Optional[str]
     email: str
 
 

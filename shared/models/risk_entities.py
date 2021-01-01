@@ -35,6 +35,9 @@ class UserHealthItem(BaseModel):
     color: HTMLColors = None
     criteria: List[str] = []
 
+    def is_incomplete(self) -> bool:
+        return self.color == HTMLColors.GRAY
+
     def at_risk(self, include_warning=False) -> bool:
         """
         Whether the user has any urgent
@@ -114,8 +117,15 @@ class IdentifiedUserEntryItem(BaseModel):
     Status of whether or not a user is permitted to enter the school
     """
     name: Optional[str]
+    entry: bool
     reason: EntryReason
-    report: Union[UserLocationStatus, UserHealthItem]
+    health: UserHealthItem = None
+    location: UserLocationItem = None
+
+    def set_reports(self, *, health: UserHealthItem, location: UserLocationItem):
+        self.health = health
+        self.location = location
+        return self
 
 
 class DatedUserHealthHolder(BaseModel):

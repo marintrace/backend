@@ -131,7 +131,7 @@ function updateHomeStatusSummaries(email = null) {
 
         data['statuses'].forEach(function (e) {
             let rows = [
-                "<a href='/user/" + e.email + "'>" + e.email + "</a>",
+                "<a href='/user/" + e.email + "'>" + e.name + "</a>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
                 truncate(e.health.criteria.join(' & '), 45) + "</span></span>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +

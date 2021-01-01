@@ -156,9 +156,9 @@ function markUserAsActive() {
 
 async function getUserStatus(callback) {
   const instance = await createHTTPClientInstance()
-  await instance.get('/user-status')
+  await instance.get('/get-user-entry')
       .then(function (response) {
-          callback(response.data)
+          callback(response.data);
           console.log(response);
       })
       .catch(function (error) {
