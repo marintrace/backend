@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from shared.models.enums import ResponseStatus, TestType
 from shared.service.celery_config import get_celery
+from shared.logger import logger
 from shared.utilities import pst_timestamp
 
 
@@ -67,6 +68,7 @@ class User(BaseModel):
     """
     User Schema for API validation and documentation
     """
+    impersonator: Optional[str] # allow administrators to impersonate users to log information on their behalf
     first_name: Optional[str]  # optional fields to provide more information but not required for ID
     last_name: Optional[str]
     email: str
@@ -79,6 +81,9 @@ class User(BaseModel):
         :param task_data: data to send to the target worker
         :return: the task id
         """
+        if self.impersonator:
+            logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
+
         task_params = {'user': self}
 
         if task_data:

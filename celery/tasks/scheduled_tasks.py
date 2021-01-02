@@ -23,7 +23,7 @@ def send_daily_digest(self, school: str):
     with Neo4JGraph() as g:
         no_report_members = [member['name'] for member in list(g.run(
             """MATCH (member: Member {school: $school}), (day: DailyReport {date: $date})
-            WHERE NOT (member)-[:reported]-(day) RETURN member.first_name + " " + member.last_name as name
+            WHERE NOT (member)-[:reported]-(day) RETURN DISTINCT member.first_name + " " + member.last_name as name
             ORDER BY member.first_name""",
             school=school, date=day_node["date"]
         ))]
@@ -32,7 +32,7 @@ def send_daily_digest(self, school: str):
     with VaultConnection() as vault:
         digest_config = vault.read_secret(secret_path=f'schools/{school}/daily_digest_config')
 
-    truncated_members = no_report_members[int(digest_config['max_display'])] if digest_config['max_display'] else \
+    truncated_members = no_report_members[:int(digest_config['max_display'])] if digest_config['max_display'] else \
         no_report_members
 
     logger.info("Sending Daily Digest")

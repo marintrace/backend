@@ -4,8 +4,15 @@ from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus
 from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
-from shared.models.user_entities import (Paginated, PaginatedResponse,
+from shared.models.user_entities import (Paginated, PaginatedResponse, HealthReport,
                                          Response, User, UserIdentifier)
+
+
+class IdentifiedHealthReport(HealthReport, UserIdentifier):
+    """
+    Impersonator logged health report request
+    """
+    pass
 
 
 class UpdateLocationRequest(BaseModel):

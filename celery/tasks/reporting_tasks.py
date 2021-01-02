@@ -29,7 +29,8 @@ def update_report_properties(user: User, report: BaseModel, additional_data: dic
         if graph_edge:
             logger.info("Found existing graph edge between user and school day node. Updating with new properties...")
             for prop, value in report.dict().items():
-                graph_edge[prop] = value
+                if value:
+                    graph_edge[prop] = value
             for additional_key in ({} or additional_data):
                 graph_edge[additional_key] = additional_data[additional_key]
             g.push(graph_edge)
