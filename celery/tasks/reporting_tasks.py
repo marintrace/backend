@@ -28,8 +28,9 @@ def update_report_properties(user: User, report: BaseModel, additional_data: dic
         graph_edge = RelationshipMatcher(graph=g).match(nodes={authorized_user_node, day_node}).first()
         if graph_edge:
             logger.info("Found existing graph edge between user and school day node. Updating with new properties...")
-            for prop, value in report.dict().items():
-                if value:
+            serialized_report = report.dict()
+            for prop, value in serialized_report.items():
+                if graph_edge[prop] is None and value is not None:
                     graph_edge[prop] = value
             for additional_key in ({} or additional_data):
                 graph_edge[additional_key] = additional_data[additional_key]
@@ -41,7 +42,7 @@ def update_report_properties(user: User, report: BaseModel, additional_data: dic
 
             g.create(Relationship(
                 authorized_user_node, "reported", day_node,
-                **{key: serialized_report[key] for key in serialized_report if serialized_report[key] is not None}
+                **serialized_report
             ))
 
 
