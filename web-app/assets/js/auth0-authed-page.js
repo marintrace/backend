@@ -55,6 +55,14 @@ function finishedLoading() {
 
   $("#triggerStatus").removeClass("disabled")
   $("#triggerStatus").html("View status card »")
+
+  //hide testing if Branson
+  auth0.getIdTokenClaims().then(claims => {
+    let email = claims.email
+    if (email.includes("@branson.org")) {
+      $("#testingPanel").remove()
+    }
+  })
 }
 
 document.getElementById("logout").onclick = function() {logout()};

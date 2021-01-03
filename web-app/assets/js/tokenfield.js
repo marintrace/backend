@@ -1,59 +1,45 @@
 //https://sliptree.github.io/bootstrap-tokenfield/
 
 jQuery(function(){
-
-	let users = JSON.parse(localStorage.getItem("users"));
-
-	//for testing
-	/*const user1 = {
-			"first_name": "string",
-			"last_name": "string",
-			"email": "string@gmail.com",
-			"school": "string",
-			"signup_at": "inactive"
-	}
-	var users = [user1, user1, user1, user1, user1, user1, user1, user1, user1, user1]*/
-
-	void 0 !== users && 0 != users.length || (alert("Couldn't find any other users to potentially report."), window.location = "home.html");
-
-	/*if (typeof users !== "undefined") {
-		alert("Couldn't find any other users to potentially report.")
-		window.location = "home.html"
-	}*/
-
-    var source = users.map(function(x) {
-        let object = {
-        label: x["first_name"] + " " + x["last_name"],
-        userEmail: x["email"]
-        }
-        return object
-    })
-
-		$('#contactsModal').on('shown.bs.modal', function (e) {
-			$('#tokenfield').tokenfield({
-					autocomplete: {
-					source: source,
-					delay: 100
-					},
-					showAutocompleteOnFocus: true
-			}).on('tokenfield:createtoken', function (event) {
-					//make sure token doesn't already exist and is a valid
-					var exists = true;
-					$.each(source, function(index, token) {
-							if (token.userEmail === event.attrs.userEmail)
-									exists = false;
-					});
-					if (exists === true)
-							event.preventDefault();
-					else {
-							var existingTokens = $(this).tokenfield('getTokens');
-							$.each(existingTokens, function(index, token) {
-									if (token.userEmail === event.attrs.userEmail )
-											event.preventDefault();
-							});
-					}
-			});
+	$('#contactsModal').on('shown.bs.modal', function (e) {
+		let users = JSON.parse(localStorage.getItem("users"));
+		if (users == null || users.length == 0) {
+			alert("Couldn't find any other users to potentially report.")
+			window.location = 'home.html';
+			return
+		}
+		var source = users.map(function(x) {
+				let object = {
+				label: x["first_name"] + " " + x["last_name"],
+				userEmail: x["email"]
+				}
+				return object
 		})
+
+		$('#tokenfield').tokenfield({
+				autocomplete: {
+				source: source,
+				delay: 100
+				},
+				showAutocompleteOnFocus: true
+		}).on('tokenfield:createtoken', function (event) {
+				//make sure token doesn't already exist and is a valid
+				var exists = true;
+				$.each(source, function(index, token) {
+						if (token.userEmail === event.attrs.userEmail)
+								exists = false;
+				});
+				if (exists === true)
+						event.preventDefault();
+				else {
+						var existingTokens = $(this).tokenfield('getTokens');
+						$.each(existingTokens, function(index, token) {
+								if (token.userEmail === event.attrs.userEmail )
+										event.preventDefault();
+						});
+				}
+		});
+	})
 
     $('#submitButton').click(function() {
         let tokens = $('#tokenfield').tokenfield('getTokens')
