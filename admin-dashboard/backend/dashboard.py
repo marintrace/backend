@@ -26,14 +26,15 @@ from .authorization import OIDC_COOKIE
 BACKEND_ROUTER = APIRouter()
 
 
-async def create_health_status(record: dict, returned_edge_name='report') -> UserHealthItem:
+async def create_health_status(school: str, record: dict, returned_edge_name='report') -> UserHealthItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
+    :param school: School that the user belongs too.
     :param record: JSON record of the response from Neo4J
     :param returned_edge_name: the name of the DailyReport-Member relationship returned
         by the query
     """
-    risk_item = UserHealthItem()
+    risk_item = UserHealthItem(school=school)
 
     if not (record and record.get(returned_edge_name)):
         return risk_item.set_incomplete()
@@ -82,7 +83,8 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
             limit=request.limit
         ))
         health_reports = [DatedUserHealthHolder(timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d"),
-                                                dated_report=await create_health_status(record)) for record in records]
+                                                dated_report=await create_health_status(user.school, record))
+                          for record in records]
         return SingleUserHealthHistory(
             health_reports=health_reports,
             pagination_token=request.pagination_token + request.limit
@@ -110,7 +112,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         ))
 
     statuses = [
-        IdSingleUserDualStatus(health=await create_health_status(record), email=record['email'], name=record['name'],
+        IdSingleUserDualStatus(health=await create_health_status(user.school, record), email=record['email'], name=record['name'],
                                location=await create_location_status(record.get('location'))) for record in records
     ]
 
@@ -177,5 +179,5 @@ async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboa
         logger.info(f"Retrieved {records}")
         record = records[0] if len(records) > 0 else None
         location_item = await create_location_status(record['location'])
-        health_item = await create_health_status(record)
+        health_item = await create_health_status(user.school, record)
         return SingleUserDualStatus(location=location_item, health=health_item)

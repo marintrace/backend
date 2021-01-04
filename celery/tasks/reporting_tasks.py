@@ -3,7 +3,7 @@ from py2neo import Relationship, RelationshipMatcher
 from shared.logger import logger
 from shared.models.admin_entities import UpdateLocationRequest
 from shared.models.enums import UserStatus
-from shared.models.risk_entities import ScoredUserRiskItem
+from shared.models.risk_entities import ScoredUserHealthItem
 from shared.models.admin_entities import AdminHealthReport
 from shared.models.user_entities import HealthReport, InteractionReport, User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
@@ -100,7 +100,7 @@ def report_health(self, *, user: User, task_data: HealthReport):
     """
     logger.info("Adding health report to daily record for authorized user...")
 
-    user_risk = ScoredUserRiskItem(school=user.school).from_health_report(health_report=task_data)
+    user_risk = ScoredUserHealthItem(school=user.school).from_health_report(health_report=task_data)
 
     logger.info(f"Updating user risk: {task_data}")
     add_health_report(user=user, report=task_data, additional_data={'risk_score': user_risk.risk_score})

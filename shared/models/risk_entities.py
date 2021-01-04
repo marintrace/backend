@@ -3,9 +3,34 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
+from shared.logger import logger
 from shared.models.enums import EntryReason, HTMLColors, UserLocationStatus
 from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
+
+
+class SymptomConfigRetriever:
+    """
+    Get or Retrieve symptom configurations from specific schools
+    """
+    _CONFIGS = {}
+
+    @staticmethod
+    def get(school: str):
+        """
+        Get or retrieve the symptom configuration for a given school
+        :param school: school name
+        :return: the symptom criteria
+        """
+        if school in SymptomConfigRetriever._CONFIGS:
+            return SymptomConfigRetriever._CONFIGS[school]
+
+        with VaultConnection() as vault:
+            logger.info(f"Unable to find '{school}' symptom configuration in cache... retrieving from Vault.")
+            configuration = vault.read_secret(secret_path=f"schools/{school}/symptom_criteria")
+
+        SymptomConfigRetriever._CONFIGS[school] = configuration
+        return configuration
 
 
 class UserLocationItem(BaseModel):
@@ -33,6 +58,7 @@ class UserHealthItem(BaseModel):
     Entity representing user risk
     """
     color: HTMLColors = None
+    school: str
     criteria: List[str] = []
 
     def is_incomplete(self) -> bool:
@@ -46,15 +72,16 @@ class UserHealthItem(BaseModel):
         return (self.color == HTMLColors.DANGER) or \
                (include_warning and self.color == HTMLColors.YELLOW)
 
-    def from_health_report(self, health_report: HealthReport, minimum_symptoms=1):
+    def from_health_report(self, health_report: HealthReport):
         """
         Create a new User Risk Item from a Daily Report Object
-        :param minimum_symptoms: number of minimum symptoms to trigger unhealthy state
         :param health_report: Daily Report Object
 
         :return: UserRiskItem
         """
-        if health_report.num_symptoms and health_report.num_symptoms >= minimum_symptoms:
+        symptom_config = SymptomConfigRetriever.get(self.school)
+
+        if health_report.num_symptoms and health_report.num_symptoms >= symptom_config['minimum_symptoms']:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
         if health_report.test_type:
             self.add_test(test_type=health_report.test_type)
@@ -136,32 +163,21 @@ class DatedUserHealthHolder(BaseModel):
     dated_report: UserHealthItem
 
 
-class ScoredUserRiskItem(UserHealthItem):
+class ScoredUserHealthItem(UserHealthItem):
     """
     User Risk Item that keeps track of risk score
     """
     risk_score: int = 0
-    school: str
 
-    def retrieve_symptom_criteria(self):
-        """
-        Retrieve symptom criteria from Vault for the specified school
-        :return: dictionary of risk scores
-        """
-        with VaultConnection() as vault:
-            return vault.read_secret(secret_path=f"schools/{self.school}/symptom_criteria")
-
-    def from_health_report(self, health_report: HealthReport, minimum_symptoms='vault'):
+    def from_health_report(self, health_report: HealthReport):
         """
         Create a new User Risk Item from a Health Report Object with score
-        :param minimum_symptoms: minimum symptoms to trigger alert
         :param health_report: Health Report Object
         :return: ScoredUserRiskItem
         """
-        symptom_criteria = self.retrieve_symptom_criteria()
-        minimum_symptoms = symptom_criteria['minimum_symptoms'] if minimum_symptoms == 'vault' else \
-            int(minimum_symptoms)
-        if health_report.num_symptoms and health_report.num_symptoms >= minimum_symptoms:
+        symptom_criteria = SymptomConfigRetriever.get(school=self.school)
+
+        if health_report.num_symptoms and health_report.num_symptoms >= symptom_criteria['minimum_symptoms']:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
             self.risk_score += symptom_criteria['score_per_symptom'] * health_report.num_symptoms
         if health_report.test_type:

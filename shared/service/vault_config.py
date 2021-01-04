@@ -76,7 +76,7 @@ class VaultConnection:
         except InvalidRequest:
             logger.exception(f"Could not read the secret @ {secret_path} (on {VaultConnection.VAULT_URL})")
             self.refresh_token()
-            self.read_secret(secret_path=secret_path, attempts=attempts + 1)
+            return self.read_secret(secret_path=secret_path, attempts=attempts + 1)  # recursive call to try again
 
     def close(self):
         """

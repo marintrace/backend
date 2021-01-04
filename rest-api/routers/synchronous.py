@@ -47,9 +47,9 @@ async def entry_card(user: User = AUTH_USER):
         ))[0])
         location_risk = UserLocationItem().set_location(record['location'])
         if not record.get('report'):
-            health_risk = UserHealthItem().set_incomplete()
+            health_risk = UserHealthItem(school=user.school).set_incomplete()
         else:
-            health_risk = UserHealthItem().from_health_report(HealthReport(**record['report']))
+            health_risk = UserHealthItem(school=user.school).from_health_report(HealthReport(**record['report']))
 
         identified_item_params = dict(name=record['name'])
         if location_risk.entry_blocked():
