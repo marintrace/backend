@@ -3,12 +3,12 @@ services:
     build:
       context: .
       dockerfile: admin-dashboard/Dockerfile
-    image: gcr.io/vault-159468/admin-dashboard:0.1.85
+    image: gcr.io/vault-159468/admin-dashboard:0.1.88
   celery:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:0.1.77
+    image: gcr.io/vault-159468/celery:0.1.79
   neo4j:
     build:
       context: neo4j
@@ -33,5 +33,5 @@ services:
     build:
       context: web-app
       dockerfile: Dockerfile
-    image: gcr.io/vault-159468/web-app:0.1.54
+    image: gcr.io/vault-159468/web-app:0.1.55
 version: '3.7'

@@ -1,4 +1,5 @@
 from shared.logger import logger
+from shared.models.enums import UserLocationStatus
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph, current_day_node
@@ -22,10 +23,11 @@ def send_daily_digest(self, school: str):
     day_node = current_day_node(school=school)  # get or create current day node in graph
     with Neo4JGraph() as g:
         no_report_members = [member['name'] for member in list(g.run(
-            """MATCH (member: Member {school: $school}), (day: DailyReport {date: $date})
-            WHERE NOT (member)-[:reported]-(day) AND RETURN DISTINCT member.first_name + " " + member.last_name as name
-            ORDER BY member.first_name""",
-            school=school, date=day_node["date"]
+            """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
+                    MATCH (m)-[:reported]-(d: DailyReport {date: $date})
+             } AND m.location = $allowed_loc
+            RETURN m.first_name + " " + m.last_name as name ORDER BY name""",
+            school=school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"]
         ))]
         logger.info(f"Located {len(no_report_members)} members with no report.")
 

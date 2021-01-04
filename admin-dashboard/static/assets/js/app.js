@@ -169,8 +169,15 @@ function submitHealthModification(email, set_healthy){
             alert("You must complete all options to submit!");
             return;
         }
+        let parsed_num_symptoms = parseInt(num_symptoms);
+
+        if (parsed_num_symptoms < 0 || parsed_num_symptoms > 12) {
+            alert("Number of symptoms must be greater than 0 and less than 12");
+            return;
+        }
+
         payload = {
-            "num_symptoms": parseInt(num_symptoms),
+            "num_symptoms": parsed_num_symptoms,
             "commercial_flight": JSON.parse(commercial.toLowerCase()),
             "proximity": JSON.parse(proximity.toLowerCase())
         }
@@ -180,13 +187,15 @@ function submitHealthModification(email, set_healthy){
 
     payload['email'] = email;
     $("#submitHealthModification").prop('disabled', true);
+    $("#setHealthy").prop('disabled', true);
     $.post("/async/modify-health", JSON.stringify(payload), function(){
         console.log("Modify health completed");
     }, "json").done(function (data){
         $("#submitHealthModification").html("Success");
         sleep(500);
         $("#health-change").modal('hide');
-        $("#submitHealthModification").prop('disabled', true);
+        $("#submitHealthModification").prop('disabled', false);
+        $("#setHealthy").prop("disabled", false);
         $("#submitHealthModification").html("submit");
         window.location.reload();
     })
