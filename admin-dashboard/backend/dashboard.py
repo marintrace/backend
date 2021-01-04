@@ -174,6 +174,7 @@ async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboa
             RETURN report, m.location as location""",
             email=identifier.email, school=user.school, date=pst_date()
         ))
+        logger.info(f"Retrieved {records}")
         record = records[0] if len(records) > 0 else None
         location_item = await create_location_status(record['location'])
         health_item = await create_health_status(record)

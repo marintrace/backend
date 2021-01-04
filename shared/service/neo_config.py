@@ -6,7 +6,7 @@ asynchronous information from clients
 from os import environ as env_vars
 
 from py2neo import Graph, Node
-
+from py2neo.internal.caching import ThreadLocalEntityCache
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
 from shared.utilities import get_pst_time
@@ -58,6 +58,10 @@ class Neo4JGraph:
         """
         Re-establish the connection on error
         """
+        # in order to get the most up to date responses from the database
+        # we should reset the cache after each Neo4J context manager
+        Neo4JGraph._GRAPH_CACHE.relationship_cache = ThreadLocalEntityCache()
+        # Neo4JGraph._GRAPH_CACHE.node_cache = ThreadLocalEntityCache()
         if exc_type is not None:
             logger.error("Exception Encountered inside Context Manager... Resetting Cache")
             Neo4JGraph._GRAPH_CACHE = None

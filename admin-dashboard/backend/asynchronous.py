@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models.admin_entities import (AdminDashboardUser, IdentifiedHealthReport,
+from shared.models.admin_entities import (AdminDashboardUser, AdminHealthReport,
                                           UpdateLocationRequest)
 from shared.models.user_entities import CreatedAsyncTask, User
 from .authorization import OIDC_COOKIE
@@ -34,7 +34,7 @@ async def queue_location_change(location_change: UpdateLocationRequest, admin: A
 @ASYNC_ROUTER.post("/modify-health", operation_id="modify-health",
                    description="Modify a user's health in the admin dashboard",
                    **GENERAL_ASYNC_PARAMS)
-async def modify_health(report: IdentifiedHealthReport, admin: AdminDashboardUser = OIDC_COOKIE):
+async def modify_health(report: AdminHealthReport, admin: AdminDashboardUser = OIDC_COOKIE):
     """
     Queue a health report modification in the backend. Allows administrators to change a user's
     health report if they desire.

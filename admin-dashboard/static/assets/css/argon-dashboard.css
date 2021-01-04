@@ -20682,11 +20682,11 @@ pre > code.highlight {
     margin-left: 1rem;
 }
 
-#location-link {
+.modal-link {
     color: #525f7f;
 }
 
-#location-link:hover{
+.modal-link:hover{
     color: #5e72e4;
 }
 /*# sourceMappingURL=admin-dashboard-free.css.map */

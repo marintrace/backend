@@ -54,7 +54,7 @@ class UserHealthItem(BaseModel):
 
         :return: UserRiskItem
         """
-        if health_report.num_symptoms >= minimum_symptoms:
+        if health_report.num_symptoms and health_report.num_symptoms >= minimum_symptoms:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
         if health_report.test_type:
             self.add_test(test_type=health_report.test_type)
@@ -151,7 +151,7 @@ class ScoredUserRiskItem(UserHealthItem):
         with VaultConnection() as vault:
             return vault.read_secret(secret_path=f"schools/{self.school}/symptom_criteria")
 
-    def from_health_report(self, health_report: HealthReport, minimum_symptoms=1):
+    def from_health_report(self, health_report: HealthReport, minimum_symptoms='vault'):
         """
         Create a new User Risk Item from a Health Report Object with score
         :param minimum_symptoms: minimum symptoms to trigger alert
@@ -159,6 +159,8 @@ class ScoredUserRiskItem(UserHealthItem):
         :return: ScoredUserRiskItem
         """
         symptom_criteria = self.retrieve_symptom_criteria()
+        minimum_symptoms = symptom_criteria['minimum_symptoms'] if minimum_symptoms == 'vault' else \
+            int(minimum_symptoms)
         if health_report.num_symptoms >= minimum_symptoms:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
             self.risk_score += symptom_criteria['score_per_symptom'] * health_report.num_symptoms

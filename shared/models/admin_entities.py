@@ -8,7 +8,7 @@ from shared.models.user_entities import (Paginated, PaginatedResponse, HealthRep
                                          Response, User, UserIdentifier)
 
 
-class IdentifiedHealthReport(HealthReport, UserIdentifier):
+class AdminHealthReport(HealthReport, UserIdentifier):
     """
     Impersonator logged health report request
     """

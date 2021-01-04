@@ -1,20 +1,19 @@
 from py2neo import Relationship, RelationshipMatcher
-from pydantic import BaseModel
 
 from shared.logger import logger
 from shared.models.admin_entities import UpdateLocationRequest
 from shared.models.enums import UserStatus
 from shared.models.risk_entities import ScoredUserRiskItem
+from shared.models.admin_entities import AdminHealthReport
 from shared.models.user_entities import HealthReport, InteractionReport, User
 from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph, current_day_node
-from shared.service.vault_config import VaultConnection
 from shared.utilities import pst_timestamp
 
 celery = get_celery()
 
 
-def update_report_properties(user: User, report: BaseModel, additional_data: dict = None):
+def add_health_report(user: User, report: HealthReport, additional_data: dict = None):
     """
     Add a Report Relationship between the specified user and the school's
     day tracking node
@@ -29,12 +28,16 @@ def update_report_properties(user: User, report: BaseModel, additional_data: dic
         if graph_edge:
             logger.info("Found existing graph edge between user and school day node. Updating with new properties...")
             serialized_report = report.dict()
-            for prop, value in serialized_report.items():
-                if graph_edge[prop] is None and value is not None:
-                    graph_edge[prop] = value
-            for additional_key in ({} or additional_data):
-                graph_edge[additional_key] = additional_data[additional_key]
-            g.push(graph_edge)
+            if isinstance(report, AdminHealthReport) or report.test_only():
+                logger.info("Unlocking Report...")
+                for prop in serialized_report:
+                    if serialized_report[prop] is not None:
+                        graph_edge[prop] = serialized_report[prop]
+                for additional_key in ({} or additional_data):
+                    graph_edge[additional_key] = additional_data[additional_key]
+                g.push(graph_edge)
+            else:
+                logger.info("Report is locked... skipping.")
         else:
             serialized_report = report.dict()
             for additional_key in ({} or additional_data):
@@ -97,13 +100,10 @@ def report_health(self, *, user: User, task_data: HealthReport):
     """
     logger.info("Adding health report to daily record for authorized user...")
 
-    with VaultConnection() as vault:
-        min_symptoms = vault.read_secret(secret_path=f'schools/{user.school}/symptom_criteria')['minimum_symptoms']
+    user_risk = ScoredUserRiskItem(school=user.school).from_health_report(health_report=task_data)
 
-    user_risk = ScoredUserRiskItem(school=user.school).from_health_report(health_report=task_data,
-                                                                          minimum_symptoms=min_symptoms)
     logger.info(f"Updating user risk: {task_data}")
-    update_report_properties(user=user, report=task_data, additional_data={'risk_score': user_risk.risk_score})
+    add_health_report(user=user, report=task_data, additional_data={'risk_score': user_risk.risk_score})
 
     if user_risk.at_risk(include_warning=False):
         task_id = user.queue_task(task_name='tasks.notify_risk',

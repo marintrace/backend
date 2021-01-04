@@ -23,7 +23,7 @@ def send_daily_digest(self, school: str):
     with Neo4JGraph() as g:
         no_report_members = [member['name'] for member in list(g.run(
             """MATCH (member: Member {school: $school}), (day: DailyReport {date: $date})
-            WHERE NOT (member)-[:reported]-(day) RETURN DISTINCT member.first_name + " " + member.last_name as name
+            WHERE NOT (member)-[:reported]-(day) AND RETURN DISTINCT member.first_name + " " + member.last_name as name
             ORDER BY member.first_name""",
             school=school, date=day_node["date"]
         ))]

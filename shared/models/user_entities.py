@@ -6,9 +6,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from shared.logger import logger
 from shared.models.enums import ResponseStatus, TestType
 from shared.service.celery_config import get_celery
-from shared.logger import logger
 from shared.utilities import pst_timestamp
 
 
@@ -57,10 +57,20 @@ class HealthReport(Timestamped):
     """
     Health Report Report
     """
-    num_symptoms: Optional[int]
-    proximity: Optional[bool]
-    test_type: Optional[TestType]
-    commercial_flight: Optional[bool]
+    num_symptoms: Optional[int] = None
+    proximity: Optional[bool] = None
+    test_type: Optional[TestType] = None
+    commercial_flight: Optional[bool] = None
+
+    def test_only(self):
+        """
+        Only updating the test
+        :return: whe
+        """
+        return self.test_type is not None \
+            and self.proximity is None \
+            and self.commercial_flight is None \
+            and self.num_symptoms is None
 
 
 # REST Entities
@@ -68,7 +78,7 @@ class User(BaseModel):
     """
     User Schema for API validation and documentation
     """
-    impersonator: Optional[str] # allow administrators to impersonate users to log information on their behalf
+    impersonator: Optional[str] = None  # allow administrators to impersonate users to log information on their behalf
     first_name: Optional[str]  # optional fields to provide more information but not required for ID
     last_name: Optional[str]
     email: str
@@ -81,7 +91,7 @@ class User(BaseModel):
         :param task_data: data to send to the target worker
         :return: the task id
         """
-        if self.impersonator:
+        if getattr(self, 'impersonator'):
             logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
 
         task_params = {'user': self}

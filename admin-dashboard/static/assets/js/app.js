@@ -133,21 +133,63 @@ function updateHomeStatusSummaries(email = null) {
             let rows = [
                 "<a href='/user/" + e.email + "'>" + e.name + "</a>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
-                truncate(e.health.criteria.join(' & '), 45) + "</span></span>",
+                "<a class='modal-link' onclick='modifyHealth(\"" + e.email + "\")'>" +
+                truncate(e.health.criteria.join(' & '), 45) + "</a></span></span>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
-                "<a id='location-link' onclick='changeLocation(\"" + e.email + "\")'>" +
-                e.location.location.capitalize() + "</span></span>"
+                "<a class='modal-link' onclick='changeLocation(\"" + e.email + "\")'>" +
+                e.location.location.capitalize() + "</a></span></span>"
             ];
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
     }).fail(requestFailure)
 }
 
+function modifyHealth(email){
+    console.log('modifying health for ' + email);
+    $("#health-user-email").html(email);
+    $("#submitHealthModification").attr("onclick", "submitHealthModification('" + email + "', false)");
+    $("#setHealthy").attr("onclick", "submitHealthModification('" + email + "', true)");
+    $("#health-change").modal('show');
+}
 function changeLocation(email){
     console.log('changing location for ' + email);
-    $("#user-email").html(email)
+    $("#loc-user-email").html(email);
     $("#submitLocationChange").attr("onclick", "submitLocationChange('" + email + "')");
     $("#location-change").modal('show');
+}
+
+function submitHealthModification(email, set_healthy){
+    let payload = {};
+    if (!set_healthy) {
+        const num_symptoms = $("#num_symptoms").val();
+        const commercial = $("input[name='commercial']:checked").val();
+        const proximity = $("input[name='proximity']:checked").val();
+
+        if (num_symptoms == null || commercial == null || proximity == null) {
+            alert("You must complete all options to submit!");
+            return;
+        }
+        payload = {
+            "num_symptoms": parseInt(num_symptoms),
+            "commercial_flight": JSON.parse(commercial.toLowerCase()),
+            "proximity": JSON.parse(proximity.toLowerCase())
+        }
+    } else {
+        payload = {"num_symptoms": 0, "commercial_flight": false, "proximity": false}
+    }
+
+    payload['email'] = email;
+    $("#submitHealthModification").prop('disabled', true);
+    $.post("/async/modify-health", JSON.stringify(payload), function(){
+        console.log("Modify health completed");
+    }, "json").done(function (data){
+        $("#submitHealthModification").html("Success");
+        sleep(500);
+        $("#health-change").modal('hide');
+        $("#submitHealthModification").prop('disabled', true);
+        $("#submitHealthModification").html("submit");
+        window.location.reload();
+    })
 }
 
 function submitLocationChange(email){
@@ -169,7 +211,8 @@ function submitLocationChange(email){
         $("#location-change").modal("hide");
         $("#submitLocationChange").prop('disabled', false);
         $("#submitLocationChange").html("Submit");
-    })
+        window.location.reload();
+    }).fail(requestFailure)
 
 }
 function submitSearch() {
