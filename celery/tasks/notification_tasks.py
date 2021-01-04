@@ -43,8 +43,6 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
                                 {timestamp_limit}) return member'''))
             logger.info(f"Retrieved user risk list (n={len(record_set)}) for tier...")
 
-            logger.info(f"Retrieved user risk list (n={len(record_set)}) for tier...")
-
             for record in record_set:
                 node = record.data()['member']
                 if node['email'] in seen_individuals:
