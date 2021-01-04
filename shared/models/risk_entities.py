@@ -161,7 +161,7 @@ class ScoredUserRiskItem(UserHealthItem):
         symptom_criteria = self.retrieve_symptom_criteria()
         minimum_symptoms = symptom_criteria['minimum_symptoms'] if minimum_symptoms == 'vault' else \
             int(minimum_symptoms)
-        if health_report.num_symptoms >= minimum_symptoms:
+        if health_report.num_symptoms and health_report.num_symptoms >= minimum_symptoms:
             self.add_symptoms(num_symptoms=health_report.num_symptoms)
             self.risk_score += symptom_criteria['score_per_symptom'] * health_report.num_symptoms
         if health_report.test_type:
