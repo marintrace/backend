@@ -68,6 +68,7 @@ function finishedLoading() {
 document.getElementById("logout").onclick = function() {logout()};
 
 function logout() {
+  localStorage.clear()
     auth0.logout({
     	returnTo: window.location.origin
  	 });
