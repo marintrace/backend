@@ -40,6 +40,8 @@ $(document).ready(function() {
     reportSymptoms(checkboxes).then(function() {
       submit.removeClass("disabled")
       submit.html("Report")
+      const now = new Date()
+      localStorage.setItem("lastReport", now)
     })
 
   });

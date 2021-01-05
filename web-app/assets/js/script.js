@@ -2,6 +2,13 @@ var auth0 = null;
 
 var initializing = false;
 
+const isToday = (someDate) => {
+  const today = new Date()
+  return someDate.getDate() == today.getDate() &&
+    someDate.getMonth() == today.getMonth() &&
+    someDate.getFullYear() == today.getFullYear()
+}
+
 const configureClient = async () => {
     initializing = true
     auth0 = await createAuth0Client({

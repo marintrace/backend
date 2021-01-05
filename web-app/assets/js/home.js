@@ -11,6 +11,16 @@ $(document).ready(function() {
       window.localStorage.setItem('agreed', 'true')
     });
 
+    $("#reportSymptoms").click(function(){
+      const lastReported = new Date(localStorage.getItem("lastReport"))
+      if (lastReported == null || !(isToday(lastReported))) {
+        $('#symptomsModal').modal('show')
+      } else {
+        //already reported show error
+        alert("You have already submitted your questionnaire today. If you need to make a change, please contact your school.")
+      }
+    })
+
     $("#positiveButton").click(function(){
         //$(this).prop("disabled", true);
         //$(this).html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Report`);
