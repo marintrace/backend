@@ -18,7 +18,6 @@ const configureClient = async () => {
         audience: 'tracing-rest-api',
         useRefreshTokens: true
     }).catch(function (error) {
-        //TODO - ENABLE BEFORE RELEASE
         alert("Couldn't initialize authentication");
         console.log(error);
         window.location = 'index.html'; //couldn't auth go to login

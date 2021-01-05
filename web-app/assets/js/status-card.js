@@ -27,6 +27,8 @@ $(document).ready(function () {
         }
         $("#status").removeClass("disabled");
         $("#statusModal").removeClass('bg-gradient-default');
+        $("#statusModal").removeClass('bg-success');
+        $("#statusModal").removeClass('bg-danger');
         $("#statusModal").addClass('bg-' + entry_data.color);
     }
 });
