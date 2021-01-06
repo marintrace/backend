@@ -2,6 +2,13 @@ var auth0 = null;
 
 var initializing = false;
 
+const isToday = (someDate) => {
+  const today = new Date()
+  return someDate.getDate() == today.getDate() &&
+    someDate.getMonth() == today.getMonth() &&
+    someDate.getFullYear() == today.getFullYear()
+}
+
 const configureClient = async () => {
     initializing = true
     auth0 = await createAuth0Client({
@@ -11,7 +18,6 @@ const configureClient = async () => {
         audience: 'tracing-rest-api',
         useRefreshTokens: true
     }).catch(function (error) {
-        //TODO - ENABLE BEFORE RELEASE
         alert("Couldn't initialize authentication");
         console.log(error);
         window.location = 'index.html'; //couldn't auth go to login
