@@ -22,11 +22,11 @@ def send_daily_digest(self, school: str):
     logger.info(f"Sending Daily Digest for School: {school}")
     day_node = current_day_node(school=school)  # get or create current day node in graph
     with Neo4JGraph() as g:
-        no_report_members = [member['name'] for member in list(g.run(
+        no_report_members = [member['email'] for member in list(g.run(
             """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
                     MATCH (m)-[:reported]-(d: DailyReport {date: $date})
              } AND m.location = $allowed_loc
-            RETURN m.first_name + " " + m.last_name as name ORDER BY name""",
+            RETURN m.email as email ORDER BY email""",
             school=school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"]
         ))]
         logger.info(f"Located {len(no_report_members)} members with no report.")
