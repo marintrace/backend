@@ -25,7 +25,7 @@ CELERY_CONFIG_OPTIONS = {
     }
 }
 
-CELERY_RETRY_OPTIONS = dict(
+GLOBAL_CELERY_OPTIONS = dict(
     bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 5},
     exponential_backoff=2, retry_jitter=os.environ.get('DEV', False)  # set to true for production
 )

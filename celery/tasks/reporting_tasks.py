@@ -6,7 +6,7 @@ from shared.models.enums import UserStatus
 from shared.models.risk_entities import ScoredUserHealthItem
 from shared.models.admin_entities import AdminHealthReport
 from shared.models.user_entities import HealthReport, InteractionReport, User
-from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
+from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.utilities import pst_timestamp
 
@@ -63,7 +63,7 @@ def update_user_properties(user: User, data: dict):
         graph.push(authorized_user_node)
 
 
-@celery.task(name='tasks.report_interaction', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.report_interaction', **GLOBAL_CELERY_OPTIONS)
 def report_interaction(self, *, user: User, task_data: InteractionReport):
     """
     Asynchronously log an interaction between two members of the school
@@ -91,7 +91,7 @@ def report_interaction(self, *, user: User, task_data: InteractionReport):
                                       timestamp=pst_timestamp()))
 
 
-@celery.task(name='tasks.report_health', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.report_health', **GLOBAL_CELERY_OPTIONS)
 def report_health(self, *, user: User, task_data: HealthReport):
     """
     Asynchronously add daily report edge from the authorized user to the current day
@@ -111,7 +111,7 @@ def report_health(self, *, user: User, task_data: HealthReport):
         logger.warning(f"*Health Report indicates possible COVID-19. Notifying risk with task id {task_id}*")
 
 
-@celery.task(name='tasks.report_active_user', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.report_active_user', **GLOBAL_CELERY_OPTIONS)
 def report_active_user(self, *, user: User):
     """
     Asynchronously update the authorized user's status to active
@@ -121,7 +121,7 @@ def report_active_user(self, *, user: User):
     update_user_properties(user=user, data={'status': UserStatus.ACTIVE.value})
 
 
-@celery.task(name='tasks.report_location_status', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.report_location_status', **GLOBAL_CELERY_OPTIONS)
 def report_location_status(self, *, user: User, task_data: UpdateLocationRequest):
     """
     Asynchronously update authorized user's location status

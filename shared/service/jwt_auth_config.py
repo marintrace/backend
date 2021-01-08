@@ -94,6 +94,7 @@ class JWTAuthManager:
                 token=token, key=signed_header, algorithms=['RS256'],
                 issuer=self.issuer, options=dict(verify_aud=False)
             )  # auth0 id token does not provide an audience
+            logger.info(f"Authorizing JWT with claims: {claims}")
             authorized_role = self._get_authorized_role(claims[self.role_claim_name])
             return self.object_creator(claims, authorized_role)
         except jwt.ExpiredSignatureError:

@@ -39,10 +39,15 @@ class Logger:
     Custom Logger that intercepts existing logging calls to simplify configuration options
     """
 
-    INTERCEPTION_TARGETS = [
-        "uvicorn", "uvicorn.access", "uvicorn.error", "fastapi", "boto3", "botocore", "boto", "gunicorn",
-        "gunicorn.error", "gunicorn.access", "neo4j.http", "httpstream", "celery.task"
-    ]
+    STANDARD_INTERCEPTION_TARGETS = {
+        "uvicorn.error", "fastapi", "neo4j.http", "httpstream", "celery.task"
+    }
+
+    SUPPRESS_INTERCEPTION_TARGETS = {
+        "uvicorn", "uvicorn.access", "boto3", "botocore", "gunicorn", "gunicorn.access"
+    }
+
+    ALL_TARGETS = STANDARD_INTERCEPTION_TARGETS.union(SUPPRESS_INTERCEPTION_TARGETS)
 
     def __init__(
             self,
@@ -76,8 +81,10 @@ class Logger:
 
         logging.basicConfig(handlers=[InterceptHandler()], level=logging.DEBUG)
 
-        for module in Logger.INTERCEPTION_TARGETS:
+        for module in Logger.ALL_TARGETS:
             module_logger = logging.getLogger(module)
+            if module in Logger.SUPPRESS_INTERCEPTION_TARGETS:
+                module_logger.setLevel(logging.WARNING)  # Suppress Verbose Output
             module_logger.propagate = False
             module_logger.handlers = [InterceptHandler()]
 

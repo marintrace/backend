@@ -23,16 +23,24 @@ function truncate(str, n) {
 }
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-String.prototype.capitalize = function() {
+String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+String.prototype.escapeQuotes = function () {
+    return this.replace("'", "&#39;").replace('"', "&quot;");
+};
+
+String.prototype.renderQuotes = function () {
+    return this.replace("&#39;", "'").replace('&quote;', '"');
 };
 
 function updateUserStatus(user_email) {
     promptPolicyModal();
-    $.post("/api/user-summary-status", JSON.stringify({"email": user_email}), function () {
+    $.post("/api/user-summary-status", JSON.stringify({"email": user_email.renderQuotes()}), function () {
         console.log("User Status Request Response Received");
     }, "json").done(function (data) {
             $("#today-status-color").addClass("bg-" + data.health.color);
@@ -45,7 +53,7 @@ function updateUserStatus(user_email) {
 
 function updateUserInfo(user_email) {
     promptPolicyModal();
-    $.post("/api/get-user-info", JSON.stringify({"email": user_email}), function () {
+    $.post("/api/get-user-info", JSON.stringify({"email": user_email.renderQuotes()}), function () {
         console.log("User info Request Response Received");
     }, "json").done(function (data) {
             $("#first-name").html(data["first_name"]);
@@ -64,7 +72,7 @@ function updateUserInteractions(user_email) {
     promptPolicyModal();
     $.post("/api/paginate-user-interactions",
         JSON.stringify({
-            "email": user_email,
+            "email": user_email.renderQuotes(),
             "pagination_token": userInteractionPagToken,
             "limit": userInteractionPagLimit
         }), function () {
@@ -76,9 +84,10 @@ function updateUserInteractions(user_email) {
         userInteractionPagToken = data['pagination_token'];
 
         data['users'].forEach(function (e) {
+            let escapedEmail = e.email.escapeQuotes();
             let rows = [
                 e.timestamp,
-                "<a href='/user/" + e.email + "'>" + e.email + "</a>",
+                `<a href='/user/${e.email.escapeQuotes()}'>${e.email.escapeQuotes()}</a>`
             ];
             $("#interactions").append("<tr><td>" + rows.join("</td><td>") + "</td>")
         })
@@ -88,7 +97,7 @@ function updateUserInteractions(user_email) {
 function updateUserReports(user_email) {
     promptPolicyModal();
     $.post("/api/paginate-user-reports", JSON.stringify({
-        "email": user_email,
+        "email": user_email.renderQuotes(),
         "pagination_token": userReportPagToken,
         "limit": userReportPagLimit
     }), function () {
@@ -117,7 +126,7 @@ function updateHomeStatusSummaries(email = null) {
         "limit": homeUserStatusPagLimit
     };
     if (email != null) {
-        data['email'] = email
+        data['email'] = email.escapeQuotes();
     }
 
     $.post("/api/paginate-user-summary-items", JSON.stringify(data), function () {
@@ -130,13 +139,14 @@ function updateHomeStatusSummaries(email = null) {
         homeUserStatusPagToken = data['pagination_token'];
 
         data['statuses'].forEach(function (e) {
+            let escapedEmail = e.email.escapeQuotes();
             let rows = [
-                "<a href='/user/" + e.email + "'>" + e.name + "</a>",
+                `<a href='/user/${escapedEmail}'>${e.name}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
-                "<a class='modal-link' onclick='modifyHealth(\"" + e.email + "\")'>" +
+                `<a class='modal-link' onclick='modifyHealth("${escapedEmail}")'>` +
                 truncate(e.health.criteria.join(' & '), 45) + "</a></span></span>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
-                "<a class='modal-link' onclick='changeLocation(\"" + e.email + "\")'>" +
+                `<a class='modal-link' onclick='changeLocation("${escapedEmail}")'>` +
                 e.location.location.capitalize() + "</a></span></span>"
             ];
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
@@ -144,21 +154,20 @@ function updateHomeStatusSummaries(email = null) {
     }).fail(requestFailure)
 }
 
-function modifyHealth(email){
-    console.log('modifying health for ' + email);
-    $("#health-user-email").html(email);
-    $("#submitHealthModification").attr("onclick", "submitHealthModification('" + email + "', false)");
-    $("#setHealthy").attr("onclick", "submitHealthModification('" + email + "', true)");
+function modifyHealth(email) {
+    $("#health-user-email").html(email.escapeQuotes());
+    $("#submitHealthModification").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", false)`);
+    $("#setHealthy").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", true)`);
     $("#health-change").modal('show');
 }
-function changeLocation(email){
-    console.log('changing location for ' + email);
-    $("#loc-user-email").html(email);
-    $("#submitLocationChange").attr("onclick", "submitLocationChange('" + email + "')");
+
+function changeLocation(email) {
+    $("#loc-user-email").html(email.escapeQuotes());
+    $("#submitLocationChange").attr("onclick", `submitLocationChange("${email.escapeQuotes()}")`);
     $("#location-change").modal('show');
 }
 
-function submitHealthModification(email, set_healthy){
+function submitHealthModification(email, set_healthy) {
     let payload = {};
     if (!set_healthy) {
         const num_symptoms = $("#num_symptoms").val();
@@ -185,12 +194,12 @@ function submitHealthModification(email, set_healthy){
         payload = {"num_symptoms": 0, "commercial_flight": false, "proximity": false}
     }
 
-    payload['email'] = email;
+    payload['email'] = email.renderQuotes();
     $("#submitHealthModification").prop('disabled', true);
     $("#setHealthy").prop('disabled', true);
-    $.post("/async/modify-health", JSON.stringify(payload), function(){
+    $.post("/async/modify-health", JSON.stringify(payload), function () {
         console.log("Modify health completed");
-    }, "json").done(function (data){
+    }, "json").done(function (data) {
         $("#submitHealthModification").html("Success");
         sleep(500);
         $("#health-change").modal('hide');
@@ -201,20 +210,20 @@ function submitHealthModification(email, set_healthy){
     })
 }
 
-function submitLocationChange(email){
+function submitLocationChange(email) {
     const location = $("input[name='location']:checked").val();
-    if (location == null){
+    if (location == null) {
         alert("You must select an option to submit!");
         return;
     }
     $("#submitLocationChange").prop('disabled', true);
     let data = {
         "location": location,
-        "email": email
+        "email": email.renderQuotes()
     };
-    $.post("/async/queue-location-change", JSON.stringify(data), function (){
+    $.post("/async/queue-location-change", JSON.stringify(data), function () {
         console.log("Location change completed");
-    }, "json").done(function (data){
+    }, "json").done(function (data) {
         $("#submitLocationChange").html("Success");
         sleep(500);
         $("#location-change").modal("hide");
@@ -224,13 +233,14 @@ function submitLocationChange(email){
     }).fail(requestFailure)
 
 }
+
 function submitSearch() {
     promptPolicyModal();
     homeUserStatusPagToken = 0;
     const email = $('#email-input').val();
     $("#summaries").html("");
     updateHomeStatusSummaries(email);
-    $("#load-more-home").attr("onclick", "updateHomeStatusSummaries('" + email + '")');
+    $("#load-more-home").attr("onclick", `updateHomeStatusSummaries("${email.escapeQuotes()}")`);
     $("#search-toggle").html("<br><button class='btn btn-secondary' onclick='clearSearch()'>Clear Search</button>");
 }
 

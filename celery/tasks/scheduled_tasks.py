@@ -1,6 +1,6 @@
 from shared.logger import logger
 from shared.models.enums import UserLocationStatus
-from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
+from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
@@ -11,7 +11,7 @@ EMAIL_CLIENT = EmailClient()
 celery = get_celery()
 
 
-@celery.task(name='tasks.send_daily_digest', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.send_daily_digest', **GLOBAL_CELERY_OPTIONS)
 def send_daily_digest(self, school: str):
     """
     Periodically send a daily digest to a specified school

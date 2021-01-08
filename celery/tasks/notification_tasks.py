@@ -5,7 +5,7 @@ from typing import Optional
 from shared.logger import logger
 from shared.models.risk_entities import UserHealthItem
 from shared.models.user_entities import User
-from shared.service.celery_config import CELERY_RETRY_OPTIONS, get_celery
+from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph
 from shared.service.vault_config import VaultConnection
@@ -53,7 +53,7 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
     return individual_risk_tiers
 
 
-@celery.task(name='tasks.notify_risk', **CELERY_RETRY_OPTIONS)
+@celery.task(name='tasks.notify_risk', **GLOBAL_CELERY_OPTIONS)
 def notify_risk(self, *, user: User, task_data: UserHealthItem):
     """
     Asynchronously report member risk from app
