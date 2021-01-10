@@ -40,6 +40,8 @@ spec:
               value: {{ .Values.vault.vaultRole }}
             - name: C_FORCE_ROOT
               value: "true"
+            - name: BEAT_SCHEDULER # create celery with scheduled beat tasks
+              value: "true"
           volumeMounts:
             - mountPath: /var/run/rmq-tls
               name: {{ template "beat.fullname" . }}-rmq-tls
@@ -55,7 +57,7 @@ spec:
       restartPolicy: Always
       serviceAccountName: {{ template "beat.fullname" . }}-serviceaccount
       imagePullSecrets:
-        - name: gcp-registry
+          - name: gcp-registry
       volumes:
         - name: {{ template "beat.fullname" . }}-rmq-tls
           secret:

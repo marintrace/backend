@@ -23,6 +23,13 @@ class UpdateLocationRequest(BaseModel):
     location: UserLocationStatus
 
 
+class DailyDigestRequest(BaseModel):
+    """
+    Model for a Daily Digest Send Request
+    """
+    school: str
+
+
 class OptIdPaginationRequest(Paginated):
     """
     Identification for a user pagination optionally by their email

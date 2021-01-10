@@ -103,8 +103,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
             f"""MATCH (m: Member {{school: $school}})
             {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
-            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp,
-            m.first_name + " " + m.last_name as name
+            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp
             ORDER BY COALESCE(report.risk_score, 0) DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
@@ -112,7 +111,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         ))
 
     statuses = [
-        IdSingleUserDualStatus(health=await create_health_status(user.school, record), email=record['email'], name=record['name'],
+        IdSingleUserDualStatus(health=await create_health_status(user.school, record), email=record['email'],
                                location=await create_location_status(record.get('location'))) for record in records
     ]
 

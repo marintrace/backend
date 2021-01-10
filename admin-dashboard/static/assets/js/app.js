@@ -1,6 +1,6 @@
 const userInteractionPagLimit = 15;
 let userInteractionPagToken = 0;
-const homeUserStatusPagLimit = 500; // allow sorting without pagination
+const homeUserStatusPagLimit = 100; // allow sorting without pagination
 let homeUserStatusPagToken = 0;
 const userReportPagLimit = 15;
 let userReportPagToken = 0;
@@ -119,6 +119,10 @@ function updateUserReports(user_email) {
     }).fail(requestFailure)
 }
 
+function showBriefingConfirm() {
+    $("#digestModal").modal("show");
+}
+
 function updateHomeStatusSummaries(email = null) {
     promptPolicyModal();
     let data = {
@@ -141,7 +145,7 @@ function updateHomeStatusSummaries(email = null) {
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
             let rows = [
-                `<a href='/user/${escapedEmail}'>${e.name}</a>`,
+                `<a href='/user/${escapedEmail}'>${escapedEmail}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='modifyHealth("${escapedEmail}")'>` +
                 truncate(e.health.criteria.join(' & '), 45) + "</a></span></span>",
@@ -165,6 +169,21 @@ function changeLocation(email) {
     $("#loc-user-email").html(email.escapeQuotes());
     $("#submitLocationChange").attr("onclick", `submitLocationChange("${email.escapeQuotes()}")`);
     $("#location-change").modal('show');
+}
+
+function resendDailyBriefing() {
+    promptPolicyModal();
+    $("#resendButton").html("Submitting...").prop('disabled', true);
+    $.post("/async/send-targeted-digest", JSON.stringify({}), function () {
+        console.log("Send targeted digest report recieved");
+    }, "json").done(function (data) {
+        $("#resendButton").html("Success!");
+        sleep(500);
+        $("#resendButton").html("Resend").prop('disabled', false);
+        $("#digestModal").modal('hide');
+    }).fail(requestFailure);
+
+
 }
 
 function submitHealthModification(email, set_healthy) {

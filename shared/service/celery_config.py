@@ -65,6 +65,7 @@ def create_daily_admin_digest_beat():
     and we will create Celery periodic tasks for each one.
     :return: Dictionary Config for Celery with Periodic Tasks
     """
+    from shared.models.admin_entities import DailyDigestRequest
     beat_tasks = {}
 
     with VaultConnection() as vault:
@@ -76,7 +77,7 @@ def create_daily_admin_digest_beat():
             beat_tasks[f"{school}-daily-digest"] = dict(
                 task='tasks.send_daily_digest',
                 schedule=crontab(hour=hour, minute=minute, day_of_week='1-5'),
-                args=(school,)
+                kwargs={'task_data': DailyDigestRequest(school=school)}
             )
 
     return beat_tasks
@@ -92,7 +93,10 @@ def get_celery():
         connection_string = RabbitMQCredentials().create_connection_string()
         CELERY_CONNECTION = Celery("tasks", broker=f'amqp://{connection_string}',
                                    backend=f'rpc://{connection_string}')
-        CELERY_CONNECTION.conf.beat_schedule = create_daily_admin_digest_beat()
+
+        if os.environ.get('BEAT_SCHEDULER'):
+            CELERY_CONNECTION.conf.beat_schedule = create_daily_admin_digest_beat()
+
         CELERY_CONNECTION.conf.update(CELERY_CONFIG_OPTIONS)
     return CELERY_CONNECTION
 
