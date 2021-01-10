@@ -148,7 +148,7 @@
                <div class="modal-header">
                   <h4 class="modal-title">Before continuing, you must accept the Terms of Use and Privacy Policy</h4>
                </div>
-               <div class="modal-body">
+               <div class="modal-body" style="text-align: right;">
                   <iframe
                      id="policyFrame"
                      src="/privacy-min.html"
@@ -156,11 +156,13 @@
                      scrolling="yes"
                      frameborder="0"
                      height="100%"
-                     width="100%">
+                     width="100%",
+                     style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; width: 100%;"
+                     >
                   </iframe>
                </div>
                <div class="modal-footer">
-                  <button class="btn btn-primary" id="acceptButton" type="button">Accept</button>
+                 <button class="btn btn-primary btn-block" id="acceptButton" type="button">Accept</button>
                </div>
             </div>
          </div>
