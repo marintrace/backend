@@ -21,7 +21,9 @@
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col">
-                                <h3 class="mb-0">Today's Reports</h3>
+                                <h3 class="mb-0">Today's Reports&nbsp;&nbsp;
+                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">Export to CSV</button>
+                                </h3>
                                 <div id="search-toggle">
                                 </div>
                             </div>
@@ -29,7 +31,7 @@
                     </div>
                     <div class="table-responsive">
                         <!-- Projects table -->
-                        <table class="table align-items-center table-flush">
+                        <table id='home-status-summaries' class="table align-items-center table-flush">
                             <thead class="thead-light">
                             <tr>
                                 <th scope="col" class="sort" data-sort="name">Name</th>

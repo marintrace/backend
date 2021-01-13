@@ -46,7 +46,7 @@ def send_daily_digest(self, task_data: DailyDigestRequest, user: User = None):
 
     EMAIL_CLIENT.send_email(
         template_name='daily_digest',
-        recipients=[user.email] if user.email else authorized_recipients,  # send only to single user/all users
+        recipients=[user.email] if user else authorized_recipients,  # send only to single user/all users
         template_data={
             'no_report': no_report_members,
             'date': get_pst_time().strftime('%m/%d/%Y')

@@ -1,6 +1,6 @@
 const userInteractionPagLimit = 15;
 let userInteractionPagToken = 0;
-const homeUserStatusPagLimit = 100; // allow sorting without pagination
+const homeUserStatusPagLimit = 200; // allow sorting without pagination
 let homeUserStatusPagToken = 0;
 const userReportPagLimit = 15;
 let userReportPagToken = 0;
@@ -16,6 +16,46 @@ function requestFailure(data) {
     alert("[Error] Failed to communicate with backend services");
     console.log("Error while issuing POST request");
     console.log(data);
+}
+
+async function exportToCsv(){
+    $("#csv-export-home").html("Loading...").prop("disabled", true);
+    await sleep(1000)
+    updateHomeStatusSummaries(null, true);
+    download_table_as_csv("home-status-summaries");
+    $("#csv-export-home").html("Export to CSV").prop('disabled', false);
+
+}
+
+// Quick and simple export target #table_id into a csv
+function download_table_as_csv(table_id, separator = ',') {
+    // Select rows from table_id
+    var rows = document.querySelectorAll('table#' + table_id + ' tr');
+    // Construct csv
+    var csv = [];
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        for (var j = 0; j < cols.length; j++) {
+            // Clean innertext to remove multiple spaces and jumpline (break csv)
+            var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ')
+            // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
+            data = data.replace(/"/g, '""');
+            // Push escaped string
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(separator));
+    }
+    var csv_string = csv.join('\n');
+    // Download it
+    var filename = 'export_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
+    var link = document.createElement('a');
+    link.style.display = 'none';
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function truncate(str, n) {
@@ -123,7 +163,7 @@ function showBriefingConfirm() {
     $("#digestModal").modal("show");
 }
 
-function updateHomeStatusSummaries(email = null) {
+function updateHomeStatusSummaries(email = null, getall=false) {
     promptPolicyModal();
     let data = {
         "pagination_token": homeUserStatusPagToken,
@@ -140,7 +180,8 @@ function updateHomeStatusSummaries(email = null) {
             $("#home-footer").hide();
             return;
         }
-        homeUserStatusPagToken = data['pagination_token'];
+
+        homeUserStatusPagToken = getall ? 10000 : data['pagination_token'];
 
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
@@ -171,14 +212,14 @@ function changeLocation(email) {
     $("#location-change").modal('show');
 }
 
-function resendDailyBriefing() {
+async function resendDailyBriefing() {
     promptPolicyModal();
     $("#resendButton").html("Submitting...").prop('disabled', true);
     $.post("/async/send-targeted-digest", JSON.stringify({}), function () {
         console.log("Send targeted digest report recieved");
     }, "json").done(function (data) {
         $("#resendButton").html("Success!");
-        sleep(500);
+        await sleep(500);
         $("#resendButton").html("Resend").prop('disabled', false);
         $("#digestModal").modal('hide');
     }).fail(requestFailure);
@@ -186,7 +227,7 @@ function resendDailyBriefing() {
 
 }
 
-function submitHealthModification(email, set_healthy) {
+async function submitHealthModification(email, set_healthy) {
     let payload = {};
     if (!set_healthy) {
         const num_symptoms = $("#num_symptoms").val();
@@ -220,7 +261,7 @@ function submitHealthModification(email, set_healthy) {
         console.log("Modify health completed");
     }, "json").done(function (data) {
         $("#submitHealthModification").html("Success");
-        sleep(500);
+        await sleep(500);
         $("#health-change").modal('hide');
         $("#submitHealthModification").prop('disabled', false);
         $("#setHealthy").prop("disabled", false);
@@ -229,7 +270,7 @@ function submitHealthModification(email, set_healthy) {
     })
 }
 
-function submitLocationChange(email) {
+async function submitLocationChange(email) {
     const location = $("input[name='location']:checked").val();
     if (location == null) {
         alert("You must select an option to submit!");
@@ -244,7 +285,7 @@ function submitLocationChange(email) {
         console.log("Location change completed");
     }, "json").done(function (data) {
         $("#submitLocationChange").html("Success");
-        sleep(500);
+        await sleep(500);
         $("#location-change").modal("hide");
         $("#submitLocationChange").prop('disabled', false);
         $("#submitLocationChange").html("Submit");
