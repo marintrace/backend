@@ -13,6 +13,7 @@ $(document).ready(function() {
     var sum = 0
     var travel = false
     var contact = false
+    var bayArea = false
     $('input').each(function(e) {
       var id = $(this).attr('id')
       var checked = $(this).is(':checked')
@@ -23,6 +24,9 @@ $(document).ready(function() {
             break;
           case 'contact':
             contact = true;
+            break;
+          case 'bayArea':
+            bayArea = true;
             break;
           default:
             sum++;
@@ -40,8 +44,6 @@ $(document).ready(function() {
     reportSymptoms(checkboxes).then(function() {
       submit.removeClass("disabled")
       submit.html("Report")
-      const now = new Date()
-      localStorage.setItem("lastReport", now)
     })
 
   });

@@ -127,6 +127,8 @@ async function reportSymptoms(object) {
             $('#symptomsModal').modal('hide');
             alert("Successfully reported symptoms.")
             console.log(response);
+            const now = new Date()
+            localStorage.setItem("lastReport", now)
         })
         .catch(function (error) {
             alert("Couldn't report symptoms. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
