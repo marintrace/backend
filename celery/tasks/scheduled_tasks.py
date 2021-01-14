@@ -25,18 +25,20 @@ def send_daily_digest(self, task_data: DailyDigestRequest, user: User = None):
     """
     logger.info(f"Sending Daily Digest for School: {task_data.school}")
     day_node = current_day_node(school=task_data.school)  # get or create current day node in graph
+
+    with VaultConnection() as vault:
+        digest_config = vault.read_secret(secret_path=f'schools/{task_data.school}/daily_digest_config')
+        authorized_recipients = digest_config['recipients']
+
     with Neo4JGraph() as g:
         no_report_members = [member['email'] for member in list(g.run(
             """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
                     MATCH (m)-[:reported]-(d: DailyReport {date: $date})
              } AND m.location = $allowed_loc RETURN m.email as email ORDER BY email""",
             school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"]
-        ))]
-        logger.info(f"Located {len(no_report_members)} members with no report.")
+        )) if not member['email'] in digest_config['exclusions']]
 
-    with VaultConnection() as vault:
-        digest_config = vault.read_secret(secret_path=f'schools/{task_data.school}/daily_digest_config')
-        authorized_recipients = digest_config['recipients'].split(',')
+        logger.info(f"Located {len(no_report_members)} members with no report.")
 
     EMAIL_CLIENT.setup()
 

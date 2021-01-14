@@ -13,7 +13,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: StatefulSet
     name: {{ template "rest.fullname" . }}
   minReplicas: {{ .Values.replicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}

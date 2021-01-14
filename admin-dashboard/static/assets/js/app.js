@@ -18,10 +18,10 @@ function requestFailure(data) {
     console.log(data);
 }
 
-async function exportToCsv(){
+async function exportToCsv() {
     $("#csv-export-home").html("Loading...").prop("disabled", true);
-    await sleep(1000)
     updateHomeStatusSummaries(null, true);
+    await sleep(5000);
     download_table_as_csv("home-status-summaries");
     $("#csv-export-home").html("Export to CSV").prop('disabled', false);
 
@@ -62,7 +62,7 @@ function truncate(str, n) {
     return (str.length > n) ? str.substr(0, n - 1) + '&hellip;' : str;
 }
 
-function sleep(ms) {
+async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -163,11 +163,11 @@ function showBriefingConfirm() {
     $("#digestModal").modal("show");
 }
 
-function updateHomeStatusSummaries(email = null, getall=false) {
+function updateHomeStatusSummaries(email = null, getall = false) {
     promptPolicyModal();
     let data = {
         "pagination_token": homeUserStatusPagToken,
-        "limit": homeUserStatusPagLimit
+        "limit": getall ? 10000 : homeUserStatusPagLimit
     };
     if (email != null) {
         data['email'] = email.escapeQuotes();
@@ -181,7 +181,7 @@ function updateHomeStatusSummaries(email = null, getall=false) {
             return;
         }
 
-        homeUserStatusPagToken = getall ? 10000 : data['pagination_token'];
+        homeUserStatusPagToken = data['pagination_token'];
 
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
@@ -217,7 +217,7 @@ async function resendDailyBriefing() {
     $("#resendButton").html("Submitting...").prop('disabled', true);
     $.post("/async/send-targeted-digest", JSON.stringify({}), function () {
         console.log("Send targeted digest report recieved");
-    }, "json").done(function (data) {
+    }, "json").done(async function (data) {
         $("#resendButton").html("Success!");
         await sleep(500);
         $("#resendButton").html("Resend").prop('disabled', false);
@@ -259,7 +259,7 @@ async function submitHealthModification(email, set_healthy) {
     $("#setHealthy").prop('disabled', true);
     $.post("/async/modify-health", JSON.stringify(payload), function () {
         console.log("Modify health completed");
-    }, "json").done(function (data) {
+    }, "json").done(async function (data) {
         $("#submitHealthModification").html("Success");
         await sleep(500);
         $("#health-change").modal('hide');
@@ -283,7 +283,7 @@ async function submitLocationChange(email) {
     };
     $.post("/async/queue-location-change", JSON.stringify(data), function () {
         console.log("Location change completed");
-    }, "json").done(function (data) {
+    }, "json").done(async function (data) {
         $("#submitLocationChange").html("Success");
         await sleep(500);
         $("#location-change").modal("hide");

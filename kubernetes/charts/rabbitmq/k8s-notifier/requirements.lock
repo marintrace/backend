@@ -1,0 +1,6 @@
+dependencies:
+- name: botkube
+  repository: https://infracloudio.github.io/charts
+  version: v0.11.0
+digest: sha256:bd026896c9cba023138e065d138bb7ef030cd98f1e8b6d028d6031246495f3b9
+generated: "2021-01-13T12:49:24.966177-08:00"
