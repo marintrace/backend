@@ -42,21 +42,22 @@ def increment_images(options: Namespace):
             print(f"No change to: {image_name}... skipping")
             continue
         values_config[chart]['imageVersion'] = service_versions[image_name]
-
-    if input(f"Confirm Docker Compose Contents:\n {container_config}\n[y/ctrl+c]") == 'y' and input(
-            f"Confirm Values File:\n {values_config}\n[y/ctrl+c]") == 'y':
-        print("Writing Files...")
-        compose_file.seek(0)
-        values_file.seek(0)
-        yaml.dump(container_config, compose_file)
-        yaml.dump(values_config, values_file)
-        compose_file.truncate()
-        values_file.truncate()
-    else:
-        raise Exception("Terminated!") from None
-
-    compose_file.close()
-    values_file.close()
+    
+    try:
+        if input(f"Confirm Docker Compose Contents:\n {container_config}\n[y/ctrl+c]") == 'y' and input(
+                f"Confirm Values File:\n {values_config}\n[y/ctrl+c]") == 'y':
+            print("Writing Files...")
+            compose_file.seek(0)
+            values_file.seek(0)
+            yaml.dump(container_config, compose_file)
+            yaml.dump(values_config, values_file)
+            compose_file.truncate()
+            values_file.truncate()
+        else:
+            raise Exception("Terminated!") from None
+    finally:
+        compose_file.close()
+        values_file.close()
 
 
 def build_push_images(containers: List[str], deploy=False):
