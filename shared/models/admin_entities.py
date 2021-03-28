@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from shared.models.enums import UserLocationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
 from shared.models.user_entities import (Paginated, PaginatedResponse, HealthReport,
                                          Response, User, UserIdentifier)
@@ -21,6 +21,14 @@ class UpdateLocationRequest(BaseModel):
     """
     email: str
     location: UserLocationStatus
+
+
+class UpdateVaccinationRequest(BaseModel):
+    """
+    Model for updating a user's vaccination status
+    """
+    email: str
+    status: VaccinationStatus
 
 
 class DailyDigestRequest(BaseModel):

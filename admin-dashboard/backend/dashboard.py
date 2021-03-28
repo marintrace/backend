@@ -14,7 +14,7 @@ from shared.models.admin_entities import (AdminDashboardUser,
                                           UserInfoDetail,
                                           UserInteraction,
                                           UserInteractionHistory)
-from shared.models.enums import UserLocationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
 from shared.models.user_entities import HealthReport
 from shared.service.neo_config import Neo4JGraph, current_day_node
@@ -26,19 +26,19 @@ from .authorization import OIDC_COOKIE
 BACKEND_ROUTER = APIRouter()
 
 
-async def create_health_status(school: str, record: dict, returned_edge_name='report') -> UserHealthItem:
+async def create_health_status(user: dict, report: dict) -> UserHealthItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
-    :param school: School that the user belongs too.
-    :param record: JSON record of the response from Neo4J
-    :param returned_edge_name: the name of the DailyReport-Member relationship returned
-        by the query
+    :param user: JSON describing the user
+    :param report: JSON record of the response from Neo4J
     """
     risk_item = UserHealthItem(school=school)
 
-    if not (record and record.get(returned_edge_name)):
+    if not report:
         return risk_item.set_incomplete()
-    return risk_item.from_health_report(health_report=HealthReport(**dict(record[returned_edge_name])))
+    elif user['vaccinated'] == VaccinationStatus.VACCINATED:
+        return risk_item.add_vaccination(vaccine)
+    return risk_item.from_health_report(health_report=HealthReport(**dict(record)))
 
 
 async def create_location_status(location: UserLocationStatus) -> UserLocationItem:
@@ -77,13 +77,14 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
     with Neo4JGraph() as graph:
         records = list(graph.run(
             """MATCH (m: Member {school: $school, email: $email})-[report:reported]-(d: DailyReport)
-            RETURN report, report.timestamp as timestamp ORDER BY report.timestamp DESC
+            RETURN m.vaccination_status as vaccinated, report, report.timestamp as timestamp
+            ORDER BY report.timestamp DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, email=request.email, pag_token=request.pagination_token,
             limit=request.limit
         ))
         health_reports = [DatedUserHealthHolder(timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d"),
-                                                dated_report=await create_health_status(user.school, record))
+                                                dated_report=await create_health_status(record['user'], record['report']))
                           for record in records]
         return SingleUserHealthHistory(
             health_reports=health_reports,
@@ -103,7 +104,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
             f"""MATCH (m: Member {{school: $school}})
             {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
-            RETURN m.email as email, m.location as location, report, report.timestamp as timestamp
+            RETURN m as member, report 
             ORDER BY COALESCE(report.risk_score, 0) DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
@@ -111,8 +112,10 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         ))
 
     statuses = [
-        IdSingleUserDualStatus(health=await create_health_status(user.school, record), email=record['email'],
-                               location=await create_location_status(record.get('location'))) for record in records
+        IdSingleUserDualStatus(health=await create_health_status(record['user'], record['report']),
+                               email=record['user']['email'],
+                               location=await create_location_status(record['member'].get('location'))) for record in
+        records
     ]
 
     return MultipleUserDualStatuses(statuses=statuses, pagination_token=request.pagination_token + request.limit)
@@ -172,11 +175,11 @@ async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboa
         records = list(graph.run(
             """MATCH (m: Member {email: $email, school: $school})
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {date: $date})
-            RETURN report, m.location as location""",
+            RETURN report, m as member""",
             email=identifier.email, school=user.school, date=pst_date()
         ))
         logger.info(f"Retrieved {records}")
         record = records[0] if len(records) > 0 else None
         location_item = await create_location_status(record['location'])
-        health_item = await create_health_status(user.school, record)
+        health_item = await create_health_status(record['member'], record['report'])
         return SingleUserDualStatus(location=location_item, health=health_item)

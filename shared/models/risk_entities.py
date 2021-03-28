@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from shared.logger import logger
-from shared.models.enums import EntryReason, HTMLColors, UserLocationStatus
+from shared.models.enums import EntryReason, HTMLColors, UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
 
@@ -114,6 +114,14 @@ class UserHealthItem(BaseModel):
         elif test_type == TestType.NEGATIVE:
             self.color = HTMLColors.SUCCESS
             self.criteria.append('Negative Test')
+        return self
+
+    def add_vaccination(self, status: Union[str, Enum]):
+        if status is None:
+            return self
+        if status == VaccinationStatus.VACCINATED:
+            self.color = HTMLColors.SUCCESS
+            self.criteria.append('Fully Vaccinated')
         return self
 
     def add_proximity(self):

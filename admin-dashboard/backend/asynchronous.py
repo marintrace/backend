@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models.admin_entities import (AdminDashboardUser, AdminHealthReport,
+from shared.models.admin_entities import (AdminDashboardUser, AdminHealthReport, UpdateVaccinationRequest,
                                           UpdateLocationRequest, DailyDigestRequest)
 from shared.models.user_entities import CreatedAsyncTask, User
 from .authorization import OIDC_COOKIE
@@ -46,6 +46,7 @@ async def modify_health(report: AdminHealthReport, admin: AdminDashboardUser = O
     return CreatedAsyncTask(task_id=assumed_user.queue_task(task_name='tasks.report_health',
                                                             task_data=report))
 
+
 @ASYNC_ROUTER.post("/send-targeted-digest", operation_id="send-targeted-digest",
                    description="Send a daily digest to a specific authorized user", **GENERAL_ASYNC_PARAMS)
 async def send_targeted_digest(admin: AdminDashboardUser = OIDC_COOKIE):
@@ -58,3 +59,17 @@ async def send_targeted_digest(admin: AdminDashboardUser = OIDC_COOKIE):
     logger.info(f"Processing Targeted Digest Request")
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.send_daily_digest',
                                                      task_data=DailyDigestRequest(school=admin.school)))
+
+
+@ASYNC_ROUTER.post("/modify-vaccination", operation_id="modify-vaccination",
+                   description="Modify a user's vaccination status in the admin dashboard", **GENERAL_ASYNC_PARAMS)
+async def modify_vaccination(report: UpdateVaccinationRequest, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Queue a vaccination modification in the backend. Either set to unvaccinated or vaccinated
+    * Requires a vaccination request as JSON payload in an HTTP POST request
+    * Requires an OIDC Cookie (kc-access) with Auth0 JWT
+    """
+    logger.info(f"Processing vaccine modification request")
+    assumed_user = User(impersonator=admin.email, email=report.email, school=admin.school)
+    return CreatedAsyncTask(task_id=assumed_user.queue_task(task_name='tasks.report_vaccination',
+                                                            task_data=report))

@@ -53,6 +53,15 @@ class EntryReason(str, Enum):
     """
     HEALTH = "health"
     LOCATION = "location"
+    VACCINE = "vaccine"
+
+
+class VaccinationStatus(str, Enum):
+    """
+    User's vaccination status
+    """
+    VACCINATED = "vaccinated"
+    NOT_VACCINATED = "not_vaccinated"
 
 
 class UserStatus(str, Enum):

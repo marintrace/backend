@@ -1,8 +1,8 @@
 from py2neo import Relationship, RelationshipMatcher
 
 from shared.logger import logger
-from shared.models.admin_entities import UpdateLocationRequest
-from shared.models.enums import UserStatus
+from shared.models.admin_entities import UpdateLocationRequest, UpdateVaccinationRequest
+from shared.models.enums import UserStatus, VaccinationStatus
 from shared.models.risk_entities import ScoredUserHealthItem
 from shared.models.admin_entities import AdminHealthReport
 from shared.models.user_entities import HealthReport, InteractionReport, User
@@ -109,6 +109,17 @@ def report_health(self, *, user: User, task_data: HealthReport):
         task_id = user.queue_task(task_name='tasks.notify_risk',
                                   task_data=user_risk)
         logger.warning(f"*Health Report indicates possible COVID-19. Notifying risk with task id {task_id}*")
+
+
+@celery.task(name='tasks.report_vaccination', **GLOBAL_CELERY_OPTIONS)
+def report_vaccination(self, *, user: User, task_data: UpdateVaccinationRequest):
+    """
+    Asynchronously update the user to be vaccinated
+    :param user: authorized user model
+    :param task_data: API request from API
+    """
+    logger.info("Setting authorized user's vaccination status to 'vaccinated'")
+    update_user_properties(user=user, data={'vaccinated': task_data.status})
 
 
 @celery.task(name='tasks.report_active_user', **GLOBAL_CELERY_OPTIONS)
