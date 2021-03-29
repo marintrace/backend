@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from shared.logger import logger
-from shared.models.enums import EntryReason, HTMLColors, UserLocationStatus, VaccinationStatus
+from shared.models.enums import EntryReason, StatusColor, UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
 
@@ -37,40 +37,62 @@ class UserLocationItem(BaseModel):
     """
     Entity representing user location
     """
-    color: HTMLColors = None
+    color: StatusColor = None
     location: UserLocationStatus = None
 
     def set_location(self, location: Union[UserLocationStatus, str]):
         self.location = location
         comp_location = location.value if isinstance(location, Enum) else location
         if comp_location in UserLocationStatus.get_blocked():
-            self.color = HTMLColors.DANGER
+            self.color = StatusColor.UNHEALTHY
         else:
-            self.color = HTMLColors.SUCCESS
+            self.color = StatusColor.HEALTHY
         return self
 
     def entry_blocked(self):
-        return self.color == HTMLColors.DANGER
+        return self.color == StatusColor.UNHEALTHY
 
 
 class UserHealthItem(BaseModel):
     """
     Entity representing user risk
     """
-    color: HTMLColors = None
+    vaccinated: bool = False
+    color: StatusColor = None
     school: str
     criteria: List[str] = []
 
+    def update_status_if_more_risk(self, color: StatusColor, override_vaccine: bool = False):
+        """
+        Change a user's status color if it increases the user's risk.
+        :param color: the color to attempt to change to
+        :param override_vaccine: whether or not to override the vaccination setting to warning
+        """
+        if override_vaccine:
+            self.color = color
+        else:
+            if color == StatusColor.UNHEALTHY:
+                if self.vaccinated:  # we should show a user as a "warning" if they are a risk and
+                    self.color = StatusColor.WARNING
+                else:
+                    self.color = StatusColor.UNHEALTHY
+            elif color == StatusColor.WARNING:
+                if not self.color == StatusColor.UNHEALTHY:
+                    self.color = color
+            else:
+                if not self.color == StatusColor.UNHEALTHY or StatusColor.UNHEALTHY:
+                    self.color = color
+
     def is_incomplete(self) -> bool:
-        return self.color == HTMLColors.GRAY
+        return self.color == StatusColor.UNKNOWN
 
     def at_risk(self, include_warning=False) -> bool:
         """
         Whether the user has any urgent
         risk factors
         """
-        return (self.color == HTMLColors.DANGER) or \
-               (include_warning and self.color == HTMLColors.YELLOW)
+        return (self.color == StatusColor.UNHEALTHY) or \
+               (include_warning and self.color == StatusColor.WARNING)
 
     def from_health_report(self, health_report: HealthReport):
         """
@@ -90,52 +112,46 @@ class UserHealthItem(BaseModel):
         if health_report.commercial_flight:
             self.add_commercial_travel()
         if not self.color:
-            self.color = HTMLColors.SUCCESS
+            self.update_status_if_more_risk(StatusColor.HEALTHY)
             self.criteria.append('Healthy')
         return self
 
-    def set_location_blocked(self, location: Union[UserLocationStatus, str]):
-        self.color = HTMLColors.DANGER
-        if isinstance(location, Enum):
-            self.criteria.append(location.value.title())
-        else:
-            self.criteria.append(location.title())
-        return self
-
     def set_incomplete(self):
-        self.color = HTMLColors.GRAY
+        self.update_status_if_more_risk(StatusColor.UNKNOWN)
         self.criteria.append('No Report')
         return self
 
     def add_test(self, test_type: Union[str, Enum]):
         if test_type == TestType.POSITIVE:
-            self.color = HTMLColors.DANGER
+            self.update_status_if_more_risk(StatusColor.UNHEALTHY)
             self.criteria.append('Positive Test')
         elif test_type == TestType.NEGATIVE:
-            self.color = HTMLColors.SUCCESS
+            self.update_status_if_more_risk(StatusColor.HEALTHY)
             self.criteria.append('Negative Test')
         return self
 
     def add_vaccination(self, status: Union[str, Enum]):
-        if status is None:
-            return self
         if status == VaccinationStatus.VACCINATED:
-            self.color = HTMLColors.SUCCESS
+            if self.color == StatusColor.UNHEALTHY:  # if the user was unhealthy when vax added, change to warning
+                self.color = StatusColor.WARNING
+            else:
+                self.color = StatusColor.HEALTHY
             self.criteria.append('Fully Vaccinated')
+            self.vaccinated = True
         return self
 
     def add_proximity(self):
-        self.color = HTMLColors.DANGER
+        self.update_status_if_more_risk(StatusColor.UNHEALTHY)
         self.criteria.append('COVID Proximity')
         return self
 
     def add_symptoms(self, num_symptoms: int):
-        self.color = HTMLColors.DANGER
+        self.update_status_if_more_risk(StatusColor.UNHEALTHY)
         self.criteria.append(f'{num_symptoms} symptoms')
         return self
 
     def add_commercial_travel(self):
-        self.color = HTMLColors.DANGER
+        self.update_status_if_more_risk(StatusColor.UNHEALTHY)
         self.criteria.append('Commercial Travel')
         return self
 
@@ -199,7 +215,7 @@ class ScoredUserHealthItem(UserHealthItem):
             self.add_commercial_travel()
             self.risk_score += symptom_criteria['score_commercial_travel']
         if not self.color:
-            self.color = HTMLColors.SUCCESS
+            self.update_status_if_more_risk(StatusColor.HEALTHY)
             self.criteria.append('Healthy')
 
         return self

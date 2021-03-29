@@ -1,6 +1,6 @@
 from typing import Optional, List
 from shared.logger import logger
-from shared.models.enums import UserLocationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import User
 from shared.models.admin_entities import DailyDigestRequest
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
@@ -34,8 +34,10 @@ def send_daily_digest(self, task_data: DailyDigestRequest, user: User = None):
         no_report_members = [member['email'] for member in list(g.run(
             """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
                     MATCH (m)-[:reported]-(d: DailyReport {date: $date})
-             } AND m.location = $allowed_loc RETURN m.email as email ORDER BY email""",
-            school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"]
+             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax
+             RETURN m.email as email ORDER BY email""",
+            school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"],
+            fully_vax=VaccinationStatus.VACCINATED
         )) if not member['email'] in digest_config['exclusions']]
 
         logger.info(f"Located {len(no_report_members)} members with no report.")

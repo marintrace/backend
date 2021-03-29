@@ -26,8 +26,7 @@ app.add_middleware(
     allow_origins=[
         'https://api.marintracingapp.org',
         'https://marintracingapp.org',
-        'https://bmaapp.de',
-        'http://localhost:8090'
+        'https://admin.marintracingapp.org'
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -49,6 +48,7 @@ async def on_shutdown():
     Runs when the API Server shuts down
     """
     logger.info("****** API IS SHUTTING DOWN ******")
+
 
 @app.get('/health', description='Health check', response_model=str, operation_id='healthcheck', tags=['Mgmt'],
          status_code=status.HTTP_200_OK)

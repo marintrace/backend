@@ -26,19 +26,23 @@ from .authorization import OIDC_COOKIE
 BACKEND_ROUTER = APIRouter()
 
 
-async def create_health_status(user: dict, report: dict) -> UserHealthItem:
+async def create_health_status(user: dict, report: dict, check_vaccine: bool = True) -> UserHealthItem:
     """
     Create a Summary item from a graph edge between a member and DailyReport
     :param user: JSON describing the user
     :param report: JSON record of the response from Neo4J
     """
-    risk_item = UserHealthItem(school=school)
+    risk_item = UserHealthItem(school=user['school'])
 
     if not report:
-        return risk_item.set_incomplete()
-    elif user['vaccinated'] == VaccinationStatus.VACCINATED:
-        return risk_item.add_vaccination(vaccine)
-    return risk_item.from_health_report(health_report=HealthReport(**dict(record)))
+        risk_item.set_incomplete()
+    else:
+        risk_item.from_health_report(health_report=HealthReport(**dict(report)))
+
+    if check_vaccine and user['vaccinated'] == VaccinationStatus.VACCINATED:
+        risk_item.add_vaccination(user['vaccinated'])
+
+    return risk_item
 
 
 async def create_location_status(location: UserLocationStatus) -> UserLocationItem:
@@ -77,15 +81,17 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
     with Neo4JGraph() as graph:
         records = list(graph.run(
             """MATCH (m: Member {school: $school, email: $email})-[report:reported]-(d: DailyReport)
-            RETURN m.vaccination_status as vaccinated, report, report.timestamp as timestamp
+            RETURN m as member, report
             ORDER BY report.timestamp DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, email=request.email, pag_token=request.pagination_token,
             limit=request.limit
         ))
-        health_reports = [DatedUserHealthHolder(timestamp=parse_timestamp(record['timestamp']).strftime("%Y-%m-%d"),
-                                                dated_report=await create_health_status(record['user'], record['report']))
-                          for record in records]
+        health_reports = [DatedUserHealthHolder(
+            timestamp=parse_timestamp(record['report']['timestamp']).strftime("%Y-%m-%d"),
+            dated_report=await create_health_status(record['member'], record['report'], check_vaccine=False)) for record
+            in records]
+
         return SingleUserHealthHistory(
             health_reports=health_reports,
             pagination_token=request.pagination_token + request.limit
@@ -112,9 +118,10 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         ))
 
     statuses = [
-        IdSingleUserDualStatus(health=await create_health_status(record['user'], record['report']),
-                               email=record['user']['email'],
-                               location=await create_location_status(record['member'].get('location'))) for record in
+        IdSingleUserDualStatus(
+            health=await create_health_status(record['member'], record['report'], check_vaccine=True),
+            email=record['member']['email'],
+            location=await create_location_status(record['member'].get('location'))) for record in
         records
     ]
 
@@ -180,6 +187,6 @@ async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboa
         ))
         logger.info(f"Retrieved {records}")
         record = records[0] if len(records) > 0 else None
-        location_item = await create_location_status(record['location'])
+        location_item = await create_location_status(record['member']['location'])
         health_item = await create_health_status(record['member'], record['report'])
         return SingleUserDualStatus(location=location_item, health=health_item)

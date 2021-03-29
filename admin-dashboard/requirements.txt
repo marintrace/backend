@@ -1,6 +1,6 @@
 loguru==0.5.1
 fastapi==0.61.0
-py2neo==5.0b1
+py2neo==2020.0.0
 python-jose==3.2.0
 fastapi-utils==0.2.1
 amqp==2.6.1
@@ -8,5 +8,5 @@ uvicorn>=0.11.7
 pydantic==1.5.1
 hvac==0.10.4
 celery==4.4.5
-jinja2==2.11.2
+jinja2>=2.11.3
 aiofiles==0.5.0

@@ -1,0 +1,23 @@
+<div class="modal fade" role="dialog" tabindex="-1" id="vaccine-options">
+    <div class="modal-dialog full_modal-dialog" role="document">
+        <div class="modal-content full_modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Vaccination Options: <a href="#" id="vac-user-email"></a></h4>
+            </div>
+            <div class="modal-body">
+              <p style="font-size:15px;">Please note that changing a user to "vaccinated" will allow them to bypass the morning
+                  check-in. They will receive a "green card" without submitting the morning survey.
+            </p>
+                <form id="vaccine-form" action="#">
+                    <input type="radio" id="vax-opt" name="vax-status" value="vaccinated"/>
+                    <label for="vax-opt">Fully Vaccinated</label><br>
+                    <input type="radio" id="novax-opt" name="vax-status" value="not_vaccinated"/>
+                    <label for="novax-opt">Not Vaccinated</label><br>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="submitVaccineToggle" type="button">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

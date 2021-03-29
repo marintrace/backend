@@ -203,7 +203,38 @@ function modifyHealth(email) {
     $("#health-user-email").html(email.escapeQuotes());
     $("#submitHealthModification").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", false)`);
     $("#setHealthy").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", true)`);
+    $("#toggleVaccine").attr("onclick", `toggleVaccineModal("${email.escapeQuotes()}")`);
     $("#health-change").modal('show');
+}
+
+function toggleVaccineModal(email){
+    $("health-change").modal("hide");
+    $("#vac-user-email").html(email.escapeQuotes());
+    $("#submitVaccineToggle").attr("onclick", `submitVaccineToggle("${email.escapeQuotes()}")`);
+    $("#vaccine-options").modal('show');
+}
+
+async function submitVaccineToggle(email) {
+    const vax_status = $("input[name='vax-status']:checked").val();
+    if (vax_status == null) {
+        alert("You must select an option to submit!");
+        return;
+    }
+    $("#submitVaccineToggle").prop('disabled', true);
+    let data = {
+        "status": vax_status,
+        "email": email.renderQuotes()
+    };
+    $.post("/async/modify-vaccination", JSON.stringify(data), function () {
+        console.log("Vaccination change completed");
+    }, "json").done(async function (data) {
+        $("#submitVaccineToggle").html("Success");
+        await sleep(500);
+        $("#vaccine-options").modal("hide");
+        $("#submitVaccineToggle").prop('disabled', false);
+        $("#submitVaccineToggle").html("Submit");
+        window.location.reload();
+    }).fail(requestFailure)
 }
 
 function changeLocation(email) {

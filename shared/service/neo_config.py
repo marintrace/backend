@@ -6,7 +6,7 @@ asynchronous information from clients
 from os import environ as env_vars
 
 from py2neo import Graph, Node
-from py2neo.internal.caching import ThreadLocalEntityCache
+from py2neo.caching import ThreadLocalEntityCache
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
 from shared.utilities import get_pst_time

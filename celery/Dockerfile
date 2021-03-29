@@ -1,10 +1,11 @@
 FROM python:3.6-alpine
 ARG CA_URL="https://storage.googleapis.com/vault-159468-cert-storage/ca.pem"
 ENV REQUESTS_CA_BUNDLE='/etc/ssl/certs/ca-certificates.crt'
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 # Install APK dependencies
 RUN apk update && \
-    apk add gcc musl-dev jq curl ca-certificates wget
+    apk add gcc musl-dev jq curl ca-certificates wget libressl-dev musl-dev libffi-dev
 
 # Trust Internal CA Certificate
 RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
@@ -13,7 +14,8 @@ RUN wget -O /usr/share/ca-certificates/ca.crt "$CA_URL" && \
 
 # Install Python Dependencies and Clean up
 COPY ./celery/requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt && \
+RUN pip install --upgrade pip && \
+    pip install -r /tmp/requirements.txt && \
     rm  /tmp/requirements.txt
 
 # Copy code into container

@@ -6,7 +6,7 @@ from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
 from shared.logger import logger
-from shared.models.enums import EntryReason
+from shared.models.enums import EntryReason, VaccinationStatus
 from shared.models.risk_entities import (IdentifiedUserEntryItem,
                                          UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport, ListUsersResponse, User
@@ -41,22 +41,25 @@ async def entry_card(user: User = AUTH_USER):
     with Neo4JGraph() as graph:
         record = dict(list(graph.run(
             """MATCH (m:Member {email: $email,school: $school})
-              OPTIONAL MATCH (m)-[r:reported]-(d:DailyReport {date: $date})
-              RETURN r as report, m.location as location, m.first_name + " " + m.last_name as name""",
-            email=user.email, school=user.school, date=pst_date()
-        ))[0])
-        location_risk = UserLocationItem().set_location(record['location'])
-        if not record.get('report'):
-            health_risk = UserHealthItem(school=user.school).set_incomplete()
-        else:
-            health_risk = UserHealthItem(school=user.school).from_health_report(HealthReport(**record['report']))
+              OPTIONAL MATCH (m)-[r:reported]-(d:DailyReport {date: $date}) RETURN r as report, m as member""",
+            email=user.email, school=user.school, date=pst_date()))[0])
 
-        identified_item_params = dict(name=record['name'])
+        location_risk = UserLocationItem().set_location(record['member']['location'])
+        health_risk = UserHealthItem(school=user.school)
+
+        if not record.get('report'):
+            health_risk.set_incomplete()
+        else:
+            health_risk.from_health_report(HealthReport(**record['report']))
+
+        if record['member']['vaccinated'] == VaccinationStatus.VACCINATED:
+            health_risk.add_vaccination(VaccinationStatus.VACCINATED)
+
+        identified_item_params = dict(name=f"{record['member']['first_name']} {record['member']['last_name']}")
+
         if location_risk.entry_blocked():
             identified_item_params.update(dict(entry=False, reason=EntryReason.LOCATION))
-        elif health_risk.is_incomplete():
-            identified_item_params.update(dict(entry=False, reason=EntryReason.HEALTH))
-        elif health_risk.at_risk(include_warning=True):
+        elif health_risk.is_incomplete() or health_risk.at_risk(include_warning=True):
             identified_item_params.update(dict(entry=False, reason=EntryReason.HEALTH))
         else:
             identified_item_params.update(dict(entry=True, reason=EntryReason.HEALTH))

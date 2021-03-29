@@ -1,17 +1,17 @@
 from enum import Enum
 
 
-class HTMLColors(str, Enum):
-    """
-    Summary Item colors for admin-dashboard items
-    """
-    DANGER = "danger"
-    YELLOW = 'yellow'
-    GRAY = "gray"
-    SUCCESS = "success"
-
-
 # ENUMS - Use String Mixin to make JSON Serializeable: https://stackoverflow.com/a/51976841/4501002
+class StatusColor(str, Enum):
+    """
+    Summary Item colors for admin dashboard items
+    """
+    UNHEALTHY = "danger"
+    WARNING = 'yellow'
+    UNKNOWN = "gray"
+    HEALTHY = "success"
+
+
 class ResponseStatus(str, Enum):
     """
     Possible response statuses from the API
