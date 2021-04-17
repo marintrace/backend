@@ -4,6 +4,9 @@ document.getElementById("branson").onclick = function() {
 document.getElementById("ma").onclick = function() {
   showGoogle()
 };
+document.getElementById("headlands").onclick = function() {
+  showPassword()
+};
 //for tracking whether or not to run active function
 var newAuth = false
 window.onload = async () => {
@@ -12,12 +15,16 @@ window.onload = async () => {
   $('#branson').html(`Loading...`);
   $('#ma').addClass('disabled')
   $('#ma').html(`Loading...`);
+  $('#headlands').addClass('disabled')
+  $('#headlands').html(`Loading...`);
   await configureClient();
   const isAuthenticated = await auth0.isAuthenticated();
   $("#branson").removeClass("disabled")
   $("#branson").html("Login with branson.org")
   $("#ma").removeClass("disabled")
   $("#ma").html("Login with ma.org")
+  $("#headlands").removeClass("disabled")
+  $("#headlands").html("Login with password")
   if (isAuthenticated) {
     document.location.href = "/home.html";
     return
@@ -43,6 +50,8 @@ window.onload = async () => {
     $('#branson').html(`🔐 Encrypting...`);
     $('#ma').addClass('disabled')
     $('#ma').html(`🔐 Encrypting...`);
+    $('#headlands').addClass('disabled')
+    $('#headlands').html(`🔐 Encrypting...`);
     // Process the login state
     await auth0.handleRedirectCallback();
 
@@ -58,6 +67,7 @@ window.onload = async () => {
     } else if (timesTried > 0) {
       $('#branson').html(`🔐 Setting up your account...`);
       $('#ma').html(`🔐 Setting up your account...`);
+      $('#headlands').html(`🔐 Setting up your account...`);
     }
 
     markUserAsActive().then(function() {
@@ -72,7 +82,7 @@ window.onload = async () => {
       } else {
         //likely a new user, doesn't have new claims. try again with new token. for some reason getTokenSilently doesn't get a token with the roles
         localStorage.setItem('timesAttemptedToMark', (timesTried + 1))
-        showGoogle()
+        unspecifiedLogin()
       }
     });
   } else if (("error" in urlParams) && ("error_description" in urlParams)) {
@@ -86,6 +96,8 @@ function loginFinished() {
     $("#branson").html("Login with branson.org")
     $("#ma").removeClass("disabled")
     $("#ma").html("Login with ma.org")
+    $("#headlands").removeClass("disabled")
+    $("#headlands").html("Login with password")
   });
 
   // Use replaceState to redirect the user away and remove the querystring parameters
@@ -93,6 +105,18 @@ function loginFinished() {
 }
 
 const showGoogle = async () => {
+  await auth0.loginWithRedirect({
+    redirect_uri: window.location.origin,
+    connection: "google-oauth2"
+  })
+}
+const showPassword = async () => {
+  await auth0.loginWithRedirect({
+    redirect_uri: window.location.origin,
+    connection: "MT-Email-Pass"
+  })
+}
+const unspecifiedLogin = async () => {
   await auth0.loginWithRedirect({
     redirect_uri: window.location.origin
   })
