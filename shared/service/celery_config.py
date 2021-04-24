@@ -7,7 +7,7 @@ import ssl
 
 from celery import Celery
 from celery.schedules import crontab
-from shared.logger import logger
+from shared.logger.logging_config import logger
 from shared.service.vault_config import VaultConnection
 
 CELERY_CONFIG_OPTIONS = {

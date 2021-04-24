@@ -8,10 +8,10 @@ from os import environ as env_vars
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.timing import add_timing_middleware
-from uvicorn import run as run_server
-
 from routers.asynchronous import ASYNC_ROUTER
 from routers.synchronous import SYNC_ROUTER
+from uvicorn import run as run_server
+
 from shared.logger import logger
 
 app = FastAPI(

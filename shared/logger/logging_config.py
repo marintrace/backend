@@ -10,6 +10,7 @@ from os import environ as env_vars
 from sys import stdout
 from typing import Dict
 
+from celery.utils.log import get_task_logger
 from loguru import logger as loguru_logger
 
 

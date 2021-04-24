@@ -2,6 +2,8 @@ boto3==1.13.24
 amqp==2.6.1
 celery==4.4.5
 py2neo==2020.0.0
+retry==0.9.2
+python-jose==3.2.0
 tornado>=4.2.0,<6.0.0
 flower>=0.9.5
 pydantic==1.6

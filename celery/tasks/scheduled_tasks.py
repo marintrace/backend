@@ -1,13 +1,12 @@
-from typing import Optional, List
+from shared.date_utils import get_pst_time
 from shared.logger import logger
+from shared.models.admin_entities import DailyDigestRequest
 from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import User
-from shared.models.admin_entities import DailyDigestRequest
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.email_config import EmailClient
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
-from shared.utilities import get_pst_time
 
 EMAIL_CLIENT = EmailClient()
 

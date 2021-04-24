@@ -4,7 +4,8 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from shared.logger import logger
-from shared.models.enums import EntryReason, StatusColor, UserLocationStatus, VaccinationStatus
+from shared.models.enums import (EntryReason, StatusColor, UserLocationStatus,
+                                 VaccinationStatus)
 from shared.models.user_entities import HealthReport, TestType
 from shared.service.vault_config import VaultConnection
 

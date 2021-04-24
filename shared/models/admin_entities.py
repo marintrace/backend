@@ -3,9 +3,22 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus, VaccinationStatus
-from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
-from shared.models.user_entities import (Paginated, PaginatedResponse, HealthReport,
-                                         Response, User, UserIdentifier)
+from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
+                                         UserLocationItem)
+from shared.models.user_entities import (HealthReport, Paginated,
+                                         PaginatedResponse, Response, User,
+                                         UserIdentifier)
+
+
+class AddCommunityMemberRequest(BaseModel):
+    """
+    Request to add a community member
+    """
+    first_name: str
+    last_name: str
+    email: str
+    vaccinated: VaccinationStatus = VaccinationStatus.NOT_VACCINATED
+    location: UserLocationStatus = UserLocationStatus.CAMPUS
 
 
 class AdminHealthReport(HealthReport, UserIdentifier):

@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from py2neo import RelationshipMatcher
 
+from shared.date_utils import (DATE_FORMAT, get_pst_time, parse_timestamp,
+                               pst_date)
 from shared.logger import logger
 from shared.models.admin_entities import (AdminDashboardUser,
                                           IdSingleUserDualStatus,
@@ -10,20 +12,19 @@ from shared.models.admin_entities import (AdminDashboardUser,
                                           OptIdPaginationRequest,
                                           SingleUserDualStatus,
                                           SingleUserHealthHistory,
-                                          UserIdentifier,
-                                          UserInfoDetail,
+                                          UserIdentifier, UserInfoDetail,
                                           UserInteraction,
                                           UserInteractionHistory)
 from shared.models.enums import UserLocationStatus, VaccinationStatus
-from shared.models.risk_entities import UserHealthItem, UserLocationItem, DatedUserHealthHolder
+from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
+                                         UserLocationItem)
 from shared.models.user_entities import HealthReport
 from shared.service.neo_config import Neo4JGraph, current_day_node
-from shared.utilities import (DATE_FORMAT, get_pst_time, parse_timestamp,
-                              pst_date)
+
 from .authorization import OIDC_COOKIE
 
 # Mounted on the main router
-BACKEND_ROUTER = APIRouter()
+DASHBOARD_ROUTER = APIRouter()
 
 
 async def create_health_status(user: dict, report: dict, check_vaccine: bool = True) -> UserHealthItem:
@@ -55,8 +56,8 @@ async def create_location_status(location: UserLocationStatus) -> UserLocationIt
     return location_item.set_location(location)
 
 
-@BACKEND_ROUTER.post(path="/submitted-symptom-reports", response_model=NumericalWidgetResponse,
-                     summary="Retrieve the number of submitted symptom reports")
+@DASHBOARD_ROUTER.post(path="/submitted-symptom-reports", response_model=NumericalWidgetResponse,
+                       summary="Retrieve the number of submitted symptom reports")
 async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the number of submitted symptom reports for the school
@@ -70,8 +71,8 @@ async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
         return NumericalWidgetResponse(value=submitted_reports)
 
 
-@BACKEND_ROUTER.post(path="/paginate-user-reports", response_model=SingleUserHealthHistory,
-                     summary="Paginate through user report history")
+@DASHBOARD_ROUTER.post(path="/paginate-user-reports", response_model=SingleUserHealthHistory,
+                       summary="Paginate through user report history")
 async def paginate_user_report_history(request: IdUserPaginationRequest,
                                        user: AdminDashboardUser = OIDC_COOKIE):
     """
@@ -98,8 +99,8 @@ async def paginate_user_report_history(request: IdUserPaginationRequest,
         )
 
 
-@BACKEND_ROUTER.post(path="/paginate-user-summary-items", response_model=MultipleUserDualStatuses,
-                     summary="Paginate through admin dashboard status records")
+@DASHBOARD_ROUTER.post(path="/paginate-user-summary-items", response_model=MultipleUserDualStatuses,
+                       summary="Paginate through admin dashboard status records")
 async def paginate_user_summary_items(request: OptIdPaginationRequest,
                                       user: AdminDashboardUser = OIDC_COOKIE):
     """
@@ -128,8 +129,8 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
     return MultipleUserDualStatuses(statuses=statuses, pagination_token=request.pagination_token + request.limit)
 
 
-@BACKEND_ROUTER.post(path="/get-user-info", response_model=UserInfoDetail,
-                     summary="Get a user's detail from the database")
+@DASHBOARD_ROUTER.post(path="/get-user-info", response_model=UserInfoDetail,
+                       summary="Get a user's detail from the database")
 async def get_user_info(identifier: UserIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the user info from the database for the specified user
@@ -148,8 +149,8 @@ async def get_user_info(identifier: UserIdentifier, user: AdminDashboardUser = O
         )
 
 
-@BACKEND_ROUTER.post(path="/paginate-user-interactions", response_model=UserInteractionHistory,
-                     summary="Retrieve a user's interactions")
+@DASHBOARD_ROUTER.post(path="/paginate-user-interactions", response_model=UserInteractionHistory,
+                       summary="Retrieve a user's interactions")
 async def paginate_user_interactions(request: IdUserPaginationRequest, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate through a user's interactions
@@ -170,8 +171,8 @@ async def paginate_user_interactions(request: IdUserPaginationRequest, user: Adm
         return UserInteractionHistory(users=users, pagination_token=request.pagination_token + request.limit)
 
 
-@BACKEND_ROUTER.post(path="/user-summary-status", response_model=SingleUserDualStatus,
-                     summary="Retrieve a user's summary status and color")
+@DASHBOARD_ROUTER.post(path="/user-summary-status", response_model=SingleUserDualStatus,
+                       summary="Retrieve a user's summary status and color")
 async def get_user_summary_status(identifier: UserIdentifier, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get the user's summary status

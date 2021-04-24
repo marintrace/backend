@@ -5,13 +5,14 @@ Synchronous API for client-side display in both iOS and Web Apps
 from fastapi import APIRouter, status
 from py2neo.matching import NodeMatcher
 
+from shared.date_utils import pst_date
 from shared.logger import logger
 from shared.models.enums import EntryReason, VaccinationStatus
 from shared.models.risk_entities import (IdentifiedUserEntryItem,
                                          UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport, ListUsersResponse, User
 from shared.service.neo_config import Neo4JGraph
-from shared.utilities import pst_date
+
 from .authorization import AUTH_USER
 
 # Synchronous API Router-- we can mount it to the main API

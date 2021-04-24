@@ -1,9 +1,13 @@
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models.admin_entities import (AdminDashboardUser, AdminHealthReport, UpdateVaccinationRequest,
-                                          UpdateLocationRequest, DailyDigestRequest)
+from shared.models.admin_entities import (AdminDashboardUser,
+                                          AdminHealthReport,
+                                          DailyDigestRequest,
+                                          UpdateLocationRequest,
+                                          UpdateVaccinationRequest)
 from shared.models.user_entities import CreatedAsyncTask, User
+
 from .authorization import OIDC_COOKIE
 
 ASYNC_ROUTER = APIRouter()

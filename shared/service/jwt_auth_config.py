@@ -35,8 +35,15 @@ class JWTAuthManager:
             self.role_claim_name = oidc_secrets["role_claim_name"]
             self.jwks = get_request(f"https://{self.domain}/.well-known/jwks.json").json()
 
-        self.token_extractor = JWTAuthManager.TOKEN_EXTRACTOR
         self.object_creator = object_creator
+
+    @staticmethod
+    def jwt_expired(token: str):
+        """
+        Check whether or not a given JWT is expired
+        :param token: the specified token
+        :return: whether it is expired or not.
+        """
 
     def _extract_token_from_header(self, header: str):
         """
@@ -44,7 +51,7 @@ class JWTAuthManager:
         :param header: authorization header specified
         :return: the parsed token
         """
-        extracted_token = self.token_extractor.match(header)
+        extracted_token = JWTAuthManager.TOKEN_EXTRACTOR.match(header)
 
         if not extracted_token:  # Verify token format
             logger.info("Invalid Token Header Specified. Make sure it is prefixed with 'Bearer'")

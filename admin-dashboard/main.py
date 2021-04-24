@@ -1,13 +1,14 @@
 # -*- encoding: utf-8 -*-
 from os import environ as env_vars
 
+from backend.asynchronous import ASYNC_ROUTER
+from backend.dashboard import DASHBOARD_ROUTER
+from backend.user_management import USER_MGMT_ROUTER
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_utils.timing import add_timing_middleware
 
-from backend.asynchronous import ASYNC_ROUTER
-from backend.dashboard import BACKEND_ROUTER
 from shared.logger import logger
 
 app = FastAPI(
@@ -52,13 +53,18 @@ async def render_user_page(request: Request, email: str):
 
 
 app.include_router(
-    BACKEND_ROUTER,
+    DASHBOARD_ROUTER,
     prefix="/api"
 )
 
 app.include_router(
     ASYNC_ROUTER,
     prefix="/async"
+)
+
+app.include_router(
+    USER_MGMT_ROUTER,
+    prefix='/user'
 )
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from os import environ as env_vars
 
 from hvac import Client
 from hvac.exceptions import InvalidRequest
+from retry import retry
 
 from shared.logger import logger
 
@@ -57,26 +58,23 @@ class VaultConnection:
         else:
             raise Exception("Unable to authorize Kubernetes auth from Vault")
 
-    def read_secret(self, *, secret_path: str, attempts: int = 0):
+    @retry((InvalidRequest,), tries=3, delay=2)
+    def read_secret(self, *, secret_path: str):
         """
         Read a Secret from Vault KV
-        :param attempts: the number of attempts we have been trying to retrieve the token
         :param secret_path: the vault_server path to the secret (excluding kv)
         :return: the secret from vault_server
         """
-        if attempts >= VaultConnection.MAX_REFRESH_ATTEMPTS:
-            raise Exception(f"Unable to retrieve secret after {attempts} attempts")
-
         if not self.client.is_authenticated():
             self.refresh_token()
 
         try:
-            logger.info(f"Reading Encrypted Secret from vault_server @ {secret_path} (attempt num: {attempts})")
+            logger.info(f"Reading Encrypted Secret from vault_server @ {secret_path}")
             return self.client.secrets.kv.read_secret_version(path=secret_path)['data']['data']
         except InvalidRequest:
             logger.exception(f"Could not read the secret @ {secret_path} (on {VaultConnection.VAULT_URL})")
             self.refresh_token()
-            return self.read_secret(secret_path=secret_path, attempts=attempts + 1)  # recursive call to try again
+            raise
 
     def close(self):
         """

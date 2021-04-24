@@ -6,10 +6,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from shared.date_utils import pst_timestamp
 from shared.logger import logger
 from shared.models.enums import ResponseStatus, TestType
 from shared.service.celery_config import get_celery
-from shared.utilities import pst_timestamp
 
 
 # Base Classes
