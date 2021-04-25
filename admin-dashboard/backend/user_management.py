@@ -1,10 +1,9 @@
 from fastapi import APIRouter, status
 
 from shared.logger import logger
-from shared.models.admin_entities import (AddCommunityMemberRequest,
-                                          AdminDashboardUser, Paginated,
-                                          UserIdentifier)
-from shared.models.user_entities import CreatedAsyncTask, User
+from shared.models.dashboard_entities import (AdminDashboardUser, Paginated)
+from shared.models.user_entities import CreatedAsyncTask, UserIdentifier
+from shared.models.user_mgmt_entitities import AddCommunityMemberRequest, ToggleAccessRequest
 
 from .authorization import OIDC_COOKIE
 
@@ -26,9 +25,8 @@ async def create_user(target: AddCommunityMemberRequest, admin: AdminDashboardUs
     * Requires OIDC Cookie (kc-access) with a Auth0 JWT
     """
     logger.info("Processing Create Community Member Request...")
-    assumed_user = User(impersonator=admin.email, email=target.email, school=admin.school)
-    return CreatedAsyncTask(task_id=assumed_user.queue_task(task_name='tasks.admin_create_user',
-                                                            task_data=target))
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_create_user',
+                                                     task_data=target))
 
 
 @USER_MGMT_ROUTER.delete('/delete-user', operation_id='admin_delete_user',
@@ -41,11 +39,18 @@ async def delete_user(request: UserIdentifier, admin: AdminDashboardUser = OIDC_
     * Requires an OIDC cookie (kc-access) with an Auth0 JWT
     """
     logger.info("Processing Delete Community Member Request...")
-    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.delete_community_user',
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_delete_user',
                                                      task_data=request))
 
 
-@USER_MGMT_ROUTER.post('/paginate-users', operation_id='admin_paginate_users',
-                       description='Paginate through users and their statuses')
-async def paginate_users(request: Paginated, admin: AdminDashboardUser = OIDC_COOKIE):
-    pass
+@USER_MGMT_ROUTER.post('/toggle-access', operation_id='admin_toggle_access',
+                       description='Toggle the ability to use MarinTrace for a member')
+async def toggle_access(request: ToggleAccessRequest, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Toggle a user's ability to use MarinTrace
+    * Requires a Toggle Access Request payload with the user's id and whether to block them or not
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    logger.info("Processing Toggle Access Request...")
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_toggle_access',
+                                                     task_data=request))

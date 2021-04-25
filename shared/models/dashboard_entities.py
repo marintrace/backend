@@ -10,17 +10,6 @@ from shared.models.user_entities import (HealthReport, Paginated,
                                          UserIdentifier)
 
 
-class AddCommunityMemberRequest(BaseModel):
-    """
-    Request to add a community member
-    """
-    first_name: str
-    last_name: str
-    email: str
-    vaccinated: VaccinationStatus = VaccinationStatus.NOT_VACCINATED
-    location: UserLocationStatus = UserLocationStatus.CAMPUS
-
-
 class AdminHealthReport(HealthReport, UserIdentifier):
     """
     Impersonator logged health report request

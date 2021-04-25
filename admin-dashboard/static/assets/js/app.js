@@ -225,7 +225,7 @@ async function submitVaccineToggle(email) {
         "status": vax_status,
         "email": email.renderQuotes()
     };
-    $.post("/async/modify-vaccination", JSON.stringify(data), function () {
+    $.post("/health/modify-vaccination", JSON.stringify(data), function () {
         console.log("Vaccination change completed");
     }, "json").done(async function (data) {
         $("#submitVaccineToggle").html("Success");
@@ -246,7 +246,7 @@ function changeLocation(email) {
 async function resendDailyBriefing() {
     promptPolicyModal();
     $("#resendButton").html("Submitting...").prop('disabled', true);
-    $.post("/async/send-targeted-digest", JSON.stringify({}), function () {
+    $.post("/health/send-targeted-digest", JSON.stringify({}), function () {
         console.log("Send targeted digest report recieved");
     }, "json").done(async function (data) {
         $("#resendButton").html("Success!");
@@ -288,7 +288,7 @@ async function submitHealthModification(email, set_healthy) {
     payload['email'] = email.renderQuotes();
     $("#submitHealthModification").prop('disabled', true);
     $("#setHealthy").prop('disabled', true);
-    $.post("/async/modify-health", JSON.stringify(payload), function () {
+    $.post("/health/modify-health", JSON.stringify(payload), function () {
         console.log("Modify health completed");
     }, "json").done(async function (data) {
         $("#submitHealthModification").html("Success");
@@ -312,7 +312,7 @@ async function submitLocationChange(email) {
         "location": location,
         "email": email.renderQuotes()
     };
-    $.post("/async/queue-location-change", JSON.stringify(data), function () {
+    $.post("/health/queue-location-change", JSON.stringify(data), function () {
         console.log("Location change completed");
     }, "json").done(async function (data) {
         $("#submitLocationChange").html("Success");

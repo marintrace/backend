@@ -94,7 +94,7 @@ class User(BaseModel):
         if getattr(self, 'impersonator'):
             logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
 
-        task_params = {'user': self}
+        task_params = {'sender': self}
 
         if task_data:
             task_params['task_data'] = task_data

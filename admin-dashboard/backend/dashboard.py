@@ -4,17 +4,17 @@ from py2neo import RelationshipMatcher
 from shared.date_utils import (DATE_FORMAT, get_pst_time, parse_timestamp,
                                pst_date)
 from shared.logger import logger
-from shared.models.admin_entities import (AdminDashboardUser,
-                                          IdSingleUserDualStatus,
-                                          IdUserPaginationRequest,
-                                          MultipleUserDualStatuses,
-                                          NumericalWidgetResponse,
-                                          OptIdPaginationRequest,
-                                          SingleUserDualStatus,
-                                          SingleUserHealthHistory,
-                                          UserIdentifier, UserInfoDetail,
-                                          UserInteraction,
-                                          UserInteractionHistory)
+from shared.models.dashboard_entities import (AdminDashboardUser,
+                                              IdSingleUserDualStatus,
+                                              IdUserPaginationRequest,
+                                              MultipleUserDualStatuses,
+                                              NumericalWidgetResponse,
+                                              OptIdPaginationRequest,
+                                              SingleUserDualStatus,
+                                              SingleUserHealthHistory,
+                                              UserIdentifier, UserInfoDetail,
+                                              UserInteraction,
+                                              UserInteractionHistory)
 from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
                                          UserLocationItem)

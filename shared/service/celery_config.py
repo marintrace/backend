@@ -65,7 +65,7 @@ def create_daily_admin_digest_beat():
     and we will create Celery periodic tasks for each one.
     :return: Dictionary Config for Celery with Periodic Tasks
     """
-    from shared.models.admin_entities import DailyDigestRequest
+    from shared.models.dashboard_entities import DailyDigestRequest
     beat_tasks = {}
 
     with VaultConnection() as vault:

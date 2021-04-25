@@ -54,21 +54,21 @@ def calculate_interaction_risks(*, email: str, school: str, lookback_days: int, 
 
 
 @celery.task(name='tasks.notify_risk', **GLOBAL_CELERY_OPTIONS)
-def notify_risk(self, *, user: User, task_data: UserHealthItem):
+def notify_risk(self, *, sender: User, task_data: UserHealthItem):
     """
     Asynchronously report member risk from app
-    :param user: authorized user model
+    :param sender: authorized user model
     :param task_data: risk notification model
     """
     EMAIL_CLIENT.setup()
     with VaultConnection() as vault:
-        risk_notification_secrets = vault.read_secret(secret_path=f'schools/{user.school}/risk_notification')
+        risk_notification_secrets = vault.read_secret(secret_path=f'schools/{sender.school}/risk_notification')
 
     with Neo4JGraph() as g:
-        member_node = g.nodes.match("Member", email=user.email, school=user.school).first()
+        member_node = g.nodes.match("Member", email=sender.email, school=sender.school).first()
         logger.info("Located Start Member Node...")
         individuals_at_risk = calculate_interaction_risks(
-            email=user.email, school=user.school, lookback_days=int(risk_notification_secrets['lookback_days']),
+            email=sender.email, school=sender.school, lookback_days=int(risk_notification_secrets['lookback_days']),
             **({'cohort': member_node['cohort']} or {})
         )
 
@@ -77,7 +77,7 @@ def notify_risk(self, *, user: User, task_data: UserHealthItem):
                             recipients=risk_notification_secrets['recipients'].split(','),
                             template_data={
                                 'name': f"{member_node['first_name']} {member_node['last_name']}",
-                                'email': user.email,
+                                'email': sender.email,
                                 'cohort': member_node['cohort'] or 'N/A',
                                 'high_risk': individuals_at_risk[HighRisk],
                                 'medium_risk': individuals_at_risk[LowMediumRisk],

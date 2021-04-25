@@ -1,6 +1,6 @@
 from shared.date_utils import get_pst_time
 from shared.logger import logger
-from shared.models.admin_entities import DailyDigestRequest
+from shared.models.dashboard_entities import DailyDigestRequest
 from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import User
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
@@ -14,13 +14,13 @@ celery = get_celery()
 
 
 @celery.task(name='tasks.send_daily_digest', **GLOBAL_CELERY_OPTIONS)
-def send_daily_digest(self, task_data: DailyDigestRequest, user: User = None):
+def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
     """
     Periodically send a daily digest to a specified school
     containing a list of individuals who haven't yet reported.
 
     :param task_data: daily digest request with school (must match Neo4J)
-    :param user: a single (authorized) user to send the daily digest to, rather than the whole group
+    :param sender: a single (authorized) user to send the daily digest to, rather than the whole group
     """
     logger.info(f"Sending Daily Digest for School: {task_data.school}")
     day_node = current_day_node(school=task_data.school)  # get or create current day node in graph
@@ -43,13 +43,13 @@ def send_daily_digest(self, task_data: DailyDigestRequest, user: User = None):
 
     EMAIL_CLIENT.setup()
 
-    if user:
-        assert user.email.lower() in authorized_recipients or user.email.lower() in EMAIL_CLIENT.bcc_emails, \
+    if sender:
+        assert sender.email.lower() in authorized_recipients or sender.email.lower() in EMAIL_CLIENT.bcc_emails, \
             "The specified email is not authorized to receive digests"
 
     EMAIL_CLIENT.send_email(
         template_name='daily_digest',
-        recipients=[user.email] if user else authorized_recipients,  # send only to single user/all users
+        recipients=[sender.email] if sender else authorized_recipients,  # send only to single user/all users
         template_data={
             'no_report': no_report_members,
             'date': get_pst_time().strftime('%m/%d/%Y')

@@ -54,17 +54,20 @@ async def render_user_page(request: Request, email: str):
 
 app.include_router(
     DASHBOARD_ROUTER,
-    prefix="/api"
+    prefix="/api",
+    tags=['Dashboard']
 )
 
 app.include_router(
     ASYNC_ROUTER,
-    prefix="/async"
+    prefix="/health",
+    tags=['Health']
 )
 
 app.include_router(
     USER_MGMT_ROUTER,
-    prefix='/user'
+    prefix='/user',
+    tags=['User Management']
 )
 
 if __name__ == "__main__":
