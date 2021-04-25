@@ -1,85 +1,91 @@
 """
 Email Service for sending emails via SendGrid
 """
+from os import environ as env_vars
+from typing import Dict, List, Optional
+
 import requests
 
 from shared.logger import logger
 from shared.service.vault_config import VaultConnection
 
 
-class EmailClient:
+class SendgridAPI:
     """
     Email Client for sending emails
     """
-
-    def __init__(self):
-        """
-        Initialize Member Variables
-        """
-        self.templates = {}
-        self.sendgrid_endpoint = 'https://api.sendgrid.com/v3/mail/send'
-        self.api_key = None
-        self.from_email = None
-        self.bcc_emails = None
-        self.auth_header = None
-        self.has_setup = False
-
-    def setup(self):
-        """
-        Set up the email client with templates and
-        authorization information from vault
-        """
-        if not self.has_setup:
-            logger.info("Receiving Email Client Info from Vault...")
-            with VaultConnection() as vault:
-                email_auth = vault.read_secret(secret_path='email/sendgrid')
-                email_templates = vault.read_secret(secret_path='email/templates')
-
-            for template_name in email_templates:
-                self.templates[template_name] = email_templates[template_name]
-
-            self.api_key = email_auth['api_key']
-            self.from_email = email_auth['from_email']
-            self.bcc_emails = email_auth['bcc_emails'].split(',')
-            self.has_setup = True
+    _TEMPLATES = {}  # cache across invocations so we don't need to keep going to vault
+    _SENDGRID_ENDPOINT = env_vars.get('SENDGRID_ADDRESS', 'https://api.sendgrid.com/v3/mail/send')
+    _SENDGRID_CONFIG: Dict[str, str] = None
 
     @staticmethod
-    def _format_target(email, name=None):
+    def retrieve_template_id(template_name: str):
         """
-        Format an email into the appropriate sendgrid target
+        Retrieve template mapping
+        :param template_name: the name of the template to retrieve from
+        :return: the template id
+        """
+        if not SendgridAPI._TEMPLATES:
+            logger.info("Templates have not been cached... retrieving from vault.")
+            with VaultConnection() as vault:
+                SendgridAPI._TEMPLATES = vault.read_secret(secret_path='email/templates')
+
+        if template_name not in SendgridAPI._TEMPLATES:  # check if template has been registered in vault
+            raise Exception(f"Unknown template name {template_name}")
+
+        return SendgridAPI._TEMPLATES[template_name]
+
+    @staticmethod
+    def retrieve_sendgrid_config(field: Optional[str] = None):
+        """
+        Retrieve sendgrid config from Vault
+        :param field: a single property to retrieve rather than a dictionary
+        :return: the sendgrid configuration
+        """
+        if not SendgridAPI._SENDGRID_CONFIG:
+            logger.info("Sendgrid configuration has not yet been cached... retrieving from vault")
+            with VaultConnection() as vault:
+                SendgridAPI._SENDGRID_CONFIG = vault.read_secret(secret_path='email/sendgrid')
+        if field:
+            return SendgridAPI._SENDGRID_CONFIG[field]
+        return SendgridAPI._SENDGRID_CONFIG
+
+    @staticmethod
+    def _format_target(email: str, name: str = None):
+        """
+        Format an email into the appropriate email/display name combination
         :param email: email to format
         :return: formatted email
         """
         return dict(email=email, **({"name": name} if name else {}))
 
-    def send_email(self, *, template_name, recipients, template_data):
+    @staticmethod
+    def send_email(*, template_name: str, recipients: List[str], template_data, bcc: bool = True):
         """
         Send an Email from the email in vault to the recipients specified
         :param template_name: Vault-stored template name to send
         :param recipients: list of recipients to send the email to
         :param template_data: dictionary of handlebars template data
+        :param bcc: whether or not to bcc the monitoring users in vault
         """
-        if not self.has_setup:
-            logger.error("Email Client was not setup via .setup()")
-            raise Exception("Email Client has not been set up")
-
-        if template_name not in self.templates:
-            logger.error(f"Unknown Template specified {template_name}")
-            raise ValueError(f"Email template {template_name} is not known")
+        sendgrid_config = SendgridAPI.retrieve_sendgrid_config()
 
         api_payload = {
-            "from": EmailClient._format_target(email=self.from_email, name="MarinTrace"),
+            "from": SendgridAPI._format_target(email=sendgrid_config['from_email'], name="MarinTrace"),
             "personalizations": [
-                {"to": [EmailClient._format_target(email=recipient) for recipient in recipients],
-                 "bcc": [EmailClient._format_target(email=bcc_email) for bcc_email in self.bcc_emails],
+                {"to": [SendgridAPI._format_target(email=recipient) for recipient in recipients],
                  "dynamic_template_data": template_data}
             ],
-            "template_id": self.templates[template_name]
+            "template_id": SendgridAPI.retrieve_template_id(template_name=template_name)
         }
 
+        if bcc:
+            api_payload['personalizations']['bcc'] = [SendgridAPI._format_target(email=bcc_email) for
+                                                      bcc_email in sendgrid_config['bcc_emails']]
+
         logger.info("Sending API Request to SendGrid")
-        response = requests.post(url=self.sendgrid_endpoint,
-                                 headers={'Authorization': f'Bearer {self.api_key}'},
+        response = requests.post(url=SendgridAPI._SENDGRID_ENDPOINT,
+                                 headers={'Authorization': f'Bearer {sendgrid_config["api_key"]}'},
                                  json=api_payload)
 
         if not response.status_code == 202:

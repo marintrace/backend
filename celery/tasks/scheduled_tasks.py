@@ -4,11 +4,11 @@ from shared.models.dashboard_entities import DailyDigestRequest
 from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.user_entities import User
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
-from shared.service.email_config import EmailClient
+from shared.service.email_config import SendgridAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
 
-EMAIL_CLIENT = EmailClient()
+EMAIL_CLIENT = SendgridAPI()
 
 celery = get_celery()
 
@@ -33,7 +33,7 @@ def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
         no_report_members = [member['email'] for member in list(g.run(
             """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
                     MATCH (m)-[:reported]-(d: DailyReport {date: $date})
-             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax
+             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax AND m.blocked = false
              RETURN m.email as email ORDER BY email""",
             school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"],
             fully_vax=VaccinationStatus.VACCINATED

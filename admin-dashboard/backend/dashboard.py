@@ -1,3 +1,6 @@
+from os import environ as env_vars
+
+import requests
 from fastapi import APIRouter
 from py2neo import RelationshipMatcher
 
@@ -12,6 +15,7 @@ from shared.models.dashboard_entities import (AdminDashboardUser,
                                               OptIdPaginationRequest,
                                               SingleUserDualStatus,
                                               SingleUserHealthHistory,
+                                              TaskStatusResponse,
                                               UserIdentifier, UserInfoDetail,
                                               UserInteraction,
                                               UserInteractionHistory)
@@ -19,6 +23,7 @@ from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
                                          UserLocationItem)
 from shared.models.user_entities import HealthReport
+from shared.service.flower_config import FlowerAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
 
 from .authorization import OIDC_COOKIE
@@ -54,6 +59,24 @@ async def create_location_status(location: UserLocationStatus) -> UserLocationIt
     """
     location_item = UserLocationItem()
     return location_item.set_location(location)
+
+
+@DASHBOARD_ROUTER.get(path="/task-status/{task_id}", response_model=TaskStatusResponse,
+                      summary="Get the status of a task running in flower")
+async def get_task_status(task_id: str, user: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Get a Celery task's status from Flower
+    :return: the tasks status
+    """
+    credentials = FlowerAPI.retrieve_credentials()
+    logger.info(f"Getting status of task id {task_id} at the request of {user.email}")
+    request = requests.get(
+        url=FlowerAPI.get_url(f'/api/task/info/{task_id}'),
+        auth=(credentials['username'], credentials['password'])
+    )
+    request.raise_for_status()
+    response = request.json()
+    return TaskStatusResponse(status=response['state'])
 
 
 @DASHBOARD_ROUTER.post(path="/submitted-symptom-reports", response_model=NumericalWidgetResponse,

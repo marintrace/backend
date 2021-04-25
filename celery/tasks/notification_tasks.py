@@ -6,11 +6,10 @@ from shared.logger import logger
 from shared.models.risk_entities import UserHealthItem
 from shared.models.user_entities import User
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
-from shared.service.email_config import EmailClient
+from shared.service.email_config import SendgridAPI
 from shared.service.neo_config import Neo4JGraph
 from shared.service.vault_config import VaultConnection
 
-EMAIL_CLIENT = EmailClient()
 RiskTier = namedtuple('RiskTier', ['depth'])
 
 HighRisk = RiskTier(depth=1)  # direct interaction with positive/symptomatic member
@@ -60,7 +59,6 @@ def notify_risk(self, *, sender: User, task_data: UserHealthItem):
     :param sender: authorized user model
     :param task_data: risk notification model
     """
-    EMAIL_CLIENT.setup()
     with VaultConnection() as vault:
         risk_notification_secrets = vault.read_secret(secret_path=f'schools/{sender.school}/risk_notification')
 
@@ -73,14 +71,14 @@ def notify_risk(self, *, sender: User, task_data: UserHealthItem):
         )
 
     logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
-    EMAIL_CLIENT.send_email(template_name='risk_notification',
-                            recipients=risk_notification_secrets['recipients'].split(','),
-                            template_data={
-                                'name': f"{member_node['first_name']} {member_node['last_name']}",
-                                'email': sender.email,
-                                'cohort': member_node['cohort'] or 'N/A',
-                                'high_risk': individuals_at_risk[HighRisk],
-                                'medium_risk': individuals_at_risk[LowMediumRisk],
-                                'criteria': task_data.format_criteria(),
-                            })
+    SendgridAPI.send_email(template_name='risk_notification',
+                           recipients=risk_notification_secrets['recipients'].split(','),
+                           template_data={
+                               'name': f"{member_node['first_name']} {member_node['last_name']}",
+                               'email': sender.email,
+                               'cohort': member_node['cohort'] or 'N/A',
+                               'high_risk': individuals_at_risk[HighRisk],
+                               'medium_risk': individuals_at_risk[LowMediumRisk],
+                               'criteria': task_data.format_criteria(),
+                           })
     logger.info("Sent email to relevant administrators")

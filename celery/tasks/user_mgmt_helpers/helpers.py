@@ -1,13 +1,11 @@
 import uuid
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 import requests
 
 from shared.logger import logger
 from shared.service.auth0_config import Auth0ManagementClient
-from shared.service.email_config import EmailClient
-
-EMAIL_CLIENT = EmailClient()
+from shared.service.email_config import SendgridAPI
 
 
 def create_user(email: str, first_name: str, last_name: str):
@@ -57,7 +55,7 @@ def get_user(email: str, fields: Optional[List] = None):
         raise Exception(f"More than one user was found for the email {email}")
 
     user_data = response[0]
-    return {user_data[field] for field in fields}
+    return {field: user_data[field] for field in fields}
 
 
 def delete_user(user_id: str):
@@ -122,9 +120,9 @@ def send_user_password_invite(email: str, first_name: str):
         headers=Auth0ManagementClient.get_jwt_header()
     )
     request.raise_for_status()
-    EMAIL_CLIENT.setup()
-    EMAIL_CLIENT.send_email(
+    SendgridAPI.send_email(
         template_name='user_invite',
         template_data={'ticket_url': request.json()['ticket'], 'name': first_name},
-        recipients=[email]
+        recipients=[email],
+        bcc=False
     )

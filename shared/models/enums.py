@@ -63,6 +63,12 @@ class VaccinationStatus(str, Enum):
     VACCINATED = "vaccinated"
     NOT_VACCINATED = "not_vaccinated"
 
+    @staticmethod
+    def from_radio(text: str):
+        if text == "yes":
+            return VaccinationStatus.VACCINATED
+        return VaccinationStatus.NOT_VACCINATED
+
 
 class UserStatus(str, Enum):
     """

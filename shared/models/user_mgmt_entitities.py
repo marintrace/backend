@@ -1,5 +1,10 @@
+from typing import List
+
 from pydantic import BaseModel
-from shared.models.enums import VaccinationStatus, UserLocationStatus
+
+from shared.models.enums import UserLocationStatus, VaccinationStatus
+
+BULK_IMPORT_SCHEMA = ['Email', 'FirstName', 'LastName', 'Vaccinated', 'Location']
 
 
 class AddCommunityMemberRequest(BaseModel):
@@ -11,6 +16,13 @@ class AddCommunityMemberRequest(BaseModel):
     email: str
     vaccinated: VaccinationStatus = VaccinationStatus.NOT_VACCINATED
     location: UserLocationStatus = UserLocationStatus.CAMPUS
+
+
+class BulkAddCommunityMemberRequest(BaseModel):
+    """
+    Request to add multiple community members
+    """
+    users: List[AddCommunityMemberRequest]
 
 
 class ToggleAccessRequest(BaseModel):

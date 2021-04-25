@@ -10,6 +10,13 @@ from shared.models.user_entities import (HealthReport, Paginated,
                                          UserIdentifier)
 
 
+class TaskStatusResponse(BaseModel):
+    """
+    Celery Task Status response
+    """
+    status: str
+
+
 class AdminHealthReport(HealthReport, UserIdentifier):
     """
     Impersonator logged health report request

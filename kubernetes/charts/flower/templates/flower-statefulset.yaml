@@ -42,6 +42,9 @@ spec:
             - mountPath: /var/run/rmq-tls
               name: {{ template "flower.fullname" . }}-rmq-tls
               readOnly: true
+            - mountPath: /var/run/ssl
+              name: {{ template "flower.fullname" . }}-tls
+              readOnly: true
           image: {{ .Values.imageName }}:{{ .Values.imageVersion }}
           args:
             - sh
@@ -52,6 +55,7 @@ spec:
           {{ if eq .Values.readinessProbe.enabled "true" }}
           readinessProbe:
             httpGet:
+              scheme: https
               path: /
               port: 5555
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelay }}
@@ -60,6 +64,7 @@ spec:
           {{ if eq .Values.livenessProbe.enabled "true" }}
           livenessProbe:
             httpGet:
+              scheme: https
               path: /
               port: 5555
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelay }}
@@ -73,3 +78,6 @@ spec:
           - name: {{ template "flower.fullname" . }}-rmq-tls
             secret:
               secretName: {{ .Release.Name }}-rabbitmq-client-tls
+          - name: {{ template "flower.fullname" . }}-tls
+            secret:
+              secretName: {{ template "flower.fullname" . }}-tls

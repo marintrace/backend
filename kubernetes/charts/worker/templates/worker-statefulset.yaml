@@ -34,6 +34,8 @@ spec:
         - env:
             - name: VAULT_ADDRESS
               value: https://{{ .Release.Name }}-vault
+            - name: FLOWER_ADDRESS
+              value: https://{{ .Release.Name }}-flower
             - name: RABBITMQ_ADDRESS
               value: {{ .Release.Name }}-rabbitmq:{{ .Values.rabbitmq.port }}
             - name: VAULT_ROLE
