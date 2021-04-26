@@ -26,7 +26,7 @@ def admin_create_user(self, *, sender: User, task_data: AddCommunityMemberReques
     logger.info(f"Adding user {task_data.email} to Auth0 at the request of {sender.email}")
     user_id = create_user(email=task_data.email, first_name=task_data.first_name,
                           last_name=task_data.last_name)
-    add_role(user_id=user_id, school=sender.school)
+    add_role(user_id=user_id, school=sender.school) # allows us to identify which school a user belongs to
     send_user_password_invite(email=task_data.email, first_name=task_data.first_name)
     with Neo4JGraph() as graph:
         graph.run("""CREATE (m: Member {first_name: $first_name, last_name: $last_name, email: $email, 
@@ -45,7 +45,8 @@ def admin_delete_user(self, *, sender: User, task_data: UserIdentifier):
     logger.info(f"Deleting user {task_data.email} at the request of {sender.email}")
     logger.info(f"Removing user {task_data.email} from Neo4J")
     with Neo4JGraph() as graph:
-        graph.run("""MATCH (m: Member {email: $email, school: $school}) DELETE m""",
+        # Remove the user from Neo4J and delete all associated edges with the matched node
+        graph.run("""MATCH (m: Member {email: $email, school: $school}) DETACH DELETE m""",
                   email=task_data.email, school=sender.school)
 
     user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']  # get the user's user id from Auth0
@@ -81,7 +82,5 @@ def admin_bulk_import(self, *, sender: User, task_data: BulkAddCommunityMemberRe
     job_list = [admin_create_user.s(task_data=user, sender=sender) for user in task_data.users]
     logger.info(f"Importing {len(job_list)} users into MarinTrace for {sender.email}")
     job = group(job_list)
-    result = job.apply_async()
-
-    while not result.ready():
-        time.sleep(0.5)  # wait 250 ms before rechecking the system to see if jobs have completed
+    job.apply_async().join()
+    logger.info(f"Completed the jobs")

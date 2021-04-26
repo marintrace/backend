@@ -3,8 +3,25 @@ from typing import List
 from pydantic import BaseModel
 
 from shared.models.enums import UserLocationStatus, VaccinationStatus
+from shared.models.user_entities import PaginatedResponse
 
 BULK_IMPORT_SCHEMA = ['Email', 'FirstName', 'LastName', 'Vaccinated', 'Location']
+
+
+class MemberAccessInfo(BaseModel):
+    """
+    Detail of a community member's access info
+    """
+    email: str
+    name: str
+    blocked: bool
+
+
+class MultipleMemberAccessInfo(PaginatedResponse):
+    """
+    Detail of multiple community member's access info
+    """
+    users: List[MemberAccessInfo]
 
 
 class AddCommunityMemberRequest(BaseModel):

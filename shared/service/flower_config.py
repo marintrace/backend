@@ -12,7 +12,7 @@ class FlowerAPI:
     """
     Utility function for communicating with Flower API
     """
-    FLOWER_URL = f'{env_vars["FLOWER_ADDRESS"]}:5000'
+    FLOWER_URL = f'{env_vars["FLOWER_ADDRESS"]}:5000/'
     _CREDENTIALS: Optional[Dict] = None
 
     @staticmethod

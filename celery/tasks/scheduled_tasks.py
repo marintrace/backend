@@ -8,8 +8,6 @@ from shared.service.email_config import SendgridAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
 from shared.service.vault_config import VaultConnection
 
-EMAIL_CLIENT = SendgridAPI()
-
 celery = get_celery()
 
 
@@ -33,7 +31,7 @@ def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
         no_report_members = [member['email'] for member in list(g.run(
             """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
                     MATCH (m)-[:reported]-(d: DailyReport {date: $date})
-             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax AND m.blocked = false
+             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax AND m.disabled = false
              RETURN m.email as email ORDER BY email""",
             school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"],
             fully_vax=VaccinationStatus.VACCINATED
@@ -41,13 +39,11 @@ def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
 
         logger.info(f"Located {len(no_report_members)} members with no report.")
 
-    EMAIL_CLIENT.setup()
-
     if sender:
-        assert sender.email.lower() in authorized_recipients or sender.email.lower() in EMAIL_CLIENT.bcc_emails, \
-            "The specified email is not authorized to receive digests"
+        assert sender.email.lower() in authorized_recipients or sender.email.lower() \
+               in SendgridAPI.retrieve_sendgrid_config(field='bcc_emails'),  "User is not authorized to receive digests"
 
-    EMAIL_CLIENT.send_email(
+    SendgridAPI.send_email(
         template_name='daily_digest',
         recipients=[sender.email] if sender else authorized_recipients,  # send only to single user/all users
         template_data={

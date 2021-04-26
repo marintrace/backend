@@ -19,4 +19,4 @@ FLOWER_USERNAME=$(echo "$FLOWER_SECRET" | jq .data.data.username -r)
 FLOWER_PASSWORD=$(echo "$FLOWER_SECRET" | jq .data.data.password -r)
 
 echo "Starting Server..."
-celery -A tasks flower --auth="$FLOWER_USERNAME:$FLOWER_PASSWORD" --keyfile=/var/run/ssl/flower-key.pem --certfile=/var/run/ssl/flower.pem
+celery -A tasks flower --basic_auth="$FLOWER_USERNAME:$FLOWER_PASSWORD" --keyfile=/var/run/ssl/flower-key.pem --certfile=/var/run/ssl/flower.pem

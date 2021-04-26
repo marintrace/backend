@@ -37,6 +37,7 @@ async def create_health_status(user: dict, report: dict, check_vaccine: bool = T
     Create a Summary item from a graph edge between a member and DailyReport
     :param user: JSON describing the user
     :param report: JSON record of the response from Neo4J
+    :param check_vaccine: whether or not to incorporate vaccination information into the user's status
     """
     risk_item = UserHealthItem(school=user['school'])
 
@@ -66,7 +67,6 @@ async def create_location_status(location: UserLocationStatus) -> UserLocationIt
 async def get_task_status(task_id: str, user: AdminDashboardUser = OIDC_COOKIE):
     """
     Get a Celery task's status from Flower
-    :return: the tasks status
     """
     credentials = FlowerAPI.retrieve_credentials()
     logger.info(f"Getting status of task id {task_id} at the request of {user.email}")
@@ -132,13 +132,13 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
     with Neo4JGraph() as graph:
         records = list(graph.run(
             f"""MATCH (m: Member {{school: $school}})
-            {"WHERE m.email STARTS WITH '" + request.email + "'" if request.email else ''}  
+            {"WHERE m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'} 
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
             RETURN m as member, report 
             ORDER BY COALESCE(report.risk_score, 0) DESC
             SKIP $pag_token LIMIT $limit""",
             school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
-            limit=request.limit
+            limit=request.limit, email=request.email
         ))
 
     statuses = [

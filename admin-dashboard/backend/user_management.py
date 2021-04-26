@@ -3,13 +3,17 @@ import csv
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from shared.logger import logger
-from shared.models.dashboard_entities import AdminDashboardUser
-from shared.models.enums import UserLocationStatus, VaccinationStatus
+from shared.models.dashboard_entities import (AdminDashboardUser,
+                                              OptIdPaginationRequest)
+from shared.models.enums import VaccinationStatus
 from shared.models.user_entities import CreatedAsyncTask, UserIdentifier
 from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
+                                                MemberAccessInfo,
+                                                MultipleMemberAccessInfo,
                                                 ToggleAccessRequest)
+from shared.service.neo_config import Neo4JGraph
 
 from .authorization import OIDC_COOKIE
 
@@ -30,21 +34,24 @@ async def bulk_import(users: UploadFile = File(...), admin: AdminDashboardUser =
     * Requires an OIDC Cookie (kc-access) with an Auth0 JWT
     """
     logger.info(f"Processing Bulk Import Request for {admin.school}...")
-    reader = csv.DictReader(users.file.readlines())
+    # Decode the user bytes object into text so we can process it
+    reader = csv.DictReader((await users.read()).decode('utf-8-sig').split('\n'))
+
     if not reader.fieldnames == BULK_IMPORT_SCHEMA:
+        logger.error(f"Invalid CSV Schema Provided: {reader.fieldnames}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid CSV format")
-    else:
-        user_objects = []  # convert csv lines to pydantic models for processing
-        for line in reader:
-            user_objects.append(AddCommunityMemberRequest(
-                first_name=line['FirstName'],
-                last_name=line['LastName'],
-                email=line['Email'],
-                vaccinated=VaccinationStatus.from_radio(line['Vaccinated']),  # convert yes/no to vaccination enum
-                location=line['Location']
-            ))
-        return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
-                                                         task_data=BulkAddCommunityMemberRequest(users=user_objects)))
+
+    user_objects = []  # convert csv lines to pydantic models for processing and serialization via pickle
+    for line in reader:
+        user_objects.append(AddCommunityMemberRequest(
+            first_name=line['FirstName'],
+            last_name=line['LastName'],
+            email=line['Email'],
+            vaccinated=VaccinationStatus.from_radio(line['Vaccinated']),  # convert yes/no to vaccination enum
+            location=line['Location']
+        ))
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
+                                                     task_data=BulkAddCommunityMemberRequest(users=user_objects)))
 
 
 @USER_MGMT_ROUTER.post('/create-user', operation_id='admin_create_user',
@@ -86,3 +93,31 @@ async def toggle_access(request: ToggleAccessRequest, admin: AdminDashboardUser 
     logger.info("Processing Toggle Access Request...")
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_toggle_access',
                                                      task_data=request))
+
+
+@USER_MGMT_ROUTER.post('/paginate-users', operation_id='admin_paginate_users',
+                       description='Paginate a list of users in the database')
+async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Paginate a list of users from MarinTrace
+    * Requires a pagination token and limit in JSON body
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    logger.info("Processing User Pagination Request...")
+    with Neo4JGraph() as graph:
+        records = list(graph.run(
+            f"""MATCH (m: Member {{school: $school}})
+            {"WHERE m.email STARTS WITH $email" if request.email else ''}
+            RETURN m as member ORDER BY m.email
+            SKIP $pag_token LIMIT $limit
+            """, school=admin.school, email=request.email, pag_token=request.pagination_token,
+            limit=request.limit
+        ))
+
+    details = []
+    for record in records:
+        member = record['member']
+        details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
+                                        blocked=member['disabled']))
+
+    return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)
