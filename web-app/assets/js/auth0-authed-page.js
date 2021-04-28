@@ -56,10 +56,10 @@ function finishedLoading() {
   $("#triggerStatus").removeClass("disabled")
   $("#triggerStatus").html("View status card »")
 
-  //hide testing if Branson
+  //hide testing if Branson/Headlands
   auth0.getIdTokenClaims().then(claims => {
-    let email = claims.email
-    if (email.includes("@branson.org")) {
+    let roles = claims["http://marintracingapp.org/role"]
+    if (roles.includes("headlands") || roles.includes("branson")) {
       $("#testingPanel").remove()
     }
   })
