@@ -9,7 +9,9 @@
 {% block content %}
 
     {% with page_title="Dashboard" %}
-        {% include "components/navigation.html" %}
+        {% with submitSearchCallback="submitHealthSearch" %}
+            {% include "components/navigation.html" %}
+        {% endwith %}
     {% endwith %}
 
     {% include "components/top-stats.html" %}
@@ -22,7 +24,9 @@
                         <div class="row align-items-center">
                             <div class="col">
                                 <h3 class="mb-0">Today's Reports&nbsp;&nbsp;
-                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">Export to CSV</button>
+                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">
+                                        Export to CSV
+                                    </button>
                                 </h3>
                                 <div id="search-toggle">
                                 </div>
@@ -44,7 +48,7 @@
                             <tfoot id="home-footer">
                             <tr>
                                 <th>
-                                    <button type="button" id="load-more-home" onclick="updateHomeStatusSummaries()"
+                                    <button type="button" id="load-more-home" onclick="populateHealthSummaryTable()"
                                             class="btn btn-primary">
                                         Load more
                                     </button>
@@ -66,8 +70,8 @@
     {{ super() }}
     <script>
         $(document).ready(function () {
-            updateSubmittedWidget();
-            updateHomeStatusSummaries();
+            updateSubmittedReportsWidget();
+            populateHealthSummaryTable();
         });
     </script>
 {% endblock %}

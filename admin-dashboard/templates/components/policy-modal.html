@@ -1,18 +1,11 @@
-<div class="modal fade" role="dialog" tabindex="-1" id="policyModal">
-    <div class="modal-dialog full_modal-dialog" role="document">
-        <div class="modal-content full_modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Before continuing, you must accept the Terms of Use and Privacy Policy</h4>
-            </div>
-            <div class="modal-body">
-              <iframe
-                id="policyFrame" src="https://marintracingapp.org/privacy-min.html" name="agreement_frame" scrolling="yes"
-                frameborder="0" height="100%"  width="100%">
-              </iframe>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="acceptButton" onclick="acceptPolicy()" type="button">Accept</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% extends "components/base_modal.html" %}
+{% block modal_name %}policy-modal{% endblock %}
+{% block modal_title %}Before continuing, you must accept the Terms of Use and Privacy Policy{% endblock %}
+{% block modal_body %}
+    <iframe id="policyFrame" src="https://marintracingapp.org/privacy-min.html" name="agreement_frame" scrolling="yes"
+            frameborder="0" height="100%" width="100%"></iframe>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-primary" id="acceptButton" onclick="acceptPolicy()" type="button">Accept</button>
+{% endblock %}
+

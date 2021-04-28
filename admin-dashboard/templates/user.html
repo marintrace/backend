@@ -112,7 +112,7 @@
                   <tfoot id="interaction-footer">
                      <tr>
                         <th>
-                           <button type="button" onclick="updateUserInteractions('{{ user_email }}')"
+                           <button type="button" onclick="populateUserInteractions('{{ user_email }}')"
                               class="btn btn-primary">Load more
                            </button>
                         </th>
@@ -150,7 +150,7 @@
                      <tr>
                         <th>
                            <button type="button" class="btn btn-primary"
-                              onclick="updateUserReports('{{ user_email }}')">
+                              onclick="populateUserReports('{{ user_email }}')">
                            Load more
                            </button>
                         </th>
@@ -169,10 +169,10 @@
 {{ super() }}
 <script>
    $(document).ready(function () {
-       updateUserInteractions("{{ user_email }}");
-       updateUserReports("{{ user_email }}");
-       updateUserStatus("{{ user_email }}");
-       updateUserInfo("{{ user_email }}")
+       populateUserInteractions("{{ user_email }}");
+       populateUserReports("{{ user_email }}");
+       getUserHealthStatus("{{ user_email }}");
+       getUserMetadata("{{ user_email }}")
    });
 </script>
 {% endblock javascripts %}

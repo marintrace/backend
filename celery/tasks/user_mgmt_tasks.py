@@ -1,10 +1,11 @@
-from celery import states, group
 import time
 
+from celery import group, states
 from shared.logger import logger
-from shared.models.user_entities import User, UserIdentifier
+from shared.models.user_entities import User, UserIdentifier, MultipleUserIdentifiers
 from shared.models.user_mgmt_entitities import (AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
+                                                BulkToggleAccessRequest,
                                                 ToggleAccessRequest)
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph
@@ -95,7 +96,32 @@ def admin_bulk_import(self, *, sender: User, task_data: BulkAddCommunityMemberRe
     :param task_data: a list of users to import into Neo4J and Auth0
     """
     # list of celery jobs to complete in parallel
-    job_list = [admin_create_user.s(task_data=user, sender=sender) for user in task_data.users]
-    logger.info(f"Importing {len(job_list)} users into MarinTrace for {sender.email}")
-    job = group(job_list)
-    job.apply()
+    create_sigs = [admin_create_user.s(task_data=user, sender=sender) for user in task_data.users]
+    logger.info(f"Importing {len(create_sigs)} users into MarinTrace for {sender.email}")
+    return group(create_sigs).apply()
+
+
+@celery.task(name='tasks.admin_bulk_delete_user', **GLOBAL_CELERY_OPTIONS)
+def admin_bulk_delete_users(self, *, sender: User, task_data: MultipleUserIdentifiers):
+    """
+    Bulk delete a set of users in Auth0 and Neo4j. Processes deleting users in parallel
+    and waits until all have completed
+    :param sender: the sender of the task
+    :param task_data: a list of user identifiers to delete
+    """
+    delete_sigs = [admin_delete_user.s(task_data=identifier, sender=sender) for identifier in task_data.identifiers]
+    logger.info(f"Deleting {len(delete_sigs)} users from MarinTrace for {sender.email}")
+    return group(delete_sigs).apply()
+
+
+@celery.task(name='tasks.admin_bulk_toggle_access', **GLOBAL_CELERY_OPTIONS)
+def admin_bulk_toggle_access(self, *, sender: User, task_data: BulkToggleAccessRequest):
+    """
+    Bulk enables/disables a set of users in Auth0, revoking their JWTs. Processes these
+    requests in parallel and waits until all have completed
+    :param sender: the sender of the task
+    :param task_data: a list of emails and access states
+    """
+    toggle_sigs = [admin_toggle_access.s(task_data=user, sender=sender) for user in task_data.users]
+    logger.info(f"Changing access for {len(toggle_sigs)} users for {sender.email}")
+    return group(toggle_sigs).apply()

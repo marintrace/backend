@@ -15,6 +15,7 @@ class MemberAccessInfo(BaseModel):
     email: str
     name: str
     blocked: bool
+    active: bool
 
 
 class MultipleMemberAccessInfo(PaginatedResponse):
@@ -48,3 +49,10 @@ class ToggleAccessRequest(BaseModel):
     """
     email: str
     block: bool = True
+
+
+class BulkToggleAccessRequest(BaseModel):
+    """
+    Request to block/unblock many community members from MarinTrace
+    """
+    users: List[ToggleAccessRequest]

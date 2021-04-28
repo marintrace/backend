@@ -3,11 +3,11 @@ $(document).ready(function() {
 
     //check local storage firsts
     if (window.localStorage.getItem('agreed') != "true") {
-      $('#policyModal').modal({backdrop: 'static', keyboard: false})
+      $('#policy-modal').modal({backdrop: 'static', keyboard: false})
     }
 
     $("#acceptButton").click(function(){
-      $('#policyModal').modal('hide');
+      $('#policy-modal').modal('hide');
       window.localStorage.setItem('agreed', 'true')
     });
 

@@ -1,26 +1,21 @@
-<div class="modal fade" role="dialog" tabindex="-1" id="digestModal">
-    <div class="modal-dialog full_modal-dialog" role="document">
-        <div class="modal-content full_modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Resend Daily Briefing</h4>
-            </div>
-            <div class="modal-body">
-                <ul>
-                    <li>Please note that if you are not on the approved list for daily briefings (you recieve them each
-                        morning)
-                        you will not be able to resend the daily briefing to your inbox.
-                    </li>
-                    <li>The email sent will contain the
-                        latest
-                        information
-                        pertaining to who has not yet reported.
-                    </li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="resendButton" onclick="resendDailyBriefing()" type="button">Resend
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+{% extends "components/base_modal.html" %}
+{% block modal_name %}digest-modal{% endblock %}
+{% block modal_title %}Resend Daily Briefing{% endblock %}
+{% block modal_body %}
+    <ul>
+        <li>Please note that if you are not on the approved list for daily briefings (you recieve them each
+            morning)
+            you will not be able to resend the daily briefing to your inbox.
+        </li>
+        <li>The email sent will contain the
+            latest
+            information
+            pertaining to who has not yet reported.
+        </li>
+    </ul>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-primary" id="resendButton" onclick="submitResendBriefingForm()" type="button">Resend
+    </button>
+{% endblock %}
+

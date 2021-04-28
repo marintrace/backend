@@ -8,7 +8,7 @@
             <a href="/"><button class="btn btn-secondary">Back Home</button></a>
         {% else %}
             <form class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto"
-                  onsubmit="submitSearch(); return false;">
+                  onsubmit="{{ submit_search_callback }}(); return false;">
                 <div class="form-group mb-0">
                     <div class="input-group input-group-alternative">
                         <input class="form-control" id='email-input' placeholder="Search Emails" type="text">

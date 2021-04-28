@@ -4,9 +4,9 @@ API Models for type validation and API doc generation
 """
 from typing import List, Optional
 
-from celery.result import AsyncResult
 from pydantic import BaseModel, Field
 
+from celery.result import AsyncResult
 from shared.date_utils import pst_timestamp
 from shared.logger import logger
 from shared.models.enums import ResponseStatus, TestType
@@ -20,6 +20,13 @@ class UserIdentifier(BaseModel):
     """
     name: Optional[str]
     email: str
+
+
+class MultipleUserIdentifiers(BaseModel):
+    """
+    Multiple user identifiers in a list
+    """
+    identifiers: List[UserIdentifier]
 
 
 class Timestamped(BaseModel):

@@ -6,11 +6,12 @@ from shared.logger import logger
 from shared.models.dashboard_entities import (AdminDashboardUser,
                                               OptIdPaginationRequest)
 from shared.models.enums import VaccinationStatus
-from shared.models.user_entities import CreatedAsyncTask, UserIdentifier
+from shared.models.user_entities import CreatedAsyncTask, UserIdentifier, MultipleUserIdentifiers
 from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
                                                 MemberAccessInfo,
+                                                BulkToggleAccessRequest,
                                                 MultipleMemberAccessInfo,
                                                 ToggleAccessRequest)
 from shared.service.neo_config import Neo4JGraph
@@ -69,42 +70,42 @@ async def create_user(target: AddCommunityMemberRequest, admin: AdminDashboardUs
                                                      task_data=target))
 
 
-@USER_MGMT_ROUTER.delete('/delete-user', operation_id='admin_delete_user',
+@USER_MGMT_ROUTER.delete('/delete-users', operation_id='admin_delete_user',
                          description='Delete a community member from MarinTrace, from SSO and DB',
                          **GENERAL_ASYNC_PARAMS)
-async def delete_user(request: UserIdentifier, admin: AdminDashboardUser = OIDC_COOKIE):
+async def delete_user(request: MultipleUserIdentifiers, admin: AdminDashboardUser = OIDC_COOKIE):
     """
     Delete a specified community member from MarinTrace
     * Requires a User email to delete from the database
     * Requires an OIDC cookie (kc-access) with an Auth0 JWT
     """
     logger.info("Processing Delete Community Member Request...")
-    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_delete_user',
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_delete_user',
                                                      task_data=request))
 
 
-@USER_MGMT_ROUTER.post('/toggle-access', operation_id='admin_toggle_access',
-                       description='Toggle the ability to use MarinTrace for a member')
-async def toggle_access(request: ToggleAccessRequest, admin: AdminDashboardUser = OIDC_COOKIE):
+@USER_MGMT_ROUTER.post('/toggle-access', operation_id='admin_bulk_toggle_access')
+async def toggle_access(request: BulkToggleAccessRequest, admin: AdminDashboardUser = OIDC_COOKIE):
     """
-    Toggle a user's ability to use MarinTrace
-    * Requires a Toggle Access Request payload with the user's id and whether to block them or not
+    Toggle multiple user's abilities to use MarinTrace
+    * Requires a Bulk Toggle Access Request payload with one or more user's email (id) and whether to block them or not
     * Requires an OIDC cookie (kc-access) with an Auth0 JWT
     """
-    logger.info("Processing Toggle Access Request...")
-    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_toggle_access',
+    logger.info(f"Processing Bulk Toggle Access Request for {len(request.users)} users...")
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_toggle_access',
                                                      task_data=request))
 
 
-@USER_MGMT_ROUTER.post('/password-reset', operation_id='admin_password_reset',
-                       description='Send a password reset invite to the specified email')
-async def password_reset(request: UserIdentifier, admin: AdminDashboardUser = OIDC_COOKIE):
+@USER_MGMT_ROUTER.post('/password-reset', operation_id='admin_bulk_password_reset',
+                       description='Send a password reset invite to multiple emails')
+async def password_reset(request: MultipleUserIdentifiers, admin: AdminDashboardUser = OIDC_COOKIE):
     """
-    Send a password reset email to the specified user
-    * Requires a user identifier (email)
+    Send a password reset email to multiple users
+    * Requires a list of user emails
     * Requires an OIDC cookie (kc-access) with an Auth0 JWT
     """
-    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_password_reset',
+    logger.info("Processing Bulk Password Reset Request")
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_password_reset',
                                                      task_data=request))
 
 
@@ -131,6 +132,6 @@ async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardU
     for record in records:
         member = record['member']
         details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
-                                        blocked=member['disabled']))
+                                        blocked=member['disabled'], active=member['active']))
 
     return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)

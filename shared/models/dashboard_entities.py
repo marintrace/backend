@@ -17,6 +17,13 @@ class TaskStatusResponse(BaseModel):
     status: str
 
 
+class BriefingEnabledResponse(BaseModel):
+    """
+    Response for whether or not the daily briefing is enabled
+    """
+    enabled: bool
+
+
 class AdminHealthReport(HealthReport, UserIdentifier):
     """
     Impersonator logged health report request

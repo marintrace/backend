@@ -1,37 +1,31 @@
-<div class="modal fade" role="dialog" tabindex="-1" id="health-change" aria-modal="true">
-    <div class="modal-dialog full_modal-dialog" role="document">
-        <div class="modal-content full_modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Modify Health: <a href="#" id="health-user-email"></a></h4>
-            </div>
-            <div class="modal-body">
-                <p style="font-size:15px;">Please note that modifying the below attributes will change a member's
-                    ability
-                    to check into campus
-                </p>
-                <form id="location-form" action="#">
-                    <label for="num_symptoms">Number Symptoms: </label>&nbsp;
-                    <input type="number" style="width:50px; height:20px" id="num_symptoms" name="symptoms"
-                           value="0"><br>
-                    <label>Commercial Travel: </label>
-                    <input type="radio" id="commercial-yes" name="commercial" value="true">
-                    <label for="commercial-yes">Yes</label>&nbsp;&nbsp;
-                    <input type="radio" id="commercial-no" name="commercial" value="false">
-                    <label for="commercial-no">No</label><br>
-                    <label>Proximity to COVID-19: </label>
-                    <input type="radio" id="proximity-yes" name="proximity" value="true">
-                    <label for="proximity-yes">Yes</label>&nbsp;&nbsp;
-                    <input type="radio" id="proximity-no" name="proximity" value="false">
-                    <label for="proximity-no">No</label><br>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="setHealthy" type="button">Set Healthy</button>
-                <button class="btn btn-secondary" id="toggleVaccine" type="button">
-                    Vaccine Options
-                </button>
-                <button class="btn btn-primary" id="submitHealthModification" type="button">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% extends "components/base_modal.html" %}
+{% block modal_name %}health-change{% endblock %}
+{% block modal_title %}Modify Health: <a href="#" id="health-user-email"></a>{% endblock %}
+{% block modal_body %}
+    <p style="font-size:15px;">Please note that modifying the below attributes will change a member's
+        ability
+        to check into campus
+    </p>
+    <form id="location-form" action="#">
+        <label for="num_symptoms">Number Symptoms: </label>&nbsp;
+        <input type="number" style="width:50px; height:20px" id="num_symptoms" name="symptoms"
+               value="0"><br>
+        <label>Commercial Travel: </label>
+        <input type="radio" id="commercial-yes" name="commercial" value="true">
+        <label for="commercial-yes">Yes</label>&nbsp;&nbsp;
+        <input type="radio" id="commercial-no" name="commercial" value="false">
+        <label for="commercial-no">No</label><br>
+        <label>Proximity to COVID-19: </label>
+        <input type="radio" id="proximity-yes" name="proximity" value="true">
+        <label for="proximity-yes">Yes</label>&nbsp;&nbsp;
+        <input type="radio" id="proximity-no" name="proximity" value="false">
+        <label for="proximity-no">No</label><br>
+    </form>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-secondary" id="setHealthy" type="button">Set Healthy</button>
+    <button class="btn btn-secondary" id="toggleVaccine" type="button">
+        Vaccine Options
+    </button>
+    <button class="btn btn-primary" id="submitHealthModification" type="button">Submit</button>{% endblock %}
+

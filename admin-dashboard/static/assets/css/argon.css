@@ -857,18 +857,18 @@ pre code {
     flex: 0 0 91.66667%;
 }
 
-.col-12 {
-    max-width: 100%;
-
-    flex: 0 0 100%;
-}
-
 .order-first {
     order: -1;
 }
 
 .order-last {
     order: 13;
+}
+
+.col-12 {
+    max-width: 100%;
+
+    flex: 0 0 100%;
 }
 
 .order-0 {
@@ -20186,4 +20186,14 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 
 #location-link:hover{
     color: #5e72e4;
+}
+
+.member-edit-checkbox {
+    transform: scale(1.2);
+    text-align: center;
+}
+
+.checkbox-column {
+    width: 30px;
+    padding-right: 0;
 }

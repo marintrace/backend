@@ -6,6 +6,7 @@ from shared.date_utils import (DATE_FORMAT, get_pst_time, parse_timestamp,
                                pst_date)
 from shared.logger import logger
 from shared.models.dashboard_entities import (AdminDashboardUser,
+                                              BriefingEnabledResponse,
                                               IdSingleUserDualStatus,
                                               IdUserPaginationRequest,
                                               MultipleUserDualStatuses,
@@ -21,6 +22,7 @@ from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
                                          UserLocationItem)
 from shared.models.user_entities import HealthReport
+from shared.service.vault_config import VaultConnection
 from shared.service.flower_config import FlowerAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
 
@@ -77,6 +79,19 @@ async def get_task_status(task_id: str, user: AdminDashboardUser = OIDC_COOKIE):
     return TaskStatusResponse(status=response['state'])
 
 
+@DASHBOARD_ROUTER.get(path="/briefing-enabled", response_model=BriefingEnabledResponse,
+                      summary="Get whether or not the daily briefing is enabled for the current school")
+async def is_briefing_enabled(user: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Get whether or not the daily briefing is enabled for the school associated
+    with the logged in user
+    """
+    with VaultConnection() as vault:
+        digest_config = vault.read_secret(secret_path='schools/daily_digest')
+
+    return BriefingEnabledResponse(enabled=user.school in digest_config)
+
+
 @DASHBOARD_ROUTER.post(path="/submitted-symptom-reports", response_model=NumericalWidgetResponse,
                        summary="Retrieve the number of submitted symptom reports")
 async def get_submitted_symptom_reports(user: AdminDashboardUser = OIDC_COOKIE):
@@ -130,7 +145,8 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
     with Neo4JGraph() as graph:
         records = list(graph.run(
             f"""MATCH (m: Member {{school: $school}})
-            WHERE {"m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'} 
+            WHERE {"m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'}
+            AND m.active
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
             RETURN m as member, report 
             ORDER BY COALESCE(report.risk_score, 0) DESC
