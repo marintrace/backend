@@ -1,19 +1,28 @@
 {% extends "components/base_modal.html" %}
 {% block modal_name %}user-import{% endblock %}
-{% block modal_title %}Change User Location: <a href="#" id="loc-user-email"></a>{% endblock %}
+{% block modal_title %}Import Users from CSV{% endblock %}
 {% block modal_body %}
-    <p style="font-size:15px;">Please note that changing a user's location to "remote" or "quarantine" will
-        prevent them from receiving the green status card required for check-in.
+    <p style="font-size:15px;">
+        To import multiple users at the same time, MarinTrace can create users from a
+        <a href="https://wiseflow.zendesk.com/hc/en-gb/articles/115000709394-How-to-open-a-CSV-file-in-Excel-PC-MAC-">CSV</a>
+        (spreadsheet) file. You should download our starter template below to make sure MarinTrace can read your
+        file. It should open in your default spreadsheet application (like Excel or Numbers).
     </p>
-    <form id="location-form" action="#">
-        <input type="radio" id="campus-loc" name="location" value="campus"/>
-        <label for="campus-loc">Campus</label><br>
-        <input type="radio" id="remote-loc" name="location" value="remote"/>
-        <label for="remote-loc">Remote</label><br>
-        <input type="radio" id="quarantine-loc" name="location" value="quarantined"/>
-        <label for="quarantine-loc">Quarantine</label>
+    <a href="/static/assets/sample_files/sample_import.csv" target="_blank">
+        <button class="btn btn-muted">Download Template</button>
+    </a><br>
+
+    <p style="font-size:15px;">
+        <br>
+        Simply fill out the columns for each user you would like to import and upload the
+        completed CSV below. They will receive email invitations (valid for 48 hours) which they can use to create
+        their accounts. Since this may take a minute or two, you may not see all the users at once. We will notify you via email if there are any issues.
+    </p>
+
+    <form id="bulk-import">
+        <input name='users' type="file" accept=".csv">
     </form>
 {% endblock %}
 {% block modal_footer %}
-    <button class="btn btn-primary" id="submitLocationChange" type="button">Submit</button>
+    <button class="btn btn-primary" id='import-submit' onclick="initiateBulkImport()" type="submit">Submit</button>
 {% endblock %}

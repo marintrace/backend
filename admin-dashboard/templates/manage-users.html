@@ -15,6 +15,7 @@
     {% endwith %}
 
     {% include "components/user-summary-stats.html" %}
+    {% include "components/user-import-modal.html" %}
 
     <div class="container-fluid mt--7">
         <div class="row mt-5">
@@ -23,11 +24,11 @@
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col">
-                                <h3 class="mb-0">Community Members&nbsp;
-                                    <button id='csv-export-home' onclick="showUserImportModal()"
+                                <h3 class="mb-0">Community Members&nbsp;&nbsp;&nbsp;
+                                    <button id='user-button-1' onclick="showUserImportModal()"
                                             class="btn btn-secondary">Import from CSV
                                     </button>
-                                    <button id='csv-export-home' onclick="showUserInviteModal()"
+                                    <button id='user-button-2' onclick="showUserInviteModal()"
                                             class="btn btn-secondary">Invite User
                                     </button>
                                 </h3>
