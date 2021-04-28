@@ -43,10 +43,10 @@ async def render_home_page(request: Request):
     return templates.TemplateResponse("index.html", dict(request=request))
 
 
-@app.get("/user/{email}", description="Render the User HTML page", response_model=str, status_code=200)
+@app.get("/detail/{email}", description="Render the User HTML page", response_model=str, status_code=200)
 async def render_user_page(request: Request, email: str):
     """
-    Render the User Page
+    Render the User Detail Page
     :return: Rendered HTML
     """
     return templates.TemplateResponse("user.html", dict(request=request, user_email=email))

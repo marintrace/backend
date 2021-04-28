@@ -69,7 +69,7 @@ function populateUserInteractions(user_email) {
         data['users'].forEach(function (e) {
             let rows = [
                 e.timestamp,
-                `<a href='/user/${e.email.escapeQuotes()}'>${e.email.escapeQuotes()}</a>`
+                `<a href='/detail/${e.email.escapeQuotes()}'>${e.email.escapeQuotes()}</a>`
             ];
             $("#interactions").append("<tr><td>" + rows.join("</td><td>") + "</td>")
         })

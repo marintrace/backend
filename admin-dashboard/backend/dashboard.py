@@ -22,9 +22,9 @@ from shared.models.enums import UserLocationStatus, VaccinationStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
                                          UserLocationItem)
 from shared.models.user_entities import HealthReport
-from shared.service.vault_config import VaultConnection
 from shared.service.flower_config import FlowerAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
+from shared.service.vault_config import VaultConnection
 
 from .authorization import OIDC_COOKIE
 
@@ -144,9 +144,8 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
     """
     with Neo4JGraph() as graph:
         records = list(graph.run(
-            f"""MATCH (m: Member {{school: $school}})
+            f"""MATCH (m: Member {{school: $school, status: "active"}})
             WHERE {"m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'}
-            AND m.active
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
             RETURN m as member, report 
             ORDER BY COALESCE(report.risk_score, 0) DESC

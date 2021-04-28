@@ -9,12 +9,12 @@
 {% block content %}
 
     {% with page_title="Dashboard" %}
-        {% with submitSearchCallback="submitHealthSearch" %}
+        {% with submit_search_callback="submitHealthSearch" %}
             {% include "components/navigation.html" %}
         {% endwith %}
     {% endwith %}
 
-    {% include "components/top-stats.html" %}
+    {% include "components/health-summary-stats.html" %}
 
     <div class="container-fluid mt--7">
         <div class="row mt-5">
@@ -24,7 +24,7 @@
                         <div class="row align-items-center">
                             <div class="col">
                                 <h3 class="mb-0">Today's Reports&nbsp;&nbsp;
-                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">
+                                    <button id='csv-export-home' onclick="exportHealthSummariesAsCSV()" class="btn btn-secondary">
                                         Export to CSV
                                     </button>
                                 </h3>
@@ -38,8 +38,8 @@
                         <table id='home-status-summaries' class="table align-items-center table-flush">
                             <thead class="thead-light">
                             <tr>
-                                <th scope="col" class="sort" data-sort="name">Name</th>
-                                <th scope="col" class="sort" data-sort="budget">Health</th>
+                                <th scope="col" class="sort" data-sort="email">Email</th>
+                                <th scope="col" class="sort" data-sort="health">Health</th>
                                 <th scope="col" class="sort" data-sort="location">Location</th>
                             </tr>
                             </thead>
@@ -68,6 +68,7 @@
 
 {% block javascripts %}
     {{ super() }}
+    <script src="/static/assets/js/home.min.js"></script>
     <script>
         $(document).ready(function () {
             updateSubmittedReportsWidget();

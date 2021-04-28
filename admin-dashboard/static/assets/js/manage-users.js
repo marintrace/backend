@@ -22,7 +22,7 @@ function populateMembersTable(email = null, getall = true) {
 
     $.post("/user/paginate-users", JSON.stringify(data), function () {
         console.log("Get community members request received...")
-    }, "json").done(function (response) {
+    }, "json").done(function (data) {
         if (data['users'].length === 0) {
             $("#home-footer").hide();
             return;
@@ -35,14 +35,26 @@ function populateMembersTable(email = null, getall = true) {
             let rows = [
                 `<input type='checkbox' name="${escapedEmail}" class="member-edit-checkbox"/>`,
                 e.name + (e.active ? "" : " (invited)"),
-                `<a href='/user/${escapedEmail}'>${escapedEmail}</a>`,
-                "<span class='badge badge-dot mr-4'><i class='bg-" + (e.disabled ? "danger" : "success") + "></i>" +
-                "<span>" + (e.disabled ? "Disabled" : "Active") + "</span>"
+                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
+                "<span class='badge badge-dot mr-4'><i class='bg-" + (e.blocked ? "danger" : "success") + "'></i>" +
+                "<span>" + (e.blocked ? "Disabled" : "Active") + "</span>"
             ];
             $("#users").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
     }).fail(requestFailure)
 
+}
+
+/**
+ * Get Invite Statistics and update top statistics widget on manage users page
+ */
+function updateInviteStatsWidget(){
+    $.get("/user/get-invite-stats", function () {
+        console.log("Received Invite Stats");
+    }, "json").done(function (data){
+        $("#active-members").html(data.active);
+        $("#inactive-members").html(data.inactive);
+    }).fail(requestFailure)
 }
 
 /**

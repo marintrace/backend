@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +15,7 @@ class MemberAccessInfo(BaseModel):
     email: str
     name: str
     blocked: bool
-    active: bool
+    active: Optional[bool] = False
 
 
 class MultipleMemberAccessInfo(PaginatedResponse):
@@ -56,3 +56,11 @@ class BulkToggleAccessRequest(BaseModel):
     Request to block/unblock many community members from MarinTrace
     """
     users: List[ToggleAccessRequest]
+
+
+class InviteStatsResponse(BaseModel):
+    """
+    Response for invite stats containing active and pending users
+    """
+    active: int
+    inactive: int

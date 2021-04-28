@@ -37,7 +37,7 @@ function populateHealthSummaryTable(email = null, getall = false) {
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
             let rows = [
-                `<a href='/user/${escapedEmail}'>${escapedEmail}</a>`,
+                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}")'>` +
                 truncate(e.health.criteria.join(' & '), 45) + "</a></span></span>",
@@ -50,15 +50,23 @@ function populateHealthSummaryTable(email = null, getall = false) {
     }).fail(requestFailure)
 }
 
+async function exportHealthSummariesAsCSV() {
+    $("#csv-export-home").html("Loading...").prop("disabled", true);
+    populateHealthSummaryTable(null, true);
+    await sleep(5000);
+    downloadTableAsCSV("home-status-summaries");
+    $("#csv-export-home").html("Export to CSV").prop('disabled', false);
+
+}
 /**
  * Show the health change modal, the submission of which queues a report in the backend for the selected user(s)
  * @param email the email to show the modal for
  */
 function showHealthChangeModal(email) {
     $("#health-user-email").html(email.escapeQuotes());
-    $("#submitHealthModification").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", false)`);
-    $("#setHealthy").attr("onclick", `submitHealthModification("${email.escapeQuotes()}", true)`);
-    $("#toggleVaccine").attr("onclick", `toggleVaccineModal("${email.escapeQuotes()}")`);
+    $("#submitHealthModification").attr("onclick", `submitHealthReportForm("${email.escapeQuotes()}", false)`);
+    $("#setHealthy").attr("onclick", `submitHealthReportForm("${email.escapeQuotes()}", true)`);
+    $("#toggleVaccine").attr("onclick", `showVaccinationOptionModal("${email.escapeQuotes()}")`);
     $("#health-change").modal('show');
 }
 
@@ -69,7 +77,7 @@ function showHealthChangeModal(email) {
 function showVaccinationOptionModal(email) {
     $("health-change").modal("hide");
     $("#vac-user-email").html(email.escapeQuotes());
-    $("#submitVaccineToggle").attr("onclick", `submitVaccineToggle("${email.escapeQuotes()}")`);
+    $("#submitVaccineToggle").attr("onclick", `submitVaccineOptionForm("${email.escapeQuotes()}")`);
     $("#vaccine-options").modal('show');
 }
 
@@ -107,7 +115,7 @@ async function submitVaccineOptionForm(email) {
  */
 function showLocationChangeModal(email) {
     $("#loc-user-email").html(email.escapeQuotes());
-    $("#submitLocationChange").attr("onclick", `submitLocationChange("${email.escapeQuotes()}")`);
+    $("#submitLocationChange").attr("onclick", `submitLocationChangeForm("${email.escapeQuotes()}")`);
     $("#location-change").modal('show');
 }
 
@@ -193,8 +201,8 @@ function submitHealthSearch() {
     homeUserStatusPagToken = 0;
     const email = $('#email-input').val();
     $("#summaries").html("");
-    updateHomeStatusSummaries(email);
-    $("#load-more-home").attr("onclick", `populateMemberStatusSummaries("${email.escapeQuotes()}")`);
+    populateHealthSummaryTable(email);
+    $("#load-more-home").attr("onclick", `populateHealthSummaryTable("${email.escapeQuotes()}")`);
     $("#search-toggle").html("<br><button class='btn btn-secondary' onclick='clearHealthSearch()'>Clear Search</button>");
 }
 
@@ -205,9 +213,9 @@ function clearHealthSearch() {
     homeUserStatusPagToken = 0;
     $("#email-input").val("");
     $("#summaries").html("");
-    updateHomeStatusSummaries();
+    populateHealthSummaryTable();
     $("#search-toggle").html("");
-    $("#load-more-home").attr("onclick", "updateHomeStatusSummaries()");
+    $("#load-more-home").attr("onclick", "populateHealthSummaryTable()");
 }
 
 /**

@@ -20689,4 +20689,15 @@ pre > code.highlight {
 .modal-link:hover{
     color: #5e72e4;
 }
+
+.member-edit-checkbox {
+    transform: scale(1.2);
+    text-align: center;
+}
+
+.checkbox-column {
+    width: 30px;
+    padding-right: 0;
+}
+
 /*# sourceMappingURL=admin-dashboard-free.css.map */

@@ -14,6 +14,8 @@
         {% endwith %}
     {% endwith %}
 
+    {% include "components/user-summary-stats.html" %}
+
     <div class="container-fluid mt--7">
         <div class="row mt-5">
             <div class="col">
@@ -50,7 +52,7 @@
                             <tfoot id="home-footer">
                             <tr>
                                 <th>
-                                    <button type="button" id="load-more-users" onclick="getCommunityUsers()"
+                                    <button type="button" id="load-more-users" onclick="populateMembersTable()"
                                             class="btn btn-primary">
                                         Load more
                                     </button>
@@ -70,9 +72,12 @@
 
 {% block javascripts %}
     {{ super() }}
+    <script src="/static/assets/js/manage-users.min.js"></script>
     <script>
         $(document).ready(function () {
-            getCommunityUsers();
+            showPolicyModal();
+            populateMembersTable();
+            updateInviteStatsWidget();
         });
     </script>
 {% endblock %}

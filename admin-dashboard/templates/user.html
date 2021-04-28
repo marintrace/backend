@@ -1,178 +1,179 @@
 {% extends "base_site.html" %}
 {% block title %} User {% endblock title %}
 {% block stylesheets %}
-{{ super() }}
+    {{ super() }}
 {% endblock stylesheets %}
 {% block content %}
-{% with page_title=email %}
-{% include "components/navigation.html" %}
-{% endwith %}
-<div class="header bg-gradient-primary pb-5 pt-5 pt-md-8">
-</div>
-<div class="container-fluid mt--7">
-   <div class="row mt-5">
-      <div class="col">
-         <div class="card shadow">
-            <div class="card-header border-0">
-               <div class="row align-items-center">
-                  <div class="col">
-                     <h3 class="mb-0">Overview</h3>
-                  </div>
-               </div>
-            </div>
-            <div class="table-responsive">
-               <!-- Projects table -->
-               <table class="table align-items-center table-flush">
-                  <tbody>
-                     <tr>
-                        <th scope="row">
-                           Email
-                        </th>
-                        <td id="user-email">
-                           {{ user_email }}
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           First Name
-                        </th>
-                        <td id="first-name">
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           Last Name
-                        </th>
-                        <td id="last-name">
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           Active
-                        </th>
-                        <td id="active">
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           Cohort
-                        </th>
-                        <td id="cohort">
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           Current Status
-                        </th>
-                        <td>
+    {% with page_title=email %}
+        {% include "components/navigation.html" %}
+    {% endwith %}
+    <div class="header bg-gradient-primary pb-5 pt-5 pt-md-8">
+    </div>
+    <div class="container-fluid mt--7">
+        <div class="row mt-5">
+            <div class="col">
+                <div class="card shadow">
+                    <div class="card-header border-0">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="mb-0">Overview</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <!-- Projects table -->
+                        <table class="table align-items-center table-flush">
+                            <tbody>
+                            <tr>
+                                <th scope="row">
+                                    Email
+                                </th>
+                                <td id="user-email">
+                                    {{ user_email }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    First Name
+                                </th>
+                                <td id="first-name">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Last Name
+                                </th>
+                                <td id="last-name">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Active
+                                </th>
+                                <td id="active">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Cohort
+                                </th>
+                                <td id="cohort">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Current Status
+                                </th>
+                                <td>
                            <span class="badge badge-dot mr-4">
                            <i id="today-status-color"></i>
                            <span class="status" id="today-status-description"></span>
                            </span>
-                        </td>
-                     </tr>
-                     <tr>
-                        <th scope="row">
-                           Current Location
-                        </th>
-                        <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    Current Location
+                                </th>
+                                <td>
                            <span class="badge badge-dot mr-4">
                            <i id="today-location-color"></i>
                            <span class="status" id="today-location-description"></span>
                            </span>
-                        </td>
-                     </tr>
-                  </tbody>
-               </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-         </div>
-      </div>
-   </div>
-   <div class="row mt-5">
-      <div class="col">
-         <div class="card shadow">
-            <div class="card-header border-0">
-               <div class="row align-items-center">
-                  <div class="col">
-                     <h3 class="mb-0">Contacts</h3>
-                  </div>
-               </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col">
+                <div class="card shadow">
+                    <div class="card-header border-0">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="mb-0">Contacts</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <!-- Projects table -->
+                        <table class="table align-items-center table-flush">
+                            <thead>
+                            <tr>
+                                <th scope="col" class="sort" data-sort="budget">Interaction Date</th>
+                                <th scope="col" class="sort" data-sort="name">Name</th>
+                            </tr>
+                            </thead>
+                            <tbody id="interactions">
+                            </tbody>
+                            <tfoot id="interaction-footer">
+                            <tr>
+                                <th>
+                                    <button type="button" onclick="populateUserInteractions('{{ user_email }}')"
+                                            class="btn btn-primary">Load more
+                                    </button>
+                                </th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive">
-               <!-- Projects table -->
-               <table class="table align-items-center table-flush">
-                  <thead>
-                     <tr>
-                        <th scope="col" class="sort" data-sort="budget">Interaction Date</th>
-                        <th scope="col" class="sort" data-sort="name">Name</th>
-                     </tr>
-                  </thead>
-                  <tbody id="interactions">
-                  </tbody>
-                  <tfoot id="interaction-footer">
-                     <tr>
-                        <th>
-                           <button type="button" onclick="populateUserInteractions('{{ user_email }}')"
-                              class="btn btn-primary">Load more
-                           </button>
-                        </th>
-                        <th></th>
-                        <th></th>
-                     </tr>
-                  </tfoot>
-               </table>
+        </div>
+        <div class="row mt-5">
+            <div class="col">
+                <div class="card shadow">
+                    <div class="card-header border-0">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="mb-0">Report History</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <!-- Projects table -->
+                        <table class="table align-items-center table-flush">
+                            <thead>
+                            <tr>
+                                <th scope="col" class="sort" data-sort="budget">Report Date</th>
+                                <th scope="col" class="sort" data-sort="type">Report Type</th>
+                            </tr>
+                            </thead>
+                            <tbody id="reports">
+                            </tbody>
+                            <tfoot id="report-footer">
+                            <tr>
+                                <th>
+                                    <button type="button" class="btn btn-primary"
+                                            onclick="populateUserReports('{{ user_email }}')">
+                                        Load more
+                                    </button>
+                                </th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
-         </div>
-      </div>
-   </div>
-   <div class="row mt-5">
-      <div class="col">
-         <div class="card shadow">
-            <div class="card-header border-0">
-               <div class="row align-items-center">
-                  <div class="col">
-                     <h3 class="mb-0">Report History</h3>
-                  </div>
-               </div>
-            </div>
-            <div class="table-responsive">
-               <!-- Projects table -->
-               <table class="table align-items-center table-flush">
-                  <thead>
-                     <tr>
-                        <th scope="col" class="sort" data-sort="budget">Report Date</th>
-                        <th scope="col" class="sort" data-sort="type">Report Type</th>
-                     </tr>
-                  </thead>
-                  <tbody id="reports">
-                  </tbody>
-                  <tfoot id="report-footer">
-                     <tr>
-                        <th>
-                           <button type="button" class="btn btn-primary"
-                              onclick="populateUserReports('{{ user_email }}')">
-                           Load more
-                           </button>
-                        </th>
-                        <th></th>
-                        <th></th>
-                     </tr>
-                  </tfoot>
-               </table>
-            </div>
-         </div>
-      </div>
-   </div>
-</div>
+        </div>
+    </div>
 {% endblock content %}
 {% block javascripts %}
-{{ super() }}
-<script>
-   $(document).ready(function () {
-       populateUserInteractions("{{ user_email }}");
-       populateUserReports("{{ user_email }}");
-       getUserHealthStatus("{{ user_email }}");
-       getUserMetadata("{{ user_email }}")
-   });
-</script>
+    {{ super() }}
+    <script src="/static/assets/js/user-detail.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            populateUserInteractions("{{ user_email }}");
+            populateUserReports("{{ user_email }}");
+            getUserHealthStatus("{{ user_email }}");
+            getUserMetadata("{{ user_email }}")
+        });
+    </script>
 {% endblock javascripts %}

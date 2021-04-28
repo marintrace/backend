@@ -5,15 +5,16 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from shared.logger import logger
 from shared.models.dashboard_entities import (AdminDashboardUser,
                                               OptIdPaginationRequest)
-from shared.models.enums import VaccinationStatus
-from shared.models.user_entities import CreatedAsyncTask, UserIdentifier, MultipleUserIdentifiers
+from shared.models.enums import VaccinationStatus, UserStatus
+from shared.models.user_entities import (CreatedAsyncTask,
+                                         MultipleUserIdentifiers)
 from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
-                                                MemberAccessInfo,
                                                 BulkToggleAccessRequest,
-                                                MultipleMemberAccessInfo,
-                                                ToggleAccessRequest)
+                                                InviteStatsResponse,
+                                                MemberAccessInfo,
+                                                MultipleMemberAccessInfo)
 from shared.service.neo_config import Neo4JGraph
 
 from .authorization import OIDC_COOKIE
@@ -84,7 +85,7 @@ async def delete_user(request: MultipleUserIdentifiers, admin: AdminDashboardUse
                                                      task_data=request))
 
 
-@USER_MGMT_ROUTER.post('/toggle-access', operation_id='admin_bulk_toggle_access')
+@USER_MGMT_ROUTER.post('/toggle-access', operation_id='admin_bulk_toggle_access', **GENERAL_ASYNC_PARAMS)
 async def toggle_access(request: BulkToggleAccessRequest, admin: AdminDashboardUser = OIDC_COOKIE):
     """
     Toggle multiple user's abilities to use MarinTrace
@@ -97,7 +98,7 @@ async def toggle_access(request: BulkToggleAccessRequest, admin: AdminDashboardU
 
 
 @USER_MGMT_ROUTER.post('/password-reset', operation_id='admin_bulk_password_reset',
-                       description='Send a password reset invite to multiple emails')
+                       description='Send a password reset invite to multiple emails', **GENERAL_ASYNC_PARAMS)
 async def password_reset(request: MultipleUserIdentifiers, admin: AdminDashboardUser = OIDC_COOKIE):
     """
     Send a password reset email to multiple users
@@ -109,8 +110,32 @@ async def password_reset(request: MultipleUserIdentifiers, admin: AdminDashboard
                                                      task_data=request))
 
 
+@USER_MGMT_ROUTER.get('/get-invite-stats', operation_id='admin_invite_stats',
+                      description="Get the number of active users and inactive users",
+                      response_model=InviteStatsResponse)
+async def get_invite_stats(admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Get the number of active and pending users in MarinTrace for the school
+    associated with the current logged in user
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    with Neo4JGraph() as graph:
+        active_users = graph.run(
+            """MATCH (m: Member {school: $school, status: "active"}) RETURN COUNT(m) as cnt""",
+            school=admin.school
+        ).evaluate()
+
+        inactive_users = graph.run(
+            """MATCH (m: Member {school: $school}) WHERE COALESCE(m.status, "inactive") = "inactive" 
+            RETURN COUNT(m) as cnt""",
+            school=admin.school
+        ).evaluate()
+
+    return InviteStatsResponse(active=active_users, inactive=inactive_users)
+
+
 @USER_MGMT_ROUTER.post('/paginate-users', operation_id='admin_paginate_users',
-                       description='Paginate a list of users in the database')
+                       description='Paginate a list of users in the database', response_model=MultipleMemberAccessInfo)
 async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardUser = OIDC_COOKIE):
     """
     Paginate a list of users from MarinTrace
@@ -132,6 +157,6 @@ async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardU
     for record in records:
         member = record['member']
         details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
-                                        blocked=member['disabled'], active=member['active']))
+                                        blocked=member['disabled'], active=member.get('status') == UserStatus.ACTIVE))
 
     return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)

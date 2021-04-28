@@ -2,7 +2,8 @@ import time
 
 from celery import group, states
 from shared.logger import logger
-from shared.models.user_entities import User, UserIdentifier, MultipleUserIdentifiers
+from shared.models.user_entities import (MultipleUserIdentifiers, User,
+                                         UserIdentifier)
 from shared.models.user_mgmt_entitities import (AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
@@ -75,7 +76,7 @@ def admin_toggle_access(self, *, sender: User, task_data: ToggleAccessRequest):
     :param sender: the user that initiated the task
     :param task_data: the user identifier to toggle
     """
-    logger.info(f"Setting access={task_data.block} for the user {task_data.email} at the request of {sender.email}")
+    logger.info(f"Setting block={task_data.block} for the user {task_data.email} at the request of {sender.email}")
     user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']
     update_user(user_id=user_id, content={'blocked': task_data.block})
     logger.info(f"Toggling user {task_data.email} in Neo4J")
