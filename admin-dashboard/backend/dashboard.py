@@ -1,5 +1,3 @@
-from os import environ as env_vars
-
 import requests
 from fastapi import APIRouter
 from py2neo import RelationshipMatcher
@@ -132,7 +130,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
     with Neo4JGraph() as graph:
         records = list(graph.run(
             f"""MATCH (m: Member {{school: $school}})
-            {"WHERE m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'} 
+            WHERE {"m.email STARTS WITH $email AND m.disabled = false" if request.email else 'm.disabled = false'} 
             OPTIONAL MATCH(m)-[report:reported]-(d:DailyReport {{date: $date}})
             RETURN m as member, report 
             ORDER BY COALESCE(report.risk_score, 0) DESC

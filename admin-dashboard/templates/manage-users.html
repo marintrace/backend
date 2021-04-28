@@ -1,0 +1,75 @@
+{% extends "base_site.html" %}
+
+{% block title %} Manage Users {% endblock title %}
+
+{% block stylesheets %}
+    {{ super() }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+    {% with page_title="Dashboard" %}
+        {% include "components/navigation.html" %}
+    {% endwith %}Ω
+
+    {% include "components/top-stats.html" %}
+
+    <div class="container-fluid mt--7">
+        <div class="row mt-5">
+            <div class="col">
+                <div class="card shadow">
+                    <div class="card-header border-0">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="mb-0">Community Members
+                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">Import from CSV</button>
+                                    <button id='csv-export-home' onclick="exportToCsv()" class="btn btn-secondary">Invite User</button>
+                                </h3>
+                                <div id="search-toggle">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <!-- Projects table -->
+                        <table id='home-status-summaries' class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="sort" data-sort="check"></th>
+                                <th scope="col" class="sort" data-sort="name">Name</th>
+                                <th scope="col" class="sort" data-sort="email">Email</th>
+                                <th scope="col" class="sort" data-sort="disabled">Disabled</th>
+                            </tr>
+                            </thead>
+                            <tbody id="summaries">
+                            </tbody>
+                            <tfoot id="home-footer">
+                            <tr>
+                                <th>
+                                    <button type="button" id="load-more-home" onclick="updateHomeStatusSummaries()"
+                                            class="btn btn-primary">
+                                        Load more
+                                    </button>
+                                </th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            updateSubmittedWidget();
+            updateHomeStatusSummaries();
+        });
+    </script>
+{% endblock %}

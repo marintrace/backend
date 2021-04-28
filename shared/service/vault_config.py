@@ -18,6 +18,7 @@ class VaultConnection:
     VAULT_URL = f'{env_vars["VAULT_ADDRESS"]}:8200'
     MAX_REFRESH_ATTEMPTS = env_vars.get("MAX_AUTHENTICATION_ATTEMPTS", 3)
     VAULT_ROLE = env_vars['VAULT_ROLE']
+    VAULT_HVAC = None
 
     with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as token_secret_file:
         VAULT_SERVICE_TOKEN = token_secret_file.read()
@@ -25,8 +26,10 @@ class VaultConnection:
     assert len(VAULT_SERVICE_TOKEN) > 1, "Unable to read Kubernetes Service Account Token"
 
     def __init__(self):
-        self.client = Client(url=VaultConnection.VAULT_URL)
-        self.refresh_token()
+        if not VaultConnection.VAULT_HVAC:
+            VaultConnection.VAULT_HVAC = Client(url=VaultConnection.VAULT_URL)
+
+        self.client = VaultConnection.VAULT_HVAC
 
     def __enter__(self):
         """
@@ -49,7 +52,7 @@ class VaultConnection:
         Get the authentication token from the approle
         :return: token if successful authentication
         """
-        logger.info("Retrieving new vault_server token via k8s service account...")
+        logger.info("Retrieving new vault server token via K8S service account...")
         vault_response = self.client.auth_kubernetes(role=VaultConnection.VAULT_ROLE,
                                                      jwt=VaultConnection.VAULT_SERVICE_TOKEN)
 

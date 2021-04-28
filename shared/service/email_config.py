@@ -80,8 +80,8 @@ class SendgridAPI:
         }
 
         if bcc:
-            api_payload['personalizations']['bcc'] = [SendgridAPI._format_target(email=bcc_email) for
-                                                      bcc_email in sendgrid_config['bcc_emails']]
+            api_payload['personalizations'][0]['bcc'] = [SendgridAPI._format_target(email=bcc_email) for
+                                                         bcc_email in sendgrid_config['bcc_emails']]
 
         logger.info("Sending API Request to SendGrid")
         response = requests.post(url=SendgridAPI._SENDGRID_ENDPOINT,

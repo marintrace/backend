@@ -72,7 +72,7 @@ def notify_risk(self, *, sender: User, task_data: UserHealthItem):
 
     logger.info(f"Calculated Adjacent Neighbors at Risk: {individuals_at_risk}")
     SendgridAPI.send_email(template_name='risk_notification',
-                           recipients=risk_notification_secrets['recipients'].split(','),
+                           recipients=risk_notification_secrets['recipients'],
                            template_data={
                                'name': f"{member_node['first_name']} {member_node['last_name']}",
                                'email': sender.email,

@@ -52,6 +52,14 @@ async def render_user_page(request: Request, email: str):
     return templates.TemplateResponse("user.html", dict(request=request, user_email=email))
 
 
+@app.get("/manage-users", description="Render the Manage Users HTML page", response_model=str, status_code=200)
+async def render_manage_users_page(request: Request):
+    """
+    Render the manage users page
+    :return: Rendered HTML
+    """
+    return templates.TemplateResponse("manage-users.html", dict(request=request))
+
 app.include_router(
     DASHBOARD_ROUTER,
     prefix="/api",

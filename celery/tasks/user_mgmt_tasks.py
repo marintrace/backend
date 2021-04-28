@@ -10,7 +10,7 @@ from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph
 
 from .user_mgmt_helpers.helpers import (add_role, create_user, delete_user,
-                                        get_user, send_user_password_invite,
+                                        get_user, send_password_reset,
                                         update_user)
 
 celery = get_celery()
@@ -26,13 +26,26 @@ def admin_create_user(self, *, sender: User, task_data: AddCommunityMemberReques
     logger.info(f"Adding user {task_data.email} to Auth0 at the request of {sender.email}")
     user_id = create_user(email=task_data.email, first_name=task_data.first_name,
                           last_name=task_data.last_name)
-    add_role(user_id=user_id, school=sender.school) # allows us to identify which school a user belongs to
-    send_user_password_invite(email=task_data.email, first_name=task_data.first_name)
+    add_role(user_id=user_id, school=sender.school)  # allows us to identify which school a user belongs to
+    send_password_reset(email=task_data.email, first_name=task_data.first_name)
     with Neo4JGraph() as graph:
         graph.run("""CREATE (m: Member {first_name: $first_name, last_name: $last_name, email: $email, 
                         location: $location, vaccinated: $vaccination, school: $school, disabled: false})""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
+
+    return user_id
+
+
+@celery.task(name='tasks.admin_password_reset', **GLOBAL_CELERY_OPTIONS)
+def admin_password_reset(self, *, sender: User, task_data: UserIdentifier):
+    """
+    Resend a change password invite to a given user
+    :param sender: the user that initiated the task
+    :param task_data: a user identifier containing an email for which to send a password resest
+    """
+    logger.info(f"Sending password reset to {task_data.email} at the request of {sender.email}")
+    send_password_reset(email=task_data.email)
 
 
 @celery.task(name='tasks.admin_delete_user', **GLOBAL_CELERY_OPTIONS)
@@ -51,6 +64,7 @@ def admin_delete_user(self, *, sender: User, task_data: UserIdentifier):
 
     user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']  # get the user's user id from Auth0
     delete_user(user_id=user_id)
+    return user_id
 
 
 @celery.task(name='tasks.admin_toggle_access', **GLOBAL_CELERY_OPTIONS)
@@ -69,6 +83,8 @@ def admin_toggle_access(self, *, sender: User, task_data: ToggleAccessRequest):
         graph.run("""MATCH (m: Member {email: $email, school: $school}) SET m.disabled = $blocked""",
                   email=task_data.email, school=sender.school, blocked=task_data.block)
 
+    return user_id
+
 
 @celery.task(name='tasks.admin_bulk_import', **GLOBAL_CELERY_OPTIONS)
 def admin_bulk_import(self, *, sender: User, task_data: BulkAddCommunityMemberRequest):
@@ -82,5 +98,4 @@ def admin_bulk_import(self, *, sender: User, task_data: BulkAddCommunityMemberRe
     job_list = [admin_create_user.s(task_data=user, sender=sender) for user in task_data.users]
     logger.info(f"Importing {len(job_list)} users into MarinTrace for {sender.email}")
     job = group(job_list)
-    job.apply_async().join()
-    logger.info(f"Completed the jobs")
+    job.apply()

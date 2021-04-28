@@ -102,7 +102,7 @@ def add_role(user_id: str, school: str):
     logger.info(f"Received Response from Auth0: {request.json()})")
 
 
-def send_user_password_invite(email: str, first_name: str):
+def send_password_reset(email: str, first_name: Optional[str] = 'MarinTrace User'):
     """
     Send a password reset email to the user in Auth0, so that they can
     set their password
@@ -114,7 +114,7 @@ def send_user_password_invite(email: str, first_name: str):
             'result_url': 'https://marintracingapp.org',
             'email': email,
             'connection_id': Auth0ManagementClient.get_email_pass_connection_id(),
-            'ttl_sec': 3600,
+            'ttl_sec': 172800,
             'mark_email_as_verified': True
         },
         headers=Auth0ManagementClient.get_jwt_header()

@@ -4,6 +4,7 @@ API Models for type validation and API doc generation
 """
 from typing import List, Optional
 
+from celery.result import AsyncResult
 from pydantic import BaseModel, Field
 
 from shared.date_utils import pst_timestamp
@@ -68,9 +69,9 @@ class HealthReport(Timestamped):
         :return: whe
         """
         return self.test_type is not None \
-            and self.proximity is None \
-            and self.commercial_flight is None \
-            and self.num_symptoms is None
+               and self.proximity is None \
+               and self.commercial_flight is None \
+               and self.num_symptoms is None
 
 
 # REST Entities
@@ -84,12 +85,14 @@ class User(BaseModel):
     email: str
     school: str
 
-    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None) -> str:
+    def _send_task(self, *, task_name: str, task_data: Optional[BaseModel] = None,
+                   compression: str = 'lzma') -> AsyncResult:
         """
-        Send a task to service via rabbitmq
+        Send a task to service via rabbitmq, returning the AsyncResult from celery
         :param task_name: the task name to queue the task to
         :param task_data: data to send to the target worker
-        :return: the task id
+        :param compression: the compression algorithm to use when compressing messages
+        :return: the AsyncResult from celery
         """
         if getattr(self, 'impersonator'):
             logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
@@ -99,10 +102,26 @@ class User(BaseModel):
         if task_data:
             task_params['task_data'] = task_data
 
-        queued_task = get_celery().send_task(
-            name=task_name, args=[], kwargs=task_params
+        task: AsyncResult = get_celery().send_task(
+            name=task_name, args=[], kwargs=task_params, compression=compression
         )
+        return task
+
+    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma') -> str:
+        """
+        Send a task to celery asynchronously, returning the task id
+        :return: the task id for the queued task
+        """
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression)
         return queued_task.id
+
+    def execute_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma'):
+        """
+        Send a task to celery and wait for the result
+        :return: the result of the executed task
+        """
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression)
+        return queued_task.get()  # wait for task to complete
 
     class Config:
         """

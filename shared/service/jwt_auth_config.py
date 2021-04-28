@@ -31,7 +31,7 @@ class JWTAuthManager:
 
             self.domain = oidc_secrets["auth0_domain"]
             self.issuer = oidc_secrets['issuer']
-            self.authorized_roles = oidc_secrets['authorized_roles'].split(',')
+            self.authorized_roles = oidc_secrets['authorized_roles']
             self.role_claim_name = oidc_secrets["role_claim_name"]
             self.jwks = get_request(f"https://{self.domain}/.well-known/jwks.json").json()
 

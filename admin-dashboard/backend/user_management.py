@@ -51,7 +51,8 @@ async def bulk_import(users: UploadFile = File(...), admin: AdminDashboardUser =
             location=line['Location']
         ))
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
-                                                     task_data=BulkAddCommunityMemberRequest(users=user_objects)))
+                                                     task_data=BulkAddCommunityMemberRequest(users=user_objects),
+                                                     compression='lzma'))
 
 
 @USER_MGMT_ROUTER.post('/create-user', operation_id='admin_create_user',
@@ -92,6 +93,18 @@ async def toggle_access(request: ToggleAccessRequest, admin: AdminDashboardUser 
     """
     logger.info("Processing Toggle Access Request...")
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_toggle_access',
+                                                     task_data=request))
+
+
+@USER_MGMT_ROUTER.post('/password-reset', operation_id='admin_password_reset',
+                       description='Send a password reset invite to the specified email')
+async def password_reset(request: UserIdentifier, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Send a password reset email to the specified user
+    * Requires a user identifier (email)
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_password_reset',
                                                      task_data=request))
 
 
