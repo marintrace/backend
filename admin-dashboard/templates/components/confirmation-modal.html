@@ -1,0 +1,12 @@
+{% extends "components/base_modal.html" %}
+{% block modal_name %}confirm-modal{% endblock %}
+{% block modal_title %}
+    <div id="confirm-title"></div>{% endblock %}
+{% block modal_body %}
+    <div id="confirm-body"></div>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-secondary" id="confirm-reject" onclick='hideConfirmationModal()' type="button">Cancel</button>
+    <button class="btn btn-primary" id="confirm-agree" type="button">OK</button>
+{% endblock %}
+

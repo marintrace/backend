@@ -1,6 +1,8 @@
 const homeUserStatusPagLimit = 200; // allow sorting without pagination
 let homeUserStatusPagToken = 0;
 
+let selectedMember = null;
+
 $.ajaxSetup({
     headers: {
         'Content-Type': 'application/json',
@@ -37,6 +39,8 @@ function populateHealthSummaryTable(email = null, getall = false) {
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
             let rows = [
+                `<input type="radio" data-email="${escapedEmail}" onchange="itemSelectionChange(this)" name="userSelect" `
+                + (selectedMember === escapedEmail ? "checked" : "") + " class='big-select'/>",
                 `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}")'>` +
@@ -50,6 +54,37 @@ function populateHealthSummaryTable(email = null, getall = false) {
     }).fail(requestFailure)
 }
 
+/**
+ * Callback when a health summary item is radio checked. We replace the buttons
+ * at the top with modification options for location/health
+ * @param radio the radio button to act on
+ */
+function itemSelectionChange(radio){
+    let email = radio.dataset.email;
+    selectedMember = email;
+    $("#health-button-1").html("Modify Health").attr('onclick', `showHealthChangeModal('${email}')`);
+    $("#health-button-2").html("Change Location").attr('onclick', `showLocationChangeModal('${email}')`);
+    $("#clear-toggle").html("<br><button class='btn btn-secondary' onclick='clearHealthSelection()'>Clear Selection</button>");
+}
+
+/**
+ * Clear the radio button selection on the home page, and reset the buttons back to their original states
+ */
+function clearHealthSelection(){
+    $("#health-button-1").html("Export to CSV").attr('onclick', 'exportHealthSummariesAsCSV()');
+    $("#health-button-2").html("Manage Members").attr('onclick', 'goToManageUsers()');
+    $("#clear-toggle").html("");
+    document.getElementsByName("userSelect").forEach(function (e){
+        e.checked = false;
+    })
+    selectedMember = null;
+}
+
+/**
+ * Export the table on the home screen (health summaries) as a CSV. Disregards pagination and
+ * exports all items.
+ * @returns {Promise<void>}
+ */
 async function exportHealthSummariesAsCSV() {
     $("#csv-export-home").html("Loading...").prop("disabled", true);
     populateHealthSummaryTable(null, true);
@@ -162,7 +197,7 @@ async function submitHealthReportForm(email, set_healthy) {
         $("#setHealthy").prop("disabled", false);
         $("#submitHealthModification").html("submit");
         window.location.reload();
-    })
+    }).fail(requestFailure)
 }
 
 /**
@@ -203,7 +238,7 @@ function submitHealthSearch() {
     $("#summaries").html("");
     populateHealthSummaryTable(email);
     $("#load-more-home").attr("onclick", `populateHealthSummaryTable("${email.escapeQuotes()}")`);
-    $("#search-toggle").html("<br><button class='btn btn-secondary' onclick='clearHealthSearch()'>Clear Search</button>");
+    $("#clear-toggle").html("<br><button class='btn btn-secondary' onclick='clearHealthSearch()'>Clear Search</button>");
 }
 
 /**
@@ -214,8 +249,15 @@ function clearHealthSearch() {
     $("#email-input").val("");
     $("#summaries").html("");
     populateHealthSummaryTable();
-    $("#search-toggle").html("");
+    $("#clear-toggle").html("");
     $("#load-more-home").attr("onclick", "populateHealthSummaryTable()");
+}
+
+/**
+ * Simple function to go to the manage users page
+ */
+function goToManageUsers(){
+    window.location = "/manage-users"
 }
 
 /**

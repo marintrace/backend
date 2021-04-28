@@ -1,0 +1,36 @@
+{% extends "components/base_modal.html" %}
+{% block modal_name %}invite-user{% endblock %}
+{% block modal_title %}Invite a user to MarinTrace{% endblock %}
+{% block modal_body %}
+    <p style="font-size:15px;">After you submit this form, we will send an invite
+        to the email address you specify below. The invite will be active for 48 hours. If the
+        user does not active their account within that time period, you can resend the invitation
+        by searching for their email, selecting it, and clicking the modify button.
+    </p>
+    <form id="user-invite-modal" action="#">
+        <label for="user_email">Email</label>&nbsp;
+        <input class="form-control" type="email" id="user_email" name="email" placeholder="mufasa@lionking.com"
+               required=""><br>
+        <label for="user_first_name">First Name</label>&nbsp;
+        <input class="form-control" type="text" id="user_first_name" name="first_name" placeholder="King"
+               required=""><br>
+        <label for="user_last_name">Last Name</label>&nbsp;
+        <input class="form-control" id="user_last_name" name="last_name" placeholder="Mufasa" required=""><br>
+        <label>Vaccinated: </label><br>
+        <input type="radio" id="vax-yes" name="vaccinated" value="true">
+        <label for="vax-yes">Yes</label>&nbsp;&nbsp;
+        <input type="radio" id="vax-no" name="vaccinated" value="false">
+        <label for="vax-no">No or Untracked</label><br><br>
+        <label>Location: </label><br>
+        <input type="radio" id="loc-campus" name="location" value="campus">
+        <label for="loc-campus">Campus</label>&nbsp;&nbsp;
+        <input type="radio" id="loc-remote" name="location" value="remote">
+        <label for="loc-remote">Remote</label>&nbsp;&nbsp;
+        <input type="radio" id="loc-quarantine" name="location" value="quarantined">
+        <label for="loc-quarantine">Quarantine</label>
+    </form>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-primary" id="submitInviteUser" type="button">Submit</button>
+{% endblock %}
+

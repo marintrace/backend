@@ -10,11 +10,10 @@ let selectedCommunityUsers = new Set();
  * @param getall should we skip pagination (default true)
  */
 function populateMembersTable(email = null, getall = true) {
-    showPolicyModal();
     let data = {
         "pagination_token": communityUserPagToken,
         "limit": getall ? 10000 : communityUserPagLimit
-    }
+    };
 
     if (email != null) {
         data['email'] = email.escapeQuotes();
@@ -34,7 +33,7 @@ function populateMembersTable(email = null, getall = true) {
             let escapedEmail = e.email.escapeQuotes();
             let rows = [
                 `<input type='checkbox' onchange='userSelectionChange(this)' name="${escapedEmail}" 
-                class="member-edit-checkbox" ` + (selectedCommunityUsers.has(e.email) ? "checked" : "") + "/>",
+                class="member-edit-checkbox big-select" ` + (selectedCommunityUsers.has(escapedEmail) ? "checked" : "") + "/>",
                 e.name + (e.active ? "" : " (invited)"),
                 `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + (e.blocked ? "danger" : "success") + "'></i>" +
@@ -51,10 +50,10 @@ function populateMembersTable(email = null, getall = true) {
  * @param checkbox the checkbox element altered
  */
 function userSelectionChange(checkbox) {
-    if (checkbox.checked === true) {
-        selectedCommunityUsers.add(checkbox.name);
+    if (checkbox.checked) {
+        selectedCommunityUsers.add(checkbox.name.renderQuotes());
     } else {
-        selectedCommunityUsers.delete(checkbox.name);
+        selectedCommunityUsers.delete(checkbox.name.renderQuotes());
     }
 
     if (selectedCommunityUsers.size === 0) {
@@ -69,7 +68,7 @@ function userSelectionChange(checkbox) {
  * Show the user modification dialog
  */
 function showModifyModal() {
-    alert("This is the modification modal :)");
+    $("#modify-users").modal("show");
 }
 
 /**
@@ -93,7 +92,7 @@ function updateInviteStatsWidget() {
     }, "json").done(function (data) {
         $("#active-members").html(data.active);
         $("#inactive-members").html(data.inactive);
-    }).fail(requestFailure)
+    }).fail(requestFailure);
 }
 
 /**
@@ -104,7 +103,7 @@ function submitMemberSearch() {
     const email = $('#email-input').val();
     $("#users").html("");
     populateMembersTable(email);
-    $("#load-more-users").attr("onclick", `populateMembersTable("${email.escapeQuotes()}")`)
+    $("#load-more-users").attr("onclick", `populateMembersTable("${email.escapeQuotes()}")`);
     $("#search-toggle").html("<br><button class='btn btn-secondary' onclick='clearMemberSearch()'>Clear Search</button>");
 }
 
@@ -127,9 +126,12 @@ function showUserImportModal() {
     $("#user-import").modal("show");
 }
 
-action = "/user/bulk-import-users"
-method = "post"
-enctype = "multipart/form-data"
+/**
+ * Show the single user invite modal
+ */
+function showUserInviteModal(){
+    $("#invite-user").modal("show");
+}
 
 /**
  * Initiate bulk import of an uploaded CSV by submitting the form containing the CSV file
@@ -156,3 +158,135 @@ async function initiateBulkImport() {
     })
 }
 
+/**
+ Send the request to create a new user from the invite form.
+ Takes data from the form and sends an AJAX request to the backend.
+ **/
+function submitInviteUser() {
+    const email = $("#user_email").val();
+    const first_name = $("#user_first_name").val();
+    const last_name = $("#user_last_name").val();
+    const vaccinated = $("input[name='vaccinated']:checked").val();
+    const location = $("input[name='location']:checked").val();
+
+    if (email == null || first_name == null || last_name == null || vaccinated == null || location == null) {
+        alert("You must fill in all fields in the form to submit!");
+        return;
+    }
+    let payload = {
+        "email": email, "first_name": first_name, "last_name": last_name,
+        "vaccinated": JSON.parse(vaccinated.toLowerCase()),
+        "location": location
+    };
+    $("#submitInviteUser").html("Processing...").prop('disabled', true);
+    $.post('/user/create-user', JSON.stringify(payload), function () {
+        console.log("Submit Invite User Completed!");
+    }, "json").done(async function (data) {
+        let submitBtn = $("#submitInviteUser");
+        submitBtn.html("Success.");
+        await sleep(1500);
+        $("#invite-user").modal("hide");
+        submitBtn.prop('disabled', false);
+        window.location.reload();
+    }).fail(requestFailure)
+}
+
+/**
+ * Prompt user for confirmation before an operation
+ */
+function confirmUserConsent(operation, callback) {
+    let userItems = '';
+    selectedCommunityUsers.forEach(function (email) {
+        userItems += '<li>' + email.escapeQuotes() + '</li>'
+    })
+    let body = `<p>Are you sure you want to ${operation} ${selectedCommunityUsers.size} users? 
+                The following users will be affected</p><br><ul>${userItems}</ul>`;
+    $("#confirm-title").html(title);
+    $("#confirm-body").html(body);
+
+    $("#confirm-agree").on("click", function () {
+        $("#confirm-modal").modal('hide');
+        callback();
+    })
+
+    $("#confirm-reject").on("click", function () {
+        $("#confirm-modal").modal('hide');
+        $("#modify-users").modal('hide');
+    })
+}
+
+/**
+ * Submit a request to the backend to toggle the access of the currently
+ * selected users. This changes their ability to auth into the backend by revoking their JWT
+ * @param disable whether or not to disable the user (true = disable, false = enable)
+ */
+function submitCheckedToggleAccess(disable = true) {
+    confirmUserConsent(disable ? "disable" : "enable", function () {
+        $(".btn-reduced").prop('disabled', true);
+        let selectedButton = $(disable ? "#disable-access-btn" : "#enable-access-btn");
+        selectedButton.html("Processing...");
+        let users = [];
+        selectedCommunityUsers.forEach(function (email) {
+            users.push({"email": email, "block": disable});
+        })
+        $.post('/user/toggle-access', JSON.stringify({"users": users}), function () {
+            console.log("Toggle Access User Complete")
+        }, "json").done(async function (data) {
+            selectedButton.html("Success.");
+            await sleep(1000);
+            $("#modify-users").modal("hide");
+            $(".btn-reduced").prop('disabled', false);
+            window.location.reload();
+        }).fail(requestFailure);
+    })
+}
+
+/**
+ * Submit a request to the backend to reset the passwords (re-invite)
+ * the selected users
+ */
+function submitCheckedPasswordReset() {
+    confirmUserConsent("re-invite", function () {
+        $(".btn-reduced").prop('disabled', true);
+        let selectedButton = $("#password-reset-btn");
+        selectedButton.html("Processing...");
+        let identifiers = [];
+        selectedCommunityUsers.forEach(function (email) {
+            identifiers.push({"email": email});
+        });
+        $.post("/user/password-reset", JSON.stringify({"identifiers": identifiers}), function () {
+            console.log("Password Reset Complete.")
+        }, "json").done(async function (data) {
+            selectedButton.html("Success.");
+            await sleep(1000);
+            $("#modify-users").modal("hide");
+            $(".btn-reduced").prop('disabled', false);
+            window.location.reload();
+        })
+    })
+}
+
+/**
+ * Submit a request to the backend to permanently delete the selected users
+ */
+function submitCheckedDeleteUsers() {
+    confirmUserConsent("delete", function () {
+        $(".btn-reduced").prop('disabled', true);
+        let selectedButton = $("#delete-users-btn");
+        selectedButton.html("Processing...");
+        let identifiers = [];
+        selectedCommunityUsers.forEach(function (email) {
+            identifiers.push({"email": email});
+        });
+        $.post("/user/delete-users", JSON.stringify({"identifier": identifiers}), function (){
+            console.log("Delete Users Complete.");
+        }, "json").done(async function (data){
+            selectedButton.html("Success.");
+            await sleep(1500);
+            $("#modify-users").modal("hide");
+            $(".btn-reduced").prop('disabled', false);
+            window.location.reload();
+        })
+        $
+    })
+}

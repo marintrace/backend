@@ -7,6 +7,7 @@ function showPolicyModal() {
     }
 }
 
+
 /**
  * Callback when the user accepts the TOS/PP - store in local storage so they
  * don't need to agree again.

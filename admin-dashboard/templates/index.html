@@ -27,11 +27,16 @@
                         <div class="row align-items-center">
                             <div class="col">
                                 <h3 class="mb-0">Today's Reports&nbsp;&nbsp;
-                                    <button id='csv-export-home' onclick="exportHealthSummariesAsCSV()" class="btn btn-secondary">
+                                    <button id='health-button-1' onclick="exportHealthSummariesAsCSV()"
+                                            class="btn btn-secondary">
                                         Export to CSV
                                     </button>
+                                    <button id='health-button-2' onclick="goToManageUsers()"
+                                            class="btn btn-secondary">
+                                        Manage Members
+                                    </button>
                                 </h3>
-                                <div id="search-toggle">
+                                <div id="clear-toggle">
                                 </div>
                             </div>
                         </div>
@@ -41,6 +46,7 @@
                         <table id='home-status-summaries' class="table align-items-center table-flush">
                             <thead class="thead-light">
                             <tr>
+                                <th scope="col"></th>
                                 <th scope="col" class="sort" data-sort="email">Email</th>
                                 <th scope="col" class="sort" data-sort="health">Health</th>
                                 <th scope="col" class="sort" data-sort="location">Location</th>

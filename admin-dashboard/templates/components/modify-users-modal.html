@@ -1,0 +1,51 @@
+{% extends "components/base_modal.html" %}
+{% block modal_name %}modify-users{% endblock %}
+{% block modal_title %}Modify Users{% endblock %}
+{% block modal_body %}
+    <div class="toggle-access">
+        <h5 class="modal-subheader">Toggle Access</h5>
+        <p style="font-size: 13px;">If a user no longer needs access to MarinTrace, you can disable their account
+            (preserving their report history and
+            interactions), but blocking them further access. You can also enable their account at any time.</p>
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    <button id='disable-access-btn' onclick='submitCheckedToggleAccess(true)'
+                            class="btn btn-danger btn-reduced">Disable Access
+                    </button>
+                </td>
+                <td>
+                    <button id='enable-access-btn' onclick='submitCheckedToggleAccess(false)'
+                            class="btn btn-success btn-reduced">Enable Access
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="password-reset"><br>
+        <h5 class="modal-subheader">Resend Invitation</h5>
+        <p style="font-size: 15px;">If a user does not redeem their invitation in 48 hours, their link will expire. You
+            can re-send invites to those users here.</p>
+        <button id="password-reset-btn" onclick='submitCheckedPasswordReset()' class="btn btn-warning btn-reduced">
+            Resend Invite
+        </button>
+    </div>
+
+    <div class="delete-users"><br>
+        <h5 class="modal-subheader">Permanently Delete</h5>
+        <p style="font-size: 15px;">The button below will remove a user's access to MarinTrace and delete their report
+            history and contacts. Please note
+            that this is not reversible, and the deleted information cannot be recovered. The user can be re-invited
+            again in the future.</p>
+        <button class="btn btn-danger btn-reduced" id="delete-users-btn" onclick="submitCheckedDeleteUsers()">Delete
+            Users
+        </button>
+
+    </div>
+{% endblock %}
+{% block modal_footer %}
+{% endblock %}
+

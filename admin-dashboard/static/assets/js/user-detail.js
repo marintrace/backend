@@ -81,7 +81,6 @@ function populateUserInteractions(user_email) {
  * @param user_email the user's email 
  */
 function populateUserReports(user_email) {
-    showPolicyModal();
     $.post("/api/paginate-user-reports", JSON.stringify({
         "email": user_email.renderQuotes(),
         "pagination_token": userReportPagToken,

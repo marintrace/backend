@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: admin-dashboard/Dockerfile
-    image: gcr.io/vault-159468/admin-dashboard:1.0.72
+    image: gcr.io/vault-159468/admin-dashboard:1.0.75
   celery:
     build:
       context: .
