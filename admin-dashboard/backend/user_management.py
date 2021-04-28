@@ -121,12 +121,12 @@ async def get_invite_stats(admin: AdminDashboardUser = OIDC_COOKIE):
     """
     with Neo4JGraph() as graph:
         active_users = graph.run(
-            """MATCH (m: Member {school: $school, status: "active"}) RETURN COUNT(m) as cnt""",
+            """MATCH (m: Member {school: $school, status: "active", disabled: false}) RETURN COUNT(m) as cnt""",
             school=admin.school
         ).evaluate()
 
         inactive_users = graph.run(
-            """MATCH (m: Member {school: $school}) WHERE COALESCE(m.status, "inactive") = "inactive" 
+            """MATCH (m: Member {school: $school, disabled: false}) WHERE COALESCE(m.status, "inactive") = "inactive" 
             RETURN COUNT(m) as cnt""",
             school=admin.school
         ).evaluate()

@@ -38,7 +38,7 @@ function populateMembersTable(email = null, getall = true) {
                 e.name + (e.active ? "" : " (invited)"),
                 `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + (e.blocked ? "danger" : "success") + "'></i>" +
-                "<span>" + (e.blocked ? "Disabled" : "Active") + "</span>"
+                "<span>" + (e.blocked ? "Disabled" : "Enabled") + "</span>"
             ];
             $("#users").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
