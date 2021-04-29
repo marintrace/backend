@@ -45,12 +45,15 @@ async def bulk_import(users: UploadFile = File(...), admin: AdminDashboardUser =
 
     user_objects = []  # convert csv lines to pydantic models for processing and serialization via pickle
     for line in reader:
+        if dict(line) == {}:
+            continue
+
         user_objects.append(AddCommunityMemberRequest(
-            first_name=line['FirstName'],
-            last_name=line['LastName'],
-            email=line['Email'],
-            vaccinated=VaccinationStatus.from_radio(line['Vaccinated']),  # convert yes/no to vaccination enum
-            location=line['Location']
+            first_name=line['FirstName'].strip(),
+            last_name=line['LastName'].strip(),
+            email=line['Email'].strip(),
+            vaccinated=VaccinationStatus.from_radio(line['Vaccinated'].lower().strip()),
+            location=line['Location'].strip()
         ))
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
                                                      task_data=BulkAddCommunityMemberRequest(users=user_objects),
