@@ -1,3 +1,13 @@
+//setup error collecting
+Sentry.init({
+  dsn: "https://2791e86b0cbf4da48c0c1718cc3bd9f0@o593264.ingest.sentry.io/5741610",
+  integrations: [new Sentry.Integrations.BrowserTracing()],
+  release: "mt-web-1",
+  // We recommend adjusting this value in production, or using tracesSampler
+  // for finer control
+  tracesSampleRate: 1.0,
+});
+
 var auth0 = null;
 
 var initializing = false;
@@ -79,7 +89,7 @@ async function reportTest(testType) {
         'test_type': testType
     })
         .then(function (response) {
-            console.log(response);
+            //console.log(response);
             $('#positiveModal').modal('hide'); //close modals
             $('#negativeModal').modal('hide'); //close modals
             alert("Successfully reported test result.")
@@ -111,7 +121,7 @@ async function reportContacts(targets) {
     }).then(function (response) {
         $('#contactsModal').modal('hide');
         alert("Successfully reported interactions.")
-        console.log(response);
+        //console.log(response);
     })
         .catch(function (error) {
             alert("Couldn't report contacts. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
@@ -126,7 +136,7 @@ async function reportSymptoms(object) {
         .then(function (response) {
             $('#symptomsModal').modal('hide');
             alert("Successfully reported symptoms.")
-            console.log(response);
+            //console.log(response);
             const now = new Date()
             localStorage.setItem("lastReport", now)
         })
@@ -167,7 +177,7 @@ async function getUserStatus(callback) {
   await instance.get('/get-user-entry')
       .then(function (response) {
           callback(response.data);
-          console.log(response);
+          //console.log(response);
       })
       .catch(function (error) {
           alert("Couldn't get your status. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);

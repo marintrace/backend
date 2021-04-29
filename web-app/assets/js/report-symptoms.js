@@ -35,7 +35,6 @@ $(document).ready(function() {
       'commercial_flight': travel,
       'proximity': contact
     }
-    console.log(checkboxes);
 
     reportSymptoms(checkboxes).then(function() {
       submit.removeClass("disabled")
