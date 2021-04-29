@@ -25,7 +25,10 @@ window.onload = async () => {
   $("#ma").html("Login with ma.org")
   $("#headlands").removeClass("disabled")
   $("#headlands").html("Login with password")
-  if (isAuthenticated) {
+
+  //user is marked as authenticated after first signing in, need to disable this so we can run mark as active the second time with new token
+  const onSecondAuthAttempt = ((localStorage.getItem('timesAttemptedToMark') ?? 0) > 0)
+  if (isAuthenticated && !onSecondAuthAttempt) {
     document.location.href = "/home.html";
     return
   }
