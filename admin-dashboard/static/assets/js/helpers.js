@@ -106,6 +106,31 @@ function downloadTableAsCSV(table_id, separator = ',') {
 }
 
 /**
+ * Delete shortcut (AJAX) for Jquery $.delete
+ * @param url the url to send a request to
+ * @param data payload
+ * @param callback callback to run upon receipt of the response
+ * @param type depends
+ * @returns {{getAllResponseHeaders: function(): *|null, abort: function(*=): *, setRequestHeader: function(*=, *): *, readyState: number, getResponseHeader: function(*): null|*, overrideMimeType: function(*): *, statusCode: function(*=): this}|*}
+ */
+$.delete = function(url, data, callback, type){
+
+  if ( $.isFunction(data) ){
+    type = type || callback,
+        callback = data,
+        data = {}
+  }
+
+  return $.ajax({
+    url: url,
+    type: 'DELETE',
+    success: callback,
+    data: data,
+    contentType: type
+  });
+}
+
+/**
  * Truncate a string to a given length, adding elipsis if necessary. If string is less
  * than the maximimum size, no change is made
  * @param str the string to truncate

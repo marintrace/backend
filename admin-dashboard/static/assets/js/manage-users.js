@@ -175,7 +175,7 @@ function submitInviteUser() {
     }
     let payload = {
         "email": email, "first_name": first_name, "last_name": last_name,
-        "vaccinated": JSON.parse(vaccinated.toLowerCase()),
+        "vaccinated": JSON.parse(vaccinated.toLowerCase()) ? "vaccinated" : "not_vaccinated",
         "location": location
     };
     $("#submitInviteUser").html("Processing...").prop('disabled', true);
@@ -200,10 +200,11 @@ function confirmUserConsent(operation, callback) {
         userItems += '<li>' + email.escapeQuotes() + '</li>'
     })
     let body = `<p>Are you sure you want to ${operation} ${selectedCommunityUsers.size} users? 
-                The following users will be affected</p><br><ul>${userItems}</ul>`;
-    $("#confirm-title").html(title);
+                The following users will be affected:</p><br><ul>${userItems}</ul>`;
+    $("#confirm-title").html("Are you sure?");
     $("#confirm-body").html(body);
 
+    $("#confirm-modal").modal("show");
     $("#confirm-agree").on("click", function () {
         $("#confirm-modal").modal('hide');
         callback();
@@ -278,7 +279,7 @@ function submitCheckedDeleteUsers() {
         selectedCommunityUsers.forEach(function (email) {
             identifiers.push({"email": email});
         });
-        $.post("/user/delete-users", JSON.stringify({"identifier": identifiers}), function (){
+        $.delete("/user/delete-users", JSON.stringify({"identifiers": identifiers}), function (){
             console.log("Delete Users Complete.");
         }, "json").done(async function (data){
             selectedButton.html("Success.");
@@ -286,7 +287,6 @@ function submitCheckedDeleteUsers() {
             $("#modify-users").modal("hide");
             $(".btn-reduced").prop('disabled', false);
             window.location.reload();
-        })
-        $
+        }).fail(requestFailure)
     })
 }

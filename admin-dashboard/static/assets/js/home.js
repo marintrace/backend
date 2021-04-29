@@ -29,7 +29,7 @@ function populateHealthSummaryTable(email = null, getall = false) {
         console.log("Update home status summaries request response received");
     }, "json").done(function (data) {
 
-        if (data['statuses'].length === 0) {
+        if (data['statuses'].length === 0 && !getall) {
             alert("No more data!");
             return;
         }
@@ -110,7 +110,7 @@ function showHealthChangeModal(email) {
  * @param email the user's email
  */
 function showVaccinationOptionModal(email) {
-    $("health-change").modal("hide");
+    $("#health-change").modal("hide");
     $("#vac-user-email").html(email.escapeQuotes());
     $("#submitVaccineToggle").attr("onclick", `submitVaccineOptionForm("${email.escapeQuotes()}")`);
     $("#vaccine-options").modal('show');

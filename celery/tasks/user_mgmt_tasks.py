@@ -99,7 +99,20 @@ def admin_bulk_import(self, *, sender: User, task_data: BulkAddCommunityMemberRe
     # list of celery jobs to complete in parallel
     create_sigs = [admin_create_user.s(task_data=user, sender=sender) for user in task_data.users]
     logger.info(f"Importing {len(create_sigs)} users into MarinTrace for {sender.email}")
-    return group(create_sigs).apply()
+    group(create_sigs).apply()
+
+
+@celery.task(name='tasks.admin_bulk_password_reset', **GLOBAL_CELERY_OPTIONS)
+def admin_bulk_password_reset(self, *, sender: User, task_data: MultipleUserIdentifiers):
+    """
+    Bulk reset the passwords for a set of users. Processes the tasks in parallel and waits
+    until they have all completed
+    :param sender: the sender of the task
+    :param task_data: a list of identifiers to reset the passwords for
+    """
+    reset_sigs = [admin_password_reset.s(task_data=identifier, sender=sender) for identifier in task_data.identifiers]
+    logger.info(f"Resetting the passwords of {len(reset_sigs)} users from MarinTrace for {sender.email}")
+    group(reset_sigs).apply()
 
 
 @celery.task(name='tasks.admin_bulk_delete_user', **GLOBAL_CELERY_OPTIONS)
@@ -112,7 +125,7 @@ def admin_bulk_delete_users(self, *, sender: User, task_data: MultipleUserIdenti
     """
     delete_sigs = [admin_delete_user.s(task_data=identifier, sender=sender) for identifier in task_data.identifiers]
     logger.info(f"Deleting {len(delete_sigs)} users from MarinTrace for {sender.email}")
-    return group(delete_sigs).apply()
+    group(delete_sigs).apply()
 
 
 @celery.task(name='tasks.admin_bulk_toggle_access', **GLOBAL_CELERY_OPTIONS)
@@ -125,4 +138,4 @@ def admin_bulk_toggle_access(self, *, sender: User, task_data: BulkToggleAccessR
     """
     toggle_sigs = [admin_toggle_access.s(task_data=user, sender=sender) for user in task_data.users]
     logger.info(f"Changing access for {len(toggle_sigs)} users for {sender.email}")
-    return group(toggle_sigs).apply()
+    group(toggle_sigs).apply()
