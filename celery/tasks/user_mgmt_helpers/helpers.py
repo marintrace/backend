@@ -29,6 +29,10 @@ def create_user(email: str, first_name: str, last_name: str):
     )
     response = request.json()
     logger.info(f"Received Response from Auth0: {response}")
+
+    if request.status_code == 409:
+        return None
+
     request.raise_for_status()  # raise if there is an exception creating the user
     return response['user_id']
 
@@ -50,7 +54,8 @@ def get_user(email: str, fields: Optional[List] = None):
     response = request.json()
 
     if len(response) == 0:
-        raise Exception(f"No users found for the email {email}")
+        logger.warning(f"No user found for email {email}")
+        return
     if len(response) > 1:
         raise Exception(f"More than one user was found for the email {email}")
 
