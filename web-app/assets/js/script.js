@@ -1,3 +1,13 @@
+//setup error collecting
+Sentry.init({
+  dsn: "https://2791e86b0cbf4da48c0c1718cc3bd9f0@o593264.ingest.sentry.io/5741610",
+  integrations: [new Sentry.Integrations.BrowserTracing()],
+  release: "mt-web-1",
+  // We recommend adjusting this value in production, or using tracesSampler
+  // for finer control
+  tracesSampleRate: 1.0,
+});
+
 var auth0 = null;
 
 var initializing = false;
