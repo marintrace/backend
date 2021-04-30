@@ -27,7 +27,7 @@ window.onload = async () => {
   $("#headlands").html("Login with password")
 
   //user is marked as authenticated after first signing in, need to disable this so we can run mark as active the second time with new token
-  const onSecondAuthAttempt = ((localStorage.getItem('timesAttemptedToMark') ?? 0) > 0)
+  const onSecondAuthAttempt = ((localStorage.getItem('timesAttemptedToMark') || 0) > 0)
   if (isAuthenticated && !onSecondAuthAttempt) {
     document.location.href = "/home.html";
     return
