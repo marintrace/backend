@@ -2,7 +2,7 @@
 Service to validate and verify JSON web tokens for FastAPI
 """
 import re
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import Cookie, Depends, Header, HTTPException, status
 from jose import jwt
@@ -20,7 +20,8 @@ class JWTAuthManager:
     TOKEN_EXTRACTOR: re.Pattern = re.compile('^Bearer\s(?P<token>[A-Za-z0-9.\-_]+)$')
 
     def __init__(self, *, oidc_vault_secret,
-                 object_creator: Callable[[Dict[str, str], str], BaseModel]):
+                 object_creator: Callable[[Dict[str, str], str, List[str]], BaseModel],
+                 ):
         """
         :param: oidc_vault_secret: path to OIDC Secret in Vault
         :param object_creator: a callable function to construct a PyDantic model from the JWT's
@@ -59,13 +60,17 @@ class JWTAuthManager:
 
         return extracted_token.group("token")
 
-    def _get_authorized_role(self, roles: List[str]):
+    def _get_authorized_role(self, roles: List[str], assume_role: Optional[str]):
         """
         Get the user's authorized role for this service
         """
+        if assume_role and assume_role in roles:
+            return assume_role
+
         for role in roles:
             if role in self.authorized_roles:
                 return role
+
         logger.error("***SECURITY RISK: Unable to find authorized role***")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='User does not have an authorized role')
@@ -89,10 +94,11 @@ class JWTAuthManager:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Token is missing a necessary header")
 
-    def verify_jwt(self, token: str):
+    def verify_jwt(self, token: str, assume_role: str = None):
         """
         Verify Authorization JWT issued by OIDC
         :param token: Bearer token accompanying request (from cookie, or from header)
+        :param assume_role: a role to assume, if the user has it.
         """
         # noinspection PyBroadException
         try:
@@ -102,8 +108,17 @@ class JWTAuthManager:
                 issuer=self.issuer, options=dict(verify_aud=False)
             )  # auth0 id token does not provide an audience
             logger.info(f"Authorizing JWT with claims: {claims}")
-            authorized_role = self._get_authorized_role(claims[self.role_claim_name])
-            return self.object_creator(claims, authorized_role)
+
+            if assume_role and assume_role not in self.authorized_roles:  # if the user wants to assume a role they have
+                logger.error("***SECURITY RISK: User attempted to assume an unauthorized role***")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Cannot assume unauthorized role.")
+
+            assumed_role = self._get_authorized_role(claims[self.role_claim_name], assume_role=assume_role)
+            return self.object_creator(claims, assumed_role, claims[self.role_claim_name])
+
+        except HTTPException as caught_exc: # has already been raised and handled
+            raise caught_exc
         except jwt.ExpiredSignatureError:
             logger.exception("***SECURITY RISK: Expired JWT***")
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -117,23 +132,39 @@ class JWTAuthManager:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Error verifying JWT")
 
-    def auth_header(self):
+    def auth_header(self, allow_role_switching: bool = False):
         """
         FastAPI Depends to verify OIDC issued Bearer Tokens specified as HTTP Header
+        :param allow_role_switching: whether or not to allow an authorized user with multiple
+            roles to assume one of them
         """
 
-        def header_verification(authorization: str = Header(..., alias='Authorization')):
-            extracted_token = self._extract_token_from_header(authorization)
-            return self.verify_jwt(extracted_token)
+        if allow_role_switching:
+            def header_verification(authorization: str = Header(..., alias='Authorization'),
+                                    assume_role: Optional[str] = Header(None)):
+                extracted_token = self._extract_token_from_header(authorization)
+                return self.verify_jwt(extracted_token, assume_role=assume_role)
+        else:
+            def header_verification(authorization: str = Header(..., alias='Authorization'), ):
+                extracted_token = self._extract_token_from_header(authorization)
+                return self.verify_jwt(extracted_token)
 
         return Depends(header_verification)
 
-    def auth_cookie(self, cookie_name: str):
+    def auth_cookie(self, cookie_name: str, allow_role_switching: bool = False):
         """
         FastAPI Depends to verify Bearer Tokens specified as Cookies
+        :param cookie_name: the cookie name to read for the JWT
+        :param allow_role_switching: whether or not to allow an authorized user with multiple
+            roles to assume one of them
         """
 
-        def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
-            return self.verify_jwt(token)
+        if allow_role_switching:
+            def cookie_verification(token: str = Cookie(..., alias=cookie_name),
+                                    assume_role: Optional[str] = Cookie(None)):
+                return self.verify_jwt(token, assume_role=assume_role)
+        else:
+            def cookie_verification(token: str = Cookie(..., alias=cookie_name)):
+                return self.verify_jwt(token)
 
         return Depends(cookie_verification)

@@ -1,6 +1,6 @@
 import csv
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, Response, status
 
 from shared.logger import logger
 from shared.models.dashboard_entities import (AdminDashboardUser,
@@ -13,6 +13,7 @@ from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
                                                 InviteStatsResponse,
+                                                UserRolesResponse,
                                                 MemberAccessInfo,
                                                 MultipleMemberAccessInfo)
 from shared.service.neo_config import Neo4JGraph
@@ -135,6 +136,30 @@ async def get_invite_stats(admin: AdminDashboardUser = OIDC_COOKIE):
         ).evaluate()
 
     return InviteStatsResponse(active=active_users, inactive=inactive_users)
+
+
+@USER_MGMT_ROUTER.get('/current-user-roles', operation_id='admin_user_roles',
+                      description="Get a list of the current authorized user's roles",
+                      response_model=UserRolesResponse)
+async def current_user_roles(admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Get a list of the current logged in users roles
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    return UserRolesResponse(roles=admin.roles)
+
+
+@USER_MGMT_ROUTER.get('/assume-role/{role}', operation_id='admin_switch_role',
+                      description="Assume the specified role if the user has multiple")
+async def assume_role(response: Response, role: str, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Sets a cookie on the user's browser specifying the active role
+    """
+    if role not in admin.roles:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Cannot set a cookie for this role.")
+
+    response.set_cookie(key="assume_role", value=role, secure=True)
+    return {"role": role}
 
 
 @USER_MGMT_ROUTER.post('/paginate-users', operation_id='admin_paginate_users',

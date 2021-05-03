@@ -93,18 +93,26 @@ class User(BaseModel):
     school: str
 
     def _send_task(self, *, task_name: str, task_data: Optional[BaseModel] = None,
-                   compression: str = 'lzma') -> AsyncResult:
+                   compression: str = 'lzma', sender_fields=('impersonator', 'school', 'email')) -> AsyncResult:
         """
         Send a task to service via rabbitmq, returning the AsyncResult from celery
         :param task_name: the task name to queue the task to
         :param task_data: data to send to the target worker
         :param compression: the compression algorithm to use when compressing messages
+        :param sender_fields: the fields of the sender to keep during serialization
         :return: the AsyncResult from celery
         """
         if getattr(self, 'impersonator'):
             logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
 
-        task_params = {'sender': self}
+        compressed_sender = self.copy()
+
+        for field in compressed_sender.dict():
+            if field not in sender_fields:
+                logger.debug(f"Sending Task... Deleting field {field}")
+                delattr(compressed_sender, field)
+
+        task_params = {'sender': compressed_sender}
 
         if task_data:
             task_params['task_data'] = task_data

@@ -102,7 +102,7 @@ class AdminDashboardUser(User):
     """
     User who is using the admin dashboard
     """
-    pass
+    roles: Optional[List[str]]
 
 
 class UserInfoDetail(BaseModel):

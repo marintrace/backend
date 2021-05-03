@@ -1,0 +1,14 @@
+{% extends "components/base_modal.html" %}
+{% block modal_name %}switch-campus{% endblock %}
+{% block modal_title %}Switch Campus{% endblock %}
+{% block modal_body %}
+    <p>If you have been granted access to multiple MarinTrace campuses, you can switch to another account using the
+        dropdown below</p>
+    <label for="user-roles">User Roles</label>
+    <select class="form-control" id="user-roles">
+    </select>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-primary" id="switch-campus-btn" onclick='submitSwitchCampus()' type="button">Switch</button>
+{% endblock %}
+

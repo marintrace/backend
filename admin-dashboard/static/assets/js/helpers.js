@@ -19,6 +19,47 @@ function acceptPolicy() {
 }
 
 /**
+ * Show the switch role dialog
+ */
+function showSwitchRoleModal() {
+    $("#switch-campus").modal('show');
+    $("#user-roles").html("<option disabled selected>Loading...</option>");
+    $.get("/user/current-user-roles", function () {
+        console.log("Got Current User Roles");
+    }, "json").done(function (data) {
+        let options = [];
+        data.roles.forEach(function (e) {
+            if (e.endsWith('-admin')) {
+                options.push(`<option value="${e}">${e.split("-admin")[0]}</option>`)
+            }
+        });
+        $("#user-roles").html(options.join(""))
+    }).fail(requestFailure)
+}
+
+/**
+ Switch the users role by getting the backend to set a cookie
+ with our new role
+ **/
+function submitSwitchCampus() {
+    $("#switch-campus-btn").prop('disabled', true).html("Switching...");
+    let userRole = $("#user-roles").val();
+    if (userRole === "Loading...") {
+        alert("Please wait for the system to load your roles")
+    }
+
+    $.get("/user/assume-role/" + userRole, function () {
+        console.log("Received Assume Role Cookie");
+    }, "json").done(async function (data) {
+        let submitBtn = $("#switch-campus-btn")
+        submitBtn.html("Success.")
+        await sleep(1500);
+        window.location.reload();
+    }).fail(requestFailure);
+}
+
+
+/**
  * Show the confirmation dialog to resend the daily briefing
  * if the feature is enabled for the given school. An API request
  * is made to verify if this is the case.
@@ -58,6 +99,24 @@ async function submitResendBriefingForm() {
 }
 
 /**
+ * Delete a JS cookie
+ * @param name the cookie to delete
+ */
+var delete_cookie = function (name) {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
+/**
+ * Function to process logout—we clear the user's cookies (for switched campuses)
+ * and redirect the user to the logout louketo screen
+ */
+function logoutUser() {
+    delete_cookie("assume_role");
+    window.location.href = "/admin/oauth/logout";
+}
+
+
+/**
  * Callback function run on REST API failure to communicate with the backend
  * @param data the failed response payload
  */
@@ -66,6 +125,7 @@ function requestFailure(data) {
     console.log("Error while issuing request");
     console.log(data);
 }
+
 
 /**
  * Quick and simple export target tabe into a csv file
@@ -113,21 +173,21 @@ function downloadTableAsCSV(table_id, separator = ',') {
  * @param type depends
  * @returns {{getAllResponseHeaders: function(): *|null, abort: function(*=): *, setRequestHeader: function(*=, *): *, readyState: number, getResponseHeader: function(*): null|*, overrideMimeType: function(*): *, statusCode: function(*=): this}|*}
  */
-$.delete = function(url, data, callback, type){
+$.delete = function (url, data, callback, type) {
 
-  if ( $.isFunction(data) ){
-    type = type || callback,
-        callback = data,
-        data = {}
-  }
+    if ($.isFunction(data)) {
+        type = type || callback,
+            callback = data,
+            data = {}
+    }
 
-  return $.ajax({
-    url: url,
-    type: 'DELETE',
-    success: callback,
-    data: data,
-    contentType: type
-  });
+    return $.ajax({
+        url: url,
+        type: 'DELETE',
+        success: callback,
+        data: data,
+        contentType: type
+    });
 }
 
 /**

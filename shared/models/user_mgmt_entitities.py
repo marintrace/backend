@@ -58,6 +58,10 @@ class BulkToggleAccessRequest(BaseModel):
     users: List[ToggleAccessRequest]
 
 
+class UserRolesResponse(BaseModel):
+    roles: List[str]
+
+
 class InviteStatsResponse(BaseModel):
     """
     Response for invite stats containing active and pending users

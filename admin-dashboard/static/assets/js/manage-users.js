@@ -290,3 +290,4 @@ function submitCheckedDeleteUsers() {
         }).fail(requestFailure)
     })
 }
+

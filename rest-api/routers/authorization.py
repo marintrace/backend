@@ -5,10 +5,10 @@ from shared.models.user_entities import User
 from shared.service.jwt_auth_config import JWTAuthManager
 
 manager = JWTAuthManager(oidc_vault_secret="oidc/rest",
-                         object_creator=lambda claims, role: User(
+                         object_creator=lambda claims, assumed_role, user_roles: User(
                              first_name=claims["given_name"],
                              last_name=claims["family_name"],
-                             school=role,
+                             school=assumed_role,
                              email=claims['email']
                          ))
 
