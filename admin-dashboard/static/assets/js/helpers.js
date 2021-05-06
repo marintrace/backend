@@ -54,7 +54,7 @@ function submitSwitchCampus() {
         let submitBtn = $("#switch-campus-btn")
         submitBtn.html("Success.")
         await sleep(1500);
-        window.location.reload();
+        window.location.href = '/';
     }).fail(requestFailure);
 }
 

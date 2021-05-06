@@ -153,6 +153,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
             school=user.school, date=get_pst_time().strftime(DATE_FORMAT), pag_token=request.pagination_token,
             limit=request.limit, email=request.email
         ))
+        logger.info(f"Paginated {len(records)} user records...")
 
     statuses = [
         IdSingleUserDualStatus(

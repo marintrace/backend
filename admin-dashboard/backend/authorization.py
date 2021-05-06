@@ -1,8 +1,11 @@
 """
 Authorization for Admin API
 """
+import re
 from shared.models.dashboard_entities import AdminDashboardUser
 from shared.service.jwt_auth_config import JWTAuthManager
+
+SCHOOL_REGEX: re.Pattern = re.compile('(?P<school>.+)-admin', flags=re.I)
 
 # JWT Authentication Manager
 AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
@@ -11,7 +14,7 @@ AUTH_MANAGER = JWTAuthManager(oidc_vault_secret="oidc/admin-jwt",
                                   first_name=claims['given_name'],
                                   email=claims['email'],
                                   roles=user_roles,
-                                  school=assumed_role.split('-')[0]
+                                  school=SCHOOL_REGEX.match(assumed_role).group('school')
                               ))
 
 OIDC_COOKIE = AUTH_MANAGER.auth_cookie('kc-access', allow_role_switching=True)
