@@ -7,6 +7,10 @@ document.getElementById("ma").onclick = function() {
 document.getElementById("headlands").onclick = function() {
   showPassword()
 };
+document.getElementById("tilden").onclick = function() {
+  showPassword()
+};
+
 //for tracking whether or not to run active function
 var newAuth = false
 window.onload = async () => {
@@ -17,6 +21,8 @@ window.onload = async () => {
   $('#ma').html(`Loading...`);
   $('#headlands').addClass('disabled')
   $('#headlands').html(`Loading...`);
+  $('#tilden').addClass('disabled')
+  $('#tilden').html(`Loading...`);
   await configureClient();
   const isAuthenticated = await auth0.isAuthenticated();
   $("#branson").removeClass("disabled")
@@ -25,6 +31,8 @@ window.onload = async () => {
   $("#ma").html("Login with ma.org")
   $("#headlands").removeClass("disabled")
   $("#headlands").html("Login with password")
+  $("#tilden").removeClass("disabled")
+  $("#tilden").html("Login with password")
 
   //user is marked as authenticated after first signing in, need to disable this so we can run mark as active the second time with new token
   const onSecondAuthAttempt = ((localStorage.getItem('timesAttemptedToMark') || 0) > 0)
@@ -55,6 +63,8 @@ window.onload = async () => {
     $('#ma').html(`🔐 Encrypting...`);
     $('#headlands').addClass('disabled')
     $('#headlands').html(`🔐 Encrypting...`);
+    $('#tilden').addClass('disabled')
+    $('#tilden').html(`🔐 Encrypting...`);
     // Process the login state
     await auth0.handleRedirectCallback();
 
@@ -71,6 +81,7 @@ window.onload = async () => {
       $('#branson').html(`🔐 Setting up your account...`);
       $('#ma').html(`🔐 Setting up your account...`);
       $('#headlands').html(`🔐 Setting up your account...`);
+      $('#tilden').html(`🔐 Setting up your account...`);
     }
 
     markUserAsActive().then(function() {
@@ -101,6 +112,8 @@ function loginFinished() {
     $("#ma").html("Login with ma.org")
     $("#headlands").removeClass("disabled")
     $("#headlands").html("Login with password")
+    $("#tilden").removeClass("disabled")
+    $("#tilden").html("Login with password")
   });
 
   // Use replaceState to redirect the user away and remove the querystring parameters
