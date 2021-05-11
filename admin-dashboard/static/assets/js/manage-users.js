@@ -178,7 +178,7 @@ function submitInviteUser() {
         "vaccinated": JSON.parse(vaccinated.toLowerCase()) ? "vaccinated" : "not_vaccinated",
         "location": location
     };
-    $("#submitInviteUser").html("Processing...").prop('disabled', true);
+    $("#submitInviteUser").prop('disabled', true).html("Processing...")
     $.post('/user/create-user', JSON.stringify(payload), function () {
         console.log("Submit Invite User Completed!");
     }, "json").done(async function (data) {
