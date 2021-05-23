@@ -131,12 +131,18 @@ class UserHealthItem(BaseModel):
             self.criteria.append('Negative Test')
         return self
 
-    def add_vaccination(self, status: Union[str, Enum]):
+    def add_vaccination(self, status: Union[str, Enum], update_color: bool = True):
+        """
+        :param status: the user's vaccination status
+        :param update_color: whether or not to update the color of the card when we add the vax record
+        :return:
+        """
         if status == VaccinationStatus.VACCINATED:
-            if self.color == StatusColor.UNHEALTHY:  # if the user was unhealthy when vax added, change to warning
-                self.color = StatusColor.WARNING
-            else:
-                self.color = StatusColor.HEALTHY
+            if update_color:  # if the school wants to ignore the vaccination in status retrieving.
+                if self.color == StatusColor.UNHEALTHY:  # if the user was unhealthy when vax added, change to warning
+                    self.color = StatusColor.WARNING
+                else:
+                    self.color = StatusColor.HEALTHY
             self.criteria.append('Fully Vaccinated')
             self.vaccinated = True
         return self

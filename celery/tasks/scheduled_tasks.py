@@ -25,13 +25,15 @@ def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
 
     with VaultConnection() as vault:
         digest_config = vault.read_secret(secret_path=f'schools/{task_data.school}/daily_digest_config')
+        ignore_vaccine = digest_config['ignore_vaccine']
         authorized_recipients = digest_config['recipients']
 
     with Neo4JGraph() as g:
         no_report_members = [member['email'] for member in list(g.run(
-            """MATCH (m: Member {school: $school}) WHERE NOT EXISTS {
-                    MATCH (m)-[:reported]-(d: DailyReport {date: $date})
-             } AND m.location = $allowed_loc AND COALESCE(m.vaccinated, "") <> $fully_vax AND m.disabled = false
+            f"""MATCH (m: Member {{school: $school}}) WHERE NOT EXISTS {{
+                    MATCH (m)-[:reported]-(d: DailyReport {{date: $date}})
+             }} AND m.location = $allowed_loc AND {"" if ignore_vaccine else "COALESCE(m.vaccinated, "") <> $fully_vax"}
+              AND m.disabled = false
              RETURN m.email as email ORDER BY email""",
             school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"],
             fully_vax=VaccinationStatus.VACCINATED
