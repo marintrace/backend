@@ -75,4 +75,5 @@ class UserStatus(str, Enum):
     User status
     """
     INACTIVE = "inactive"
+    INACTIVE_COPY = "inactive_copy"
     ACTIVE = "active"
