@@ -31,14 +31,16 @@ def admin_create_user(self, *, sender: User, task_data: AddCommunityMemberReques
 
     if not created_user_id:  # the user could not be created because of a conflict
         logger.info("User could not be created because of a conflict... adding an additional copy of existing user")
-        existing_user_id = get_user(email=task_data.email)
+        existing_user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']
         add_role(user_id=existing_user_id, school=sender.school)  # allows us to identify which school a user belongs to
     else:
         add_role(user_id=created_user_id, school=sender.school)
         send_password_reset(email=task_data.email, first_name=task_data.first_name)
 
     with Neo4JGraph() as graph:
-        graph.run("""CREATE (m: Member {first_name: $first_name, last_name: $last_name, email: $email, 
+        graph.run("""OPTIONAL MATCH (m: Member {email: $email, school: $school})
+                    WITH m WHERE m IS NULL
+                    CREATE (member: Member {first_name: $first_name, last_name: $last_name, email: $email, 
                         location: $location, vaccinated: $vaccination, school: $school, disabled: false})""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)

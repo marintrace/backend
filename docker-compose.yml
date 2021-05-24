@@ -8,7 +8,7 @@ services:
     build:
       context: .
       dockerfile: celery/Dockerfile
-    image: gcr.io/vault-159468/celery:1.0.86
+    image: gcr.io/vault-159468/celery:1.0.88
   neo4j:
     build:
       context: neo4j
