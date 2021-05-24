@@ -9,7 +9,7 @@ from shared.date_utils import pst_date
 from shared.logger import logger
 from shared.models.enums import EntryReason, VaccinationStatus
 from shared.models.risk_entities import (IdentifiedUserEntryItem,
-                                         UserHealthItem, UserLocationItem)
+                                         UserHealthItem, UserLocationItem, SymptomConfigRetriever)
 from shared.models.user_entities import HealthReport, ListUsersResponse, User
 from shared.service.neo_config import Neo4JGraph
 
@@ -54,7 +54,8 @@ async def entry_card(user: User = AUTH_USER):
             health_risk.from_health_report(HealthReport(**record['report']))
 
         if record['member']['vaccinated'] == VaccinationStatus.VACCINATED:
-            health_risk.add_vaccination(VaccinationStatus.VACCINATED)
+            health_risk.add_vaccination(VaccinationStatus.VACCINATED,
+                                        update_color=not SymptomConfigRetriever.get(user.school)['ignore_vaccine'])
 
         identified_item_params = dict(name=f"{record['member']['first_name']} {record['member']['last_name']}")
 

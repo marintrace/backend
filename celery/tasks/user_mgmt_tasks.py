@@ -4,6 +4,7 @@ from celery import group, states
 from shared.logger import logger
 from shared.models.user_entities import (MultipleUserIdentifiers, User,
                                          UserIdentifier)
+from shared.models.enums import UserStatus
 from shared.models.user_mgmt_entitities import (AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
@@ -26,16 +27,30 @@ def admin_create_user(self, *, sender: User, task_data: AddCommunityMemberReques
     :param task_data: the add community member request
     """
     logger.info(f"Adding user {task_data.email} to Auth0 at the request of {sender.email}")
-    user_id = create_user(email=task_data.email, first_name=task_data.first_name,
-                          last_name=task_data.last_name)
-    if user_id:
-        add_role(user_id=user_id, school=sender.school)  # allows us to identify which school a user belongs to
+    created_user_id = create_user(email=task_data.email, first_name=task_data.first_name,
+                                  last_name=task_data.last_name)
+
+    if not created_user_id:  # the user could not be created because of a conflict
+        logger.info("User could not be created because of a conflict... adding an additional copy of existing user")
+        existing_user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']
+        add_role(user_id=existing_user_id, school=sender.school)  # allows us to identify which school a user belongs to
+    else:
+        add_role(user_id=created_user_id, school=sender.school)
         send_password_reset(email=task_data.email, first_name=task_data.first_name)
-        with Neo4JGraph() as graph:
-            graph.run("""CREATE (m: Member {first_name: $first_name, last_name: $last_name, email: $email, 
-                            location: $location, vaccinated: $vaccination, school: $school, disabled: false})""",
-                      first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
-                      location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
+
+    with Neo4JGraph() as graph:
+        logger.info("Adding Node to Database with Composite Email+School Identifier...")
+        graph.run("""OPTIONAL MATCH (m: Member {email: $email, school: $school})
+                    WITH m WHERE m IS NULL
+                    CREATE (member: Member {first_name: $first_name, last_name: $last_name, email: $email, 
+                        location: $location, vaccinated: $vaccination, school: $school, disabled: false})""",
+                  first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
+                  location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
+
+        logger.info("Changing the status of other inactive nodes to inactive copies...")
+        graph.run("""MATCH (m: Member {email: $email}) WHERE m.school <> $school 
+                    SET m.status=$inactive_status""", school=sender.school,
+                  inactive_status=UserStatus.INACTIVE_COPY)
 
 
 @celery.task(name='tasks.admin_password_reset', **GLOBAL_CELERY_OPTIONS)
@@ -60,13 +75,26 @@ def admin_delete_user(self, *, sender: User, task_data: UserIdentifier):
     logger.info(f"Removing user {task_data.email} from Neo4J")
     with Neo4JGraph() as graph:
         # Remove the user from Neo4J and delete all associated edges with the matched node
-        graph.run("""MATCH (m: Member {email: $email, school: $school}) DETACH DELETE m""",
-                  email=task_data.email, school=sender.school)
+        graph.run("""MATCH (m: Member {email: $email}) DETACH DELETE m""", email=task_data.email)
 
     user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']  # get the user's user id from Auth0
 
     if user_id:
         delete_user(user_id=user_id)
+
+
+@celery.task(name='tasks.admin_delete_user_copy', **GLOBAL_CELERY_OPTIONS)
+def admin_delete_user_copy(self, *, sender: User, task_data: UserIdentifier):
+    """
+    Delete a user's copy from the database, but leave them in Auth0 (to keep a migration)
+    :param sender: the user that initiated the task
+    :param task_data: the user id to delete
+    """
+    logger.info(f"Deleting user copy {task_data.email} at the request of {sender.email}")
+    with Neo4JGraph() as graph:
+        # Remove the user from Neo4J and delete all associated edges with the matched node
+        graph.run("""MATCH (m: Member {email: $email, school: $school}) DETACH DELETE m""",
+                  email=task_data.email, school=sender.school)
 
 
 @celery.task(name='tasks.admin_toggle_access', **GLOBAL_CELERY_OPTIONS)

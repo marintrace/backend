@@ -25,7 +25,7 @@ class JWTAuthManager:
         """
         :param: oidc_vault_secret: path to OIDC Secret in Vault
         :param object_creator: a callable function to construct a PyDantic model from the JWT's
-            claims and authorized role (respectively)
+            claims and authorized   role (respectively)
         """
         with VaultConnection() as vault:
             oidc_secrets = vault.read_secret(secret_path=oidc_vault_secret)

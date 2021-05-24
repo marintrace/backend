@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from shared.models.enums import UserLocationStatus, VaccinationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus, UserStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
                                          UserLocationItem)
 from shared.models.user_entities import (HealthReport, Paginated,
@@ -81,7 +81,7 @@ class IdSingleUserDualStatus(SingleUserDualStatus, UserIdentifier):
     """
     Identified User Dual Status (with email)
     """
-    pass
+    status: UserStatus = UserStatus.ACTIVE
 
 
 class MultipleUserDualStatuses(PaginatedResponse):

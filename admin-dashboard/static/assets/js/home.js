@@ -41,10 +41,10 @@ function populateHealthSummaryTable(email = null, getall = false) {
             let rows = [
                 `<input type="radio" data-email="${escapedEmail}" onchange="itemSelectionChange(this)" name="userSelect" `
                 + (selectedMember === escapedEmail ? "checked" : "") + " class='big-select'/>",
-                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
+                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>` + (e.status !== "active" ? " (" + e.status.replace("_", "-") + ")": ""),
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}")'>` +
-                truncate(e.health.criteria.join(' & '), 45) + "</a></span></span>",
+                truncate(e.health.criteria.join(' & '), 45) + " </a></span></span>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='showLocationChangeModal("${escapedEmail}")'>` +
                 e.location.location.capitalize() + "</a></span></span>"

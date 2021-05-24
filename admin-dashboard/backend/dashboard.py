@@ -18,9 +18,9 @@ from shared.models.dashboard_entities import (AdminDashboardUser,
                                               UserIdentifier, UserInfoDetail,
                                               UserInteraction,
                                               UserInteractionHistory)
-from shared.models.enums import UserLocationStatus, VaccinationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus, UserStatus
 from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
-                                         UserLocationItem)
+                                         UserLocationItem, SymptomConfigRetriever)
 from shared.models.user_entities import HealthReport
 from shared.service.flower_config import FlowerAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node
@@ -47,7 +47,8 @@ async def create_health_status(user: dict, report: dict, check_vaccine: bool = T
         risk_item.from_health_report(health_report=HealthReport(**dict(report)))
 
     if check_vaccine and user['vaccinated'] == VaccinationStatus.VACCINATED:
-        risk_item.add_vaccination(user['vaccinated'])
+        risk_item.add_vaccination(user['vaccinated'],
+                                  update_color=not SymptomConfigRetriever.get(user['school'])['ignore_vaccine'])
 
     return risk_item
 
@@ -159,6 +160,7 @@ async def paginate_user_summary_items(request: OptIdPaginationRequest,
         IdSingleUserDualStatus(
             health=await create_health_status(record['member'], record['report'], check_vaccine=True),
             email=record['member']['email'],
+            status=record['member'].get('status', UserStatus.INACTIVE),
             location=await create_location_status(record['member'].get('location'))) for record in
         records
     ]

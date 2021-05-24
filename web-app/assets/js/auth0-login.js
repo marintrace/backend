@@ -33,6 +33,7 @@ window.onload = async () => {
   $('#branson-summer').html(`Loading...`);
   $('#ngs').addClass('disabled')
   $('#ngs').html(`Loading...`);
+
   await configureClient();
   const isAuthenticated = await auth0.isAuthenticated();
   $("#branson").removeClass("disabled")
@@ -83,6 +84,7 @@ window.onload = async () => {
     $('#branson-summer').html(`🔐 Encrypting...`);
     $('#ngs').addClass('disabled')
     $('#ngs').html(`🔐 Encrypting...`);
+
     // Process the login state
     await auth0.handleRedirectCallback();
 
