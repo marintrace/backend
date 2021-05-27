@@ -35,14 +35,15 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
     created_user_id = create_user(email=task_data.email, first_name=task_data.first_name,
                                   last_name=task_data.last_name)
 
-    if not created_user_id:  # the user could not be created because of a conflict, switch their report node
+    if created_user_id:
+        add_user_to_role(user_id=created_user_id, school=sender.school)
+        send_password_reset(email=task_data.email, first_name=task_data.first_name)
+    else:
+        # the user could not be created because of a conflict, switch their report node
         # to the school we are dealing with.
         admin_switch_report_node(sender=sender, task_data=SwitchReportNodeRequest(
             email=task_data.email, target_campus=sender.school
         ))
-    else:
-        add_user_to_role(user_id=created_user_id, school=sender.school)
-        send_password_reset(email=task_data.email, first_name=task_data.first_name)
 
     with Neo4JGraph() as graph:
         # we do an optional match because we don't want a duplicate node if the user already exists in the given school
@@ -67,7 +68,7 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
         logger.warning(f"**{sender.email} is not permitted to administrate over {task_data.target_campus}**")
         self.update_state(state=states.FAILURE,
                           meta=f'Admin is not permitted to administrate over {task_data.target_campus}')
-        raise Ignore
+        raise Ignore()
 
     target_user_id: str = get_user(email=task_data.email, fields=['user_id'])['user_id']
     remove_community_roles(user_id=target_user_id)  # remove only the user's community roles
@@ -75,11 +76,13 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
 
     with Neo4JGraph() as graph:
         logger.info("Creating target node in target campus if necessary")
-        graph.run("""MERGE (member: {email: $email, school: $target_campus}) RETURN member""",
-                  email=task_data.email, target_campus=task_data.target_campus)
+        graph.run("""MERGE (member: {email: $email, school: $target_campus}) 
+                    UPDATE member SET member.status=$inactive_status """,
+                  email=task_data.email, target_campus=task_data.target_campus, inactive_status=UserStatus.INACTIVE)
+
         logger.info("Setting other user records to inactive")
         graph.run("""MATCH (member: {email: $email}) WHERE school <> $target_campus
-                    SET member.status=$switched_status""",
+                    UPDATE member SET member.status=$switched_status""",
                   email=task_data.email, target_campus=task_data.target_campus,
                   switched_status=UserStatus.SCHOOL_SWITCHED)
 

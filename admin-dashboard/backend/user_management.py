@@ -10,6 +10,7 @@ from shared.models.enums import UserStatus, VaccinationStatus
 from shared.models.user_entities import (CreatedAsyncTask,
                                          MultipleUserIdentifiers)
 from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
+                                                BulkSwitchReportNodeRequest,
                                                 AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
@@ -115,6 +116,19 @@ async def password_reset(request: MultipleUserIdentifiers, admin: AdminDashboard
                                                      task_data=request))
 
 
+@USER_MGMT_ROUTER.post('/switch-report-campus', operation_id='switch_report_node',
+                       description='Switch the campus that several users are reporting too', **GENERAL_ASYNC_PARAMS)
+async def switch_report_campus(request: BulkSwitchReportNodeRequest, admin: AdminDashboardUser = OIDC_COOKIE):
+    """
+    Switch several users' report nodes (switching their reporting school)
+    * Requires a list of switch nodes requests
+    * Requires an OIDC cookie (kc-access) with an Auth0 JWT
+    """
+    logger.info("Processing bulk switch node request")
+    return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_switch_node',
+                                                     task_data=request))
+
+
 @USER_MGMT_ROUTER.get('/get-invite-stats', operation_id='admin_invite_stats',
                       description="Get the number of active users and inactive users",
                       response_model=InviteStatsResponse)
@@ -187,6 +201,6 @@ async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardU
         member = record['member']
         details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
                                         blocked=member['disabled'], active=member.get('status') == UserStatus.ACTIVE))
-        #TODO: make this not a boolean
+        # TODO: make this not a boolean
 
     return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)
