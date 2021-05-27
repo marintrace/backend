@@ -92,8 +92,8 @@ class User(BaseModel):
     email: str
     school: str
 
-    def _send_task(self, *, task_name: str, task_data: Optional[BaseModel] = None,
-                   compression: str = 'lzma', sender_fields=('impersonator', 'school', 'email')) -> AsyncResult:
+    def _send_task(self, *, task_name: str, sender_fields, task_data: Optional[BaseModel] = None,
+                   compression: str = 'lzma', ) -> AsyncResult:
         """
         Send a task to service via rabbitmq, returning the AsyncResult from celery
         :param task_name: the task name to queue the task to
@@ -122,20 +122,24 @@ class User(BaseModel):
         )
         return task
 
-    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma') -> str:
+    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma',
+                   sender_fields=('impersonator', 'school', 'email')) -> str:
         """
         Send a task to celery asynchronously, returning the task id
-        :return: the task id for the queued task
+        :return the id of the queued task
         """
-        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression)
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
+                                                   sender_fields=sender_fields)
         return queued_task.id
 
-    def execute_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma'):
+    def execute_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma',
+                     sender_fields=('impersonator', 'school', 'email')):
         """
         Send a task to celery and wait for the result
-        :return: the result of the executed task
+        :return the result from the invoked task
         """
-        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression)
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
+                                                   sender_fields=sender_fields)
         return queued_task.get()  # wait for task to complete
 
     class Config:

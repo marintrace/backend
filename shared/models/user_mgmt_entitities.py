@@ -70,9 +70,16 @@ class InviteStatsResponse(BaseModel):
     inactive: int
 
 
-class SwitchHealthRecordRequest(BaseModel):
+class SwitchReportNodeRequest(BaseModel):
     """
-    Request to create a new health record copy at another campus
+    Request to switch a user's active health record to a new campus
     """
     email: str
     target_campus: str
+
+
+class BulkSwitchReportNodeRequest(BaseModel):
+    """
+    Request to switch many users' active health record to new campuses
+    """
+    requests: List[SwitchReportNodeRequest]

@@ -32,7 +32,7 @@ def send_daily_digest(self, task_data: DailyDigestRequest, sender: User = None):
         no_report_members = [member['email'] for member in list(g.run(
             f"""MATCH (m: Member {{school: $school}}) WHERE NOT EXISTS {{
                     MATCH (m)-[:reported]-(d: DailyReport {{date: $date}})
-             }} AND m.location = $allowed_loc AND {"" if ignore_vaccine else "COALESCE(m.vaccinated, "") <> $fully_vax"}
+             }} AND m.location = $allowed_loc {"" if ignore_vaccine else "AND COALESCE(m.vaccinated, "") <> $fully_vax"}
               AND m.disabled = false
              RETURN m.email as email ORDER BY email""",
             school=task_data.school, allowed_loc=UserLocationStatus.CAMPUS.value, date=day_node["date"],

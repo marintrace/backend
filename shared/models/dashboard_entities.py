@@ -105,6 +105,18 @@ class AdminDashboardUser(User):
     """
     roles: Optional[List[str]]
 
+    def can_manage(self, school: str) -> bool:
+        """
+        Get whether or not an admin dashboard user to authorized
+        to administrate over a given campus
+        :param school: the school to check
+        :return: true/false
+        """
+        for role in self.roles:
+            if role.rstrip('-admin') == school:
+                return True
+        return False
+
 
 class UserInfoDetail(BaseModel):
     """
