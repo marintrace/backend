@@ -1,20 +1,21 @@
-import time
-import random
 from celery import group, states
 from shared.logger import logger
+from shared.models.enums import UserStatus
 from shared.models.user_entities import (MultipleUserIdentifiers, User,
                                          UserIdentifier)
-from shared.models.enums import UserStatus
 from shared.models.user_mgmt_entitities import (AddCommunityMemberRequest,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
+                                                SwitchHealthRecordRequest,
                                                 ToggleAccessRequest)
 from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
 from shared.service.neo_config import Neo4JGraph
 
-from .user_mgmt_helpers.helpers import (add_role, create_user, delete_user,
-                                        get_user, send_password_reset,
-                                        update_user)
+from .user_mgmt_helpers.helpers import (add_user_to_role, create_user,
+                                        delete_user, get_user,
+                                        remove_community_roles,
+                                        send_campus_switch_email,
+                                        send_password_reset, update_user)
 
 celery = get_celery()
 
@@ -31,26 +32,48 @@ def admin_create_user(self, *, sender: User, task_data: AddCommunityMemberReques
                                   last_name=task_data.last_name)
 
     if not created_user_id:  # the user could not be created because of a conflict
-        logger.info("User could not be created because of a conflict... adding an additional copy of existing user")
-        existing_user_id = get_user(email=task_data.email, fields=['user_id'])['user_id']
-        add_role(user_id=existing_user_id, school=sender.school)  # allows us to identify which school a user belongs to
+        admin_switch_health_record(sender=sender, task_data=task_data)
     else:
-        add_role(user_id=created_user_id, school=sender.school)
+        add_user_to_role(user_id=created_user_id, school=sender.school)
         send_password_reset(email=task_data.email, first_name=task_data.first_name)
 
     with Neo4JGraph() as graph:
-        logger.info("Adding Node to Database with Composite Email+School Identifier...")
-        graph.run("""OPTIONAL MATCH (m: Member {email: $email, school: $school})
-                    WITH m WHERE m IS NULL
-                    CREATE (member: Member {first_name: $first_name, last_name: $last_name, email: $email, 
-                        location: $location, vaccinated: $vaccination, school: $school, disabled: false})""",
+        # we do an optional match because we don't want a duplicate node if the user already exists in the given school
+        graph.run("""MERGE (m: Member {email: $email, school: $school})
+                     UPDATE m SET first_name=$first_name SET last_name=$last_name
+                     SET location=$location SET vaccinated=vaccination SET disabled=false""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
 
-        logger.info("Changing the status of other inactive nodes to inactive copies...")
-        graph.run("""MATCH (m: Member {email: $email}) WHERE m.school <> $school 
-                    SET m.status=$inactive_status""", school=sender.school,
-                  inactive_status=UserStatus.INACTIVE_COPY)
+
+@celery.task(name='tasks.admin_switch_health_record', **GLOBAL_CELERY_OPTIONS)
+def admin_switch_health_record(self, *, sender: User, task_data: SwitchHealthRecordRequest):
+    """
+    Switch a user's health record to another campus. Creates the record if it doesn't exist.
+    :param sender: the user that initiated the task
+    :param task_data: a request payload to switch a user's health record
+    """
+    logger.info(f"Switching health record of {task_data.email} to {task_data.target_campus} at the request of "
+                f"{sender.email}")
+    target_user_id: str = get_user(email=task_data.email, fields=['user_id'])['user_id']
+    remove_community_roles(user_id=target_user_id)  # remove only the user's community roles, so that they still have
+    # admin and/or other necessary roles
+    add_user_to_role(user_id=target_user_id, school=task_data.target_campus)
+
+    with Neo4JGraph() as graph:
+        logger.info("Creating target node in target campus if necessary")
+        # create the health record for the new school if it doesn't exist
+        graph.run("""MERGE (member: {email: $email, school: $target_campus}) RETURN member""",
+                  email=task_data.email, target_campus=task_data.target_campus)
+        logger.info("Setting other user records to inactive")
+        # set the status of all other health copies to campus switched
+        graph.run("""MATCH (member: {email: $email}) WHERE school <> $target_campus
+                    SET member.status=$switched_status""",
+                  email=task_data.email, target_campus=task_data.target_campus,
+                  switched_status=UserStatus.SCHOOL_SWITCHED)
+
+    logger.info("Migrated User in Database... Sending SendGrid Campus Switch Notification")
+    send_campus_switch_email(email=task_data.email, school=task_data.target_campus)
 
 
 @celery.task(name='tasks.admin_password_reset', **GLOBAL_CELERY_OPTIONS)

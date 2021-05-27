@@ -24,13 +24,14 @@ function acceptPolicy() {
 function showSwitchRoleModal() {
     $("#switch-campus").modal('show');
     $("#user-roles").html("<option disabled selected>Loading...</option>");
+    let currentRole = getCookie("assume_role");
     $.get("/user/current-user-roles", function () {
         console.log("Got Current User Roles");
     }, "json").done(function (data) {
         let options = [];
         data.roles.forEach(function (e) {
             if (e.endsWith('-admin')) {
-                options.push(`<option value="${e}">${e.split("-admin")[0]}</option>`)
+                options.push(`<option value="${e}"` + (currentRole === e ? "selected": "") + `>${e.split("-admin")[0]}</option>`)
             }
         });
         $("#user-roles").html(options.join(""))
@@ -199,6 +200,17 @@ $.delete = function (url, data, callback, type) {
  */
 function truncate(str, n) {
     return (str.length > n) ? str.substr(0, n - 1) + '&hellip;' : str;
+}
+
+/**
+ * Get a JS cookie by name from the browser
+ * @param name the string name of cookie
+ * @returns {string}
+ */
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
 /**

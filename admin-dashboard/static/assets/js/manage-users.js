@@ -123,6 +123,8 @@ function clearMemberSearch() {
  Show the bulk import modal
  **/
 function showUserImportModal() {
+    alert("Importing users is currently undergoing maintenance. Please email us to import them urgently")
+    return
     $("#user-import").modal("show");
 }
 
@@ -130,6 +132,8 @@ function showUserImportModal() {
  * Show the single user invite modal
  */
 function showUserInviteModal(){
+    alert("Importing users is currently undergoing maintenance. Please email us to import them urgently")
+    return
     $("#invite-user").modal("show");
 }
 

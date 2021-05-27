@@ -24,6 +24,10 @@ def add_health_report(sender: User, report: HealthReport, additional_data: dict 
     """
     with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=sender.email, school=sender.school).first()
+        if authorized_user_node.get('status') == UserStatus.INACTIVE_COPY:
+            logger.warning("Cannot create reports for an inactive copy!")
+            return
+
         day_node = current_day_node(school=sender.school)
         graph_edge = RelationshipMatcher(graph=g).match(nodes={authorized_user_node, day_node}).first()
         if graph_edge:
@@ -58,10 +62,10 @@ def update_user_properties(sender: User, data: dict):
     """
     logger.info(f"Updating user properties for authorized user.")
     with Neo4JGraph() as graph:
-        authorized_user_node = graph.nodes.match("Member", email=sender.email, school=sender.school).first()
-        for prop, value in data.items():
-            authorized_user_node[prop] = value
-        graph.push(authorized_user_node)
+        for node in graph.nodes.match("Member", email=sender.email, school=sender.school):
+            for prop, value in data.items():
+                node[prop] = value
+            graph.push(node)
 
 
 @celery.task(name='tasks.report_interaction', **GLOBAL_CELERY_OPTIONS)
@@ -74,6 +78,10 @@ def report_interaction(self, *, sender: User, task_data: InteractionReport):
     logger.info("Reporting interaction for the authorized user.")
     with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=sender.email, school=sender.school).first()
+        if authorized_user_node.get('status') == UserStatus.INACTIVE_COPY:
+            logger.warning("Cannot report interaction for an inactive copy...")
+            return
+
         for target_member in task_data.targets:
             interacted_user = g.nodes.match('Member', email=target_member, school=sender.school).first()
             if not interacted_user:

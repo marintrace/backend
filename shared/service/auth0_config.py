@@ -3,7 +3,7 @@
 Setup Auth0 Management API and pulling credentials
 """
 import urllib.parse
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import requests
 from jose import ExpiredSignatureError, jwt
@@ -90,15 +90,31 @@ class Auth0ManagementClient:
         return config['connection_id']
 
     @staticmethod
+    def _conditionally_populate_roles():
+        """
+        Populate the role cache if it doesn't exist already
+        """
+        if not Auth0ManagementClient._ROLE_MAPPING:
+            with VaultConnection() as vault:
+                Auth0ManagementClient._ROLE_MAPPING = vault.read_secret(secret_path='oidc/roles')
+
+    @staticmethod
+    def get_all_role_ids() -> List[str]:
+        """
+        Get a list of all available community role ids
+        :return: list of available role ids
+        """
+        Auth0ManagementClient._conditionally_populate_roles()
+        return list(Auth0ManagementClient._ROLE_MAPPING.values())
+
+    @staticmethod
     def get_role_id(role_name: str) -> str:
         """
         Get the role id associated with a specified role name
         :param role_name: the role name to get
         :return: the id of the role
         """
-        if not Auth0ManagementClient._ROLE_MAPPING:
-            with VaultConnection() as vault:
-                Auth0ManagementClient._ROLE_MAPPING = vault.read_secret(secret_path='oidc/roles')
+        Auth0ManagementClient._conditionally_populate_roles()
         return Auth0ManagementClient._ROLE_MAPPING[role_name]
 
     @staticmethod

@@ -18,9 +18,11 @@ from shared.models.dashboard_entities import (AdminDashboardUser,
                                               UserIdentifier, UserInfoDetail,
                                               UserInteraction,
                                               UserInteractionHistory)
-from shared.models.enums import UserLocationStatus, VaccinationStatus, UserStatus
-from shared.models.risk_entities import (DatedUserHealthHolder, UserHealthItem,
-                                         UserLocationItem, SymptomConfigRetriever)
+from shared.models.enums import (UserLocationStatus, UserStatus,
+                                 VaccinationStatus)
+from shared.models.risk_entities import (DatedUserHealthHolder,
+                                         SymptomConfigRetriever,
+                                         UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport
 from shared.service.flower_config import FlowerAPI
 from shared.service.neo_config import Neo4JGraph, current_day_node

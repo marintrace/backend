@@ -1,11 +1,12 @@
 import csv
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, Response, status
+from fastapi import (APIRouter, File, HTTPException, Response, UploadFile,
+                     status)
 
 from shared.logger import logger
 from shared.models.dashboard_entities import (AdminDashboardUser,
                                               OptIdPaginationRequest)
-from shared.models.enums import VaccinationStatus, UserStatus
+from shared.models.enums import UserStatus, VaccinationStatus
 from shared.models.user_entities import (CreatedAsyncTask,
                                          MultipleUserIdentifiers)
 from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
@@ -13,9 +14,9 @@ from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 BulkAddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
                                                 InviteStatsResponse,
-                                                UserRolesResponse,
                                                 MemberAccessInfo,
-                                                MultipleMemberAccessInfo)
+                                                MultipleMemberAccessInfo,
+                                                UserRolesResponse)
 from shared.service.neo_config import Neo4JGraph
 
 from .authorization import OIDC_COOKIE
@@ -186,5 +187,6 @@ async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardU
         member = record['member']
         details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
                                         blocked=member['disabled'], active=member.get('status') == UserStatus.ACTIVE))
+        #TODO: make this not a boolean
 
     return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)

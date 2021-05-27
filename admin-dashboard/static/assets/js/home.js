@@ -41,12 +41,12 @@ function populateHealthSummaryTable(email = null, getall = false) {
             let rows = [
                 `<input type="radio" data-email="${escapedEmail}" onchange="itemSelectionChange(this)" name="userSelect" `
                 + (selectedMember === escapedEmail ? "checked" : "") + " class='big-select'/>",
-                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>` + (e.status !== "active" ? " (" + e.status.replace("_", "-") + ")": ""),
+                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>` + (e.status !== "active" ? " (" + e.status.replace("_", "-") + ")" : ""),
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
-                `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}")'>` +
+                `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}", "${e.status}")'>` +
                 truncate(e.health.criteria.join(' & '), 45) + " </a></span></span>",
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
-                `<a class='modal-link' onclick='showLocationChangeModal("${escapedEmail}")'>` +
+                `<a class='modal-link' onclick='showLocationChangeModal("${escapedEmail}", "${e.status}")'>` +
                 e.location.location.capitalize() + "</a></span></span>"
             ];
             $("#summaries").append("<tr><td>" + rows.join("</td><td>") + "</td>");
@@ -59,7 +59,7 @@ function populateHealthSummaryTable(email = null, getall = false) {
  * at the top with modification options for location/health
  * @param radio the radio button to act on
  */
-function itemSelectionChange(radio){
+function itemSelectionChange(radio) {
     let email = radio.dataset.email;
     selectedMember = email;
     $("#health-button-1").html("Modify Health").attr('onclick', `showHealthChangeModal('${email}')`);
@@ -70,11 +70,11 @@ function itemSelectionChange(radio){
 /**
  * Clear the radio button selection on the home page, and reset the buttons back to their original states
  */
-function clearHealthSelection(){
+function clearHealthSelection() {
     $("#health-button-1").html("Export to CSV").attr('onclick', 'exportHealthSummariesAsCSV()');
     $("#health-button-2").html("Manage Members").attr('onclick', 'goToManageUsers()');
     $("#clear-toggle").html("");
-    document.getElementsByName("userSelect").forEach(function (e){
+    document.getElementsByName("userSelect").forEach(function (e) {
         e.checked = false;
     })
     selectedMember = null;
@@ -93,11 +93,18 @@ async function exportHealthSummariesAsCSV() {
     $("#csv-export-home").html("Export to CSV").prop('disabled', false);
 
 }
+
 /**
  * Show the health change modal, the submission of which queues a report in the backend for the selected user(s)
  * @param email the email to show the modal for
+ * @param status the users status
  */
-function showHealthChangeModal(email) {
+function showHealthChangeModal(email, status) {
+    if (status === "inactive_copy") {
+        alert("You cannot change the health of this user as it has been copied to another campus, where it is now active." +
+            " You can transfer ownership of this user by inviting them to this campus from the 'Manage Users' page")
+        return;
+    }
     $("#health-user-email").html(email.escapeQuotes());
     $("#submitHealthModification").attr("onclick", `submitHealthReportForm("${email.escapeQuotes()}", false)`);
     $("#setHealthy").attr("onclick", `submitHealthReportForm("${email.escapeQuotes()}", true)`);
@@ -108,8 +115,14 @@ function showHealthChangeModal(email) {
 /**
  * Show the modal to set a user's vaccination status (on top of the health change modal)
  * @param email the user's email
+ * @param status the users status
  */
-function showVaccinationOptionModal(email) {
+function showVaccinationOptionModal(email, status) {
+    if (status === "invite_copy") {
+        alert("You cannot change the health of this user as it has been copied to another campus, where it is now active." +
+            " You can transfer ownership of this user by inviting them to this campus from the 'Manage Users' page")
+        return;
+    }
     $("#health-change").modal("hide");
     $("#vac-user-email").html(email.escapeQuotes());
     $("#submitVaccineToggle").attr("onclick", `submitVaccineOptionForm("${email.escapeQuotes()}")`);
@@ -256,7 +269,7 @@ function clearHealthSearch() {
 /**
  * Simple function to go to the manage users page
  */
-function goToManageUsers(){
+function goToManageUsers() {
     window.location = "/manage-users"
 }
 

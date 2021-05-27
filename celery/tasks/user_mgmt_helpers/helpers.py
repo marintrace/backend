@@ -92,7 +92,7 @@ def update_user(user_id: str, content: Optional[Dict] = None):
     request.raise_for_status()
 
 
-def add_role(user_id: str, school: str):
+def add_user_to_role(user_id: str, school: str):
     """
     Add the role to the created user  in Auth0
     :param user_id: the user's assigned ID in Auth0
@@ -105,6 +105,18 @@ def add_role(user_id: str, school: str):
     )
     request.raise_for_status()
     logger.info(f"Received Response from Auth0: {request.json()})")
+
+
+def remove_community_roles(user_id: str):
+    """
+    Remove all mapped community roles in vault from the specified user id
+    :param user_id: the user's assigned ID in Auth0
+    """
+    logger.info(f"Deleting all community roles from Auth0 user {user_id}")
+    request = requests.delete(f'/users/{user_id}/roles', json={
+        "roles": Auth0ManagementClient.get_all_role_ids()
+    }, headers=Auth0ManagementClient.get_jwt_header())
+    request.raise_for_status()
 
 
 def send_password_reset(email: str, first_name: Optional[str] = 'MarinTrace User'):
@@ -128,6 +140,20 @@ def send_password_reset(email: str, first_name: Optional[str] = 'MarinTrace User
     SendgridAPI.send_email(
         template_name='user_invite',
         template_data={'ticket_url': request.json()['ticket'], 'name': first_name},
+        recipients=[email],
+        bcc=False
+    )
+
+
+def send_campus_switch_email(email: str, school: str):
+    """
+    Send a notification to the affected user that their campus has been switched
+    :param email: the email to notify
+    :param school: the school (campus) they have been switched to
+    """
+    SendgridAPI.send_email(
+        template_name='user_migrate',
+        template_data={'campus': school},
         recipients=[email],
         bcc=False
     )

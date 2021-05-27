@@ -75,5 +75,6 @@ class UserStatus(str, Enum):
     User status
     """
     INACTIVE = "inactive"
-    INACTIVE_COPY = "inactive_copy"
     ACTIVE = "active"
+    SCHOOL_SWITCHED = "school-switched"  # user has been switched onto another marintrace school, so they
+    # are not permitted to report on this node

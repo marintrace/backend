@@ -68,3 +68,11 @@ class InviteStatsResponse(BaseModel):
     """
     active: int
     inactive: int
+
+
+class SwitchHealthRecordRequest(BaseModel):
+    """
+    Request to create a new health record copy at another campus
+    """
+    email: str
+    target_campus: str

@@ -2,6 +2,7 @@
 Authorization for Admin API
 """
 import re
+
 from shared.models.dashboard_entities import AdminDashboardUser
 from shared.service.jwt_auth_config import JWTAuthManager
 
