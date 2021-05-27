@@ -123,8 +123,7 @@ function clearMemberSearch() {
  Show the bulk import modal
  **/
 function showUserImportModal() {
-    alert("Importing users is currently undergoing maintenance. Please email us to import them urgently")
-    return
+
     $("#user-import").modal("show");
 }
 
@@ -132,8 +131,6 @@ function showUserImportModal() {
  * Show the single user invite modal
  */
 function showUserInviteModal(){
-    alert("Importing users is currently undergoing maintenance. Please email us to import them urgently")
-    return
     $("#invite-user").modal("show");
 }
 
@@ -271,6 +268,12 @@ function submitCheckedPasswordReset() {
     })
 }
 
+/**
+ * Show the campus selection modal for trigger options that require those
+ */
+function showActionModalSwitchCampus(){
+    $("#switch-report-btn")
+}
 /**
  * Submit a request to the backend to permanently delete the selected users
  */

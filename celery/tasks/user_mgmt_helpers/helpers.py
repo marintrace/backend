@@ -113,7 +113,7 @@ def remove_community_roles(user_id: str):
     :param user_id: the user's assigned ID in Auth0
     """
     logger.info(f"Deleting all community roles from Auth0 user {user_id}")
-    request = requests.delete(f'/users/{user_id}/roles', json={
+    request = requests.delete(Auth0ManagementClient.get_url(f'/users/{user_id}/roles'), json={
         "roles": Auth0ManagementClient.get_all_role_ids()
     }, headers=Auth0ManagementClient.get_jwt_header())
     request.raise_for_status()

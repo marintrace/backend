@@ -24,7 +24,6 @@ def add_health_report(sender: User, report: HealthReport, additional_data: dict 
     """
     with Neo4JGraph() as g:
         authorized_user_node = g.nodes.match("Member", email=sender.email, school=sender.school).first()
-        # TODO: add a ignore for node not found in celery retry
         if authorized_user_node.get('status') == UserStatus.SCHOOL_SWITCHED:
             logger.warning("Cannot create reports for a node that was switched to a different campus!")
             return
@@ -34,8 +33,7 @@ def add_health_report(sender: User, report: HealthReport, additional_data: dict 
         if graph_edge:  # if we already have an existing report
             logger.info("Found existing graph edge between user and school day node. Updating with new properties...")
             serialized_report = report.dict()
-            # we don't want users overwriting reports to bypass check in—we only allow overwriting if an admin is
-            # impersonating a user
+            # we don't want users overwriting reports to bypass check in—we only allow overwriting by admin
             if isinstance(report, AdminHealthReport) or report.test_only():
                 logger.info("Unlocking Report...")
                 for prop in serialized_report:
@@ -57,15 +55,22 @@ def add_health_report(sender: User, report: HealthReport, additional_data: dict 
             ))
 
 
-def update_user_properties(sender: User, data: dict):
+def update_user_properties(sender: User, data: dict, change_all_nodes: bool = True):
     """
     Update/Add information on a user node
     :param sender: the user to update properties on
     :param data: data to upsert into the user node
+    :param change_all_nodes: whether or not to change all nodes (across all campuses) - default true
     """
     logger.info(f"Updating user properties for authorized user across all copies.")
     with Neo4JGraph() as graph:
-        for node in graph.nodes.match("Member", email=sender.email):
+
+        if change_all_nodes:
+            matches = graph.nodes.match("Member", email=sender.email)
+        else:
+            matches = graph.nodes.match("Member", email=sender.email, school=sender.school)
+
+        for node in matches:
             for prop, value in data.items():
                 node[prop] = value
             graph.push(node)
@@ -142,7 +147,8 @@ def report_active_user(self, *, sender: User):
     :param sender: authorized user model
     """
     logger.info("Setting authorized user's state to active...")
-    update_user_properties(sender=sender, data={'status': UserStatus.ACTIVE.value})
+    # we don't want to change school-switched nodes to active
+    update_user_properties(sender=sender, data={'status': UserStatus.ACTIVE.value}, change_all_nodes=False)
 
 
 @celery.task(name='tasks.report_location_status', **GLOBAL_CELERY_OPTIONS)

@@ -11,6 +11,25 @@ from shared.models.user_entities import (HealthReport, Paginated,
                                          UserIdentifier)
 
 
+class AdminDashboardUser(User):
+    """
+    User who is using the admin dashboard
+    """
+    roles: Optional[List[str]]
+
+    def can_manage(self, school: str) -> bool:
+        """
+        Get whether or not an admin dashboard user to authorized
+        to administrate over a given campus
+        :param school: the school to check
+        :return: true/false
+        """
+        for role in self.roles:
+            if role.split('-admin')[0] == school:
+                return True
+        return False
+
+
 class TaskStatusResponse(BaseModel):
     """
     Celery Task Status response
@@ -97,25 +116,6 @@ class SingleUserHealthHistory(PaginatedResponse):
     Health history of a single user
     """
     health_reports: List[DatedUserHealthHolder]
-
-
-class AdminDashboardUser(User):
-    """
-    User who is using the admin dashboard
-    """
-    roles: Optional[List[str]]
-
-    def can_manage(self, school: str) -> bool:
-        """
-        Get whether or not an admin dashboard user to authorized
-        to administrate over a given campus
-        :param school: the school to check
-        :return: true/false
-        """
-        for role in self.roles:
-            if role.rstrip('-admin') == school:
-                return True
-        return False
 
 
 class UserInfoDetail(BaseModel):

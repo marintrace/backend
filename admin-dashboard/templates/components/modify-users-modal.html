@@ -33,15 +33,26 @@
             Resend Invite
         </button>
     </div>
-
+    <div class="switch-report"><br>
+        <h5 class="modal-subheader">Switch Reporting Campus</h5>
+        <p style="font-size: 15px;">You can switch a user between MarinTrace campuses you have administrator permissions
+            for. Please note that their report history will not transfer from school to school—a new history will be created at each campus. Inactive campuses will be read-only.</p>
+        <button id="switch-report-btn" onclick='submitSwitchReport()' class="btn btn-warning btn-reduced">
+            Switch Campus
+        </button>
+    </div>
     <div class="delete-users"><br>
         <h5 class="modal-subheader">Permanently Delete</h5>
         <p style="font-size: 15px;">The button below will remove a user's access to MarinTrace and delete their report
             history and contacts. Please note
-            that this is not reversible, and the deleted information cannot be recovered. The user can be re-invited
-            again in the future.</p>
+            that this is not reversible, and the deleted information cannot be recovered. If you have access to multiple
+            campuses, you can use the "Delete Campus History" button to clear only
+            the report history for a specific campus.</p>
         <button class="btn btn-danger btn-reduced" id="delete-users-btn" onclick="submitCheckedDeleteUsers()">Delete
             Users
+        </button>
+        <button class="btn btn-secondary btn-reduced" id="delete-users-btn" onclick="submitCheckedDeleteUsers()">Delete
+            Campus History
         </button>
 
     </div>

@@ -46,12 +46,13 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
         ))
 
     with Neo4JGraph() as graph:
-        # we do an optional match because we don't want a duplicate node if the user already exists in the given school
+        # we do an optional match because we don't want a duplicate node if the user already exists
         graph.run("""MERGE (m: Member {email: $email, school: $school})
-                     UPDATE m SET first_name=$first_name SET last_name=$last_name
-                     SET location=$location SET vaccinated=vaccination SET disabled=false""",
+                     SET m.first_name=$first_name, m.last_name=$last_name, m.location=$location, 
+                     m.vaccinated=$vaccination, m.disabled=false""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
+        # TODO sync that shti up!
 
 
 @celery.task(name='tasks.admin_switch_report_node', **GLOBAL_CELERY_OPTIONS)
@@ -76,13 +77,12 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
 
     with Neo4JGraph() as graph:
         logger.info("Creating target node in target campus if necessary")
-        graph.run("""MERGE (member: {email: $email, school: $target_campus}) 
-                    UPDATE member SET member.status=$inactive_status """,
+        graph.run("""MERGE (member {email: $email, school: $target_campus}) SET member.status=$inactive_status""",
                   email=task_data.email, target_campus=task_data.target_campus, inactive_status=UserStatus.INACTIVE)
 
         logger.info("Setting other user records to inactive")
-        graph.run("""MATCH (member: {email: $email}) WHERE school <> $target_campus
-                    UPDATE member SET member.status=$switched_status""",
+        graph.run("""MATCH (member {email: $email}) WHERE member.school <> $target_campus 
+                     SET member.status=$switched_status""",
                   email=task_data.email, target_campus=task_data.target_campus,
                   switched_status=UserStatus.SCHOOL_SWITCHED)
 

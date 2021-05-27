@@ -2,7 +2,7 @@
 """
 API Models for type validation and API doc generation
 """
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +11,74 @@ from shared.date_utils import pst_timestamp
 from shared.logger import logger
 from shared.models.enums import ResponseStatus, TestType
 from shared.service.celery_config import get_celery
+
+
+class User(BaseModel):
+    """
+    User Schema for API validation and documentation
+    """
+    impersonator: Optional[str] = None  # allow administrators to impersonate users to log information on their behalf
+    first_name: Optional[str]  # optional fields to provide more information but not required for ID
+    last_name: Optional[str]
+    email: str
+    school: str
+
+    def _send_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, extra_fields: Tuple = (),
+                   compression: str = 'lzma', default_sender_fields=('impersonator', 'school', 'email')) -> AsyncResult:
+        """
+        Send a task to service via rabbitmq, returning the AsyncResult from celery
+        :param task_name: the task name to queue the task to
+        :param task_data: data to send to the target worker
+        :param extra_fields: fields to keep during serialization in addition to the default fields
+        :param compression: the compression algorithm to use when compressing messages
+        :param default_sender_fields: the fields of the sender to keep during serialization (by default-base)
+        :return: the AsyncResult from celery
+        """
+        if getattr(self, 'impersonator'):
+            logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
+
+        compressed_sender = self.copy()
+
+        for field in compressed_sender.dict():
+            if field not in default_sender_fields and field not in extra_fields:
+                logger.debug(f"Sending Task... Deleting field {field}")
+                delattr(compressed_sender, field)
+
+        task_params = {'sender': compressed_sender}
+
+        if task_data:
+            task_params['task_data'] = task_data
+
+        task: AsyncResult = get_celery().send_task(
+            name=task_name, args=[], kwargs=task_params, compression=compression
+        )
+        return task
+
+    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, extra_fields: Tuple = (),
+                   compression: str = 'lzma') -> str:
+        """
+        Send a task to celery asynchronously, returning the task id
+        :return: the task id for the queued task
+        """
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
+                                                   extra_fields=extra_fields)
+        return queued_task.id
+
+    def execute_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, extra_fields: Tuple = (),
+                     compression: str = 'lzma'):
+        """
+        Send a task to celery and wait for the result
+        :return: the result of the executed task
+        """
+        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
+                                                   extra_fields=extra_fields)
+        return queued_task.get()  # wait for task to complete
+
+    class Config:
+        """
+        Pydantic configuration
+        """
+        use_enum_values = True  # Serialize enum values to strings
 
 
 # Base Classes
@@ -79,74 +147,6 @@ class HealthReport(Timestamped):
                and self.proximity is None \
                and self.commercial_flight is None \
                and self.num_symptoms is None
-
-
-# REST Entities
-class User(BaseModel):
-    """
-    User Schema for API validation and documentation
-    """
-    impersonator: Optional[str] = None  # allow administrators to impersonate users to log information on their behalf
-    first_name: Optional[str]  # optional fields to provide more information but not required for ID
-    last_name: Optional[str]
-    email: str
-    school: str
-
-    def _send_task(self, *, task_name: str, sender_fields, task_data: Optional[BaseModel] = None,
-                   compression: str = 'lzma', ) -> AsyncResult:
-        """
-        Send a task to service via rabbitmq, returning the AsyncResult from celery
-        :param task_name: the task name to queue the task to
-        :param task_data: data to send to the target worker
-        :param compression: the compression algorithm to use when compressing messages
-        :param sender_fields: the fields of the sender to keep during serialization
-        :return: the AsyncResult from celery
-        """
-        if getattr(self, 'impersonator'):
-            logger.warning(f"User Scope for task {task_name} impersonated by {self.impersonator}...")
-
-        compressed_sender = self.copy()
-
-        for field in compressed_sender.dict():
-            if field not in sender_fields:
-                logger.debug(f"Sending Task... Deleting field {field}")
-                delattr(compressed_sender, field)
-
-        task_params = {'sender': compressed_sender}
-
-        if task_data:
-            task_params['task_data'] = task_data
-
-        task: AsyncResult = get_celery().send_task(
-            name=task_name, args=[], kwargs=task_params, compression=compression
-        )
-        return task
-
-    def queue_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma',
-                   sender_fields=('impersonator', 'school', 'email')) -> str:
-        """
-        Send a task to celery asynchronously, returning the task id
-        :return the id of the queued task
-        """
-        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
-                                                   sender_fields=sender_fields)
-        return queued_task.id
-
-    def execute_task(self, *, task_name: str, task_data: Optional[BaseModel] = None, compression: str = 'lzma',
-                     sender_fields=('impersonator', 'school', 'email')):
-        """
-        Send a task to celery and wait for the result
-        :return the result from the invoked task
-        """
-        queued_task: AsyncResult = self._send_task(task_name=task_name, task_data=task_data, compression=compression,
-                                                   sender_fields=sender_fields)
-        return queued_task.get()  # wait for task to complete
-
-    class Config:
-        """
-        Pydantic configuration
-        """
-        use_enum_values = True  # Serialize enum values to strings
 
 
 # Responses

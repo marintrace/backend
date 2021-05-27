@@ -60,6 +60,7 @@ async def bulk_import(users: UploadFile = File(...), admin: AdminDashboardUser =
         ))
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
                                                      task_data=BulkAddCommunityMemberRequest(users=user_objects),
+                                                     extra_fields=('roles',),
                                                      compression='lzma'))
 
 
@@ -74,6 +75,7 @@ async def create_user(target: AddCommunityMemberRequest, admin: AdminDashboardUs
     """
     logger.info("Processing Create Community Member Request...")
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_create_user',
+                                                     extra_fields=('roles',),
                                                      task_data=target))
 
 
@@ -126,6 +128,7 @@ async def switch_report_campus(request: BulkSwitchReportNodeRequest, admin: Admi
     """
     logger.info("Processing bulk switch node request")
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_switch_node',
+                                                     extra_fields=('roles',),
                                                      task_data=request))
 
 
