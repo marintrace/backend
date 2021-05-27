@@ -10,6 +10,12 @@ document.getElementById("headlands").onclick = function() {
 document.getElementById("tilden").onclick = function() {
   showPassword()
 };
+document.getElementById("branson-summer").onclick = function() {
+  showPassword()
+};
+document.getElementById("ngs").onclick = function() {
+  showPassword()
+};
 
 //for tracking whether or not to run active function
 var newAuth = false
@@ -23,16 +29,25 @@ window.onload = async () => {
   $('#headlands').html(`Loading...`);
   $('#tilden').addClass('disabled')
   $('#tilden').html(`Loading...`);
+  $('#branson-summer').addClass('disabled')
+  $('#branson-summer').html(`Loading...`);
+  $('#ngs').addClass('disabled')
+  $('#ngs').html(`Loading...`);
+
   await configureClient();
   const isAuthenticated = await auth0.isAuthenticated();
   $("#branson").removeClass("disabled")
-  $("#branson").html("Login with branson.org")
+  $("#branson").html("School year login")
   $("#ma").removeClass("disabled")
   $("#ma").html("Login with ma.org")
   $("#headlands").removeClass("disabled")
   $("#headlands").html("Login with password")
   $("#tilden").removeClass("disabled")
   $("#tilden").html("Login with password")
+  $("#branson-summer").removeClass("disabled")
+  $("#branson-summer").html("Summer login")
+  $("#ngs").removeClass("disabled")
+  $("#ngs").html("Login with email")
 
   //user is marked as authenticated after first signing in, need to disable this so we can run mark as active the second time with new token
   const onSecondAuthAttempt = ((localStorage.getItem('timesAttemptedToMark') || 0) > 0)
@@ -65,6 +80,11 @@ window.onload = async () => {
     $('#headlands').html(`🔐 Encrypting...`);
     $('#tilden').addClass('disabled')
     $('#tilden').html(`🔐 Encrypting...`);
+    $('#branson-summer').addClass('disabled')
+    $('#branson-summer').html(`🔐 Encrypting...`);
+    $('#ngs').addClass('disabled')
+    $('#ngs').html(`🔐 Encrypting...`);
+
     // Process the login state
     await auth0.handleRedirectCallback();
 
@@ -82,6 +102,8 @@ window.onload = async () => {
       $('#ma').html(`🔐 Setting up your account...`);
       $('#headlands').html(`🔐 Setting up your account...`);
       $('#tilden').html(`🔐 Setting up your account...`);
+      $('#branson-summer').html(`🔐 Setting up your account...`);
+      $('#ngs').html(`🔐 Setting up your account...`);
     }
 
     markUserAsActive().then(function() {
@@ -107,13 +129,17 @@ window.onload = async () => {
 function loginFinished() {
   $(document).ready(function() {
     $("#branson").removeClass("disabled")
-    $("#branson").html("Login with branson.org")
+    $("#branson").html("School year login")
     $("#ma").removeClass("disabled")
     $("#ma").html("Login with ma.org")
     $("#headlands").removeClass("disabled")
     $("#headlands").html("Login with password")
     $("#tilden").removeClass("disabled")
     $("#tilden").html("Login with password")
+    $("#branson-summer").removeClass("disabled")
+    $("#branson-summer").html("Summer login")
+    $("#ngs").removeClass("disabled")
+    $("#ngs").html("Login with email")
   });
 
   // Use replaceState to redirect the user away and remove the querystring parameters

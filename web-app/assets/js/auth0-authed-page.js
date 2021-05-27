@@ -59,7 +59,7 @@ function finishedLoading() {
   //hide testing if Branson/Headlands
   auth0.getIdTokenClaims().then(claims => {
     let roles = claims["http://marintracingapp.org/role"]
-    if (roles.includes("headlands") || roles.includes("branson")) {
+    if (roles.includes("headlands") || roles.includes("branson") | roles.includes("branson-summer") | roles.includes("ngs")) {
       $("#testingPanel").remove()
     }
   })
