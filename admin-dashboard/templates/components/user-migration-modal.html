@@ -1,0 +1,15 @@
+{% extends "components/base_modal.html" %}
+{% block modal_name %}switch-report-node{% endblock %}
+{% block modal_title %}Switch Reporting Campus{% endblock %}
+{% block modal_body %}
+    <p>When you switch a user's reporting campus, their future contacts and health history will be stored under their
+        new school. All of the user's report history at previous campuses will become read only. The user may need to
+        log out and log back in again.</p>
+    <label for="campus-selection">Your Campuses</label>
+    <select class="form-control" id="campus-selection">
+    </select>
+{% endblock %}
+{% block modal_footer %}
+    <button class="btn btn-primary" id="switch-report-btn" onclick='submitSwitchReportNode()' type="button">Switch
+    </button>
+{% endblock %}

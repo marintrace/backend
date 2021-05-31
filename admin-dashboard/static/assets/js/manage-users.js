@@ -278,10 +278,10 @@ function submitCheckedPasswordReset() {
 }
 
 /**
- * Show the campus selection modal for trigger options that require those
+ * Show the modal that allows a user to switch their reporting campus
  */
-function showActionModalSwitchCampus(){
-    $("#switch-report-btn")
+function showSwitchReportNodeModal(){
+    
 }
 /**
  * Submit a request to the backend to permanently delete the selected users

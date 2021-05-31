@@ -36,7 +36,7 @@ class WaveAPI:
         """
         if not WaveAPI._WAVE_TOKEN:
             with VaultConnection() as vault:
-                WaveAPI._WAVE_TOKEN = vault.read_secret(secret_path='invoicing/wave_auth')
+                WaveAPI._WAVE_TOKEN = vault.read_secret(secret_path='invoicing/wave_auth')['token']
         return WaveAPI._WAVE_TOKEN
 
     @staticmethod
@@ -49,7 +49,7 @@ class WaveAPI:
         :return: the json response from the wave api
         """
         transport = RequestsHTTPTransport(url='https://gql.waveapps.com/graphql/public',
-                                          headers={'Authorization': f"Basic {WaveAPI.__retrieve_api_token()}",
+                                          headers={'Authorization': f"Bearer {WaveAPI.__retrieve_api_token()}",
                                                    'Content-Type': "application/json"})
 
         client: Client = Client(transport=transport, fetch_schema_from_transport=False)
