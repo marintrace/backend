@@ -18,7 +18,7 @@ from shared.models.user_mgmt_entitities import (BULK_IMPORT_SCHEMA,
                                                 MemberAccessInfo,
                                                 MultipleMemberAccessInfo,
                                                 UserRolesResponse)
-from shared.service.neo_config import Neo4JGraph
+from shared.service.neo4j_api import Neo4JGraph
 
 from .authorization import OIDC_COOKIE
 

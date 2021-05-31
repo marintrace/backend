@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from requests import get as get_request
 
 from shared.logger import logger
-from shared.service.vault_config import VaultConnection
+from shared.service.vault_api import VaultConnection
 
 
 class JWTAuthManager:

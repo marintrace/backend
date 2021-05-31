@@ -148,6 +148,13 @@ class UserInteraction(BaseModel):
 
 class UserInteractionHistory(Paginated):
     """
-    User Interactions for the Dasboard
+    User Interactions for the Dashboard
     """
     users: List[UserInteraction]
+
+
+class CreateInvoiceRequest(BaseModel):
+    """
+    Request to generate an invoice in Wave accounting software
+    """
+    school: str

@@ -10,7 +10,7 @@ from celery.result import AsyncResult
 from shared.date_utils import pst_timestamp
 from shared.logger import logger
 from shared.models.enums import ResponseStatus, TestType
-from shared.service.celery_config import get_celery
+from shared.service.celery_wrapper import get_celery
 
 
 class User(BaseModel):

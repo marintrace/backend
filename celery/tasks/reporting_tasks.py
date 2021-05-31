@@ -8,8 +8,8 @@ from shared.models.dashboard_entities import (AdminHealthReport,
 from shared.models.enums import UserStatus, VaccinationStatus
 from shared.models.risk_entities import ScoredUserHealthItem
 from shared.models.user_entities import HealthReport, InteractionReport, User
-from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
-from shared.service.neo_config import Neo4JGraph, current_day_node
+from shared.service.celery_wrapper import GLOBAL_CELERY_OPTIONS, get_celery
+from shared.service.neo4j_api import Neo4JGraph, current_day_node
 
 celery = get_celery()
 
@@ -137,7 +137,7 @@ def report_vaccination(self, *, sender: User, task_data: UpdateVaccinationReques
     :param task_data: API request from API
     """
     logger.info("Setting authorized user's vaccination status to 'vaccinated'")
-    update_user_properties(sender=sender, data={'vaccinated': task_data.status})
+    update_user_properties(sender=sender, data={'vaccinated': task_data.status}, change_all_nodes=True)
 
 
 @celery.task(name='tasks.report_active_user', **GLOBAL_CELERY_OPTIONS)
@@ -159,4 +159,4 @@ def report_location_status(self, *, sender: User, task_data: UpdateLocationReque
     :param task_data: API request from API
     """
     logger.info(f"Setting authorized user's location state to {task_data.location}... authorized by {sender.email}")
-    update_user_properties(sender=sender, data={'location': task_data.location})
+    update_user_properties(sender=sender, data={'location': task_data.location}, change_all_nodes=False)

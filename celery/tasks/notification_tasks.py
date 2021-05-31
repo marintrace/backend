@@ -5,10 +5,10 @@ from typing import Optional
 from shared.logger import logger
 from shared.models.risk_entities import UserHealthItem
 from shared.models.user_entities import User
-from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
-from shared.service.email_config import SendgridAPI
-from shared.service.neo_config import Neo4JGraph
-from shared.service.vault_config import VaultConnection
+from shared.service.celery_wrapper import GLOBAL_CELERY_OPTIONS, get_celery
+from shared.service.sendgrid_api import SendgridAPI
+from shared.service.neo4j_api import Neo4JGraph
+from shared.service.vault_api import VaultConnection
 
 RiskTier = namedtuple('RiskTier', ['depth'])
 

@@ -24,9 +24,9 @@ from shared.models.risk_entities import (DatedUserHealthHolder,
                                          SymptomConfigRetriever,
                                          UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport
-from shared.service.flower_config import FlowerAPI
-from shared.service.neo_config import Neo4JGraph, current_day_node
-from shared.service.vault_config import VaultConnection
+from shared.service.flower_api import FlowerAPI
+from shared.service.neo4j_api import Neo4JGraph, current_day_node
+from shared.service.vault_api import VaultConnection
 
 from .authorization import OIDC_COOKIE
 

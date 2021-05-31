@@ -4,8 +4,8 @@ from typing import Dict, List, Optional
 import requests
 
 from shared.logger import logger
-from shared.service.auth0_config import Auth0ManagementClient
-from shared.service.email_config import SendgridAPI
+from shared.service.auth0_api import Auth0ManagementClient
+from shared.service.sendgrid_api import SendgridAPI
 
 
 def create_user(email: str, first_name: str, last_name: str):

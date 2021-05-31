@@ -10,7 +10,7 @@ from py2neo.caching import ThreadLocalEntityCache
 
 from shared.date_utils import get_pst_time
 from shared.logger import logger
-from shared.service.vault_config import VaultConnection
+from shared.service.vault_api import VaultConnection
 
 
 class Neo4JGraph:

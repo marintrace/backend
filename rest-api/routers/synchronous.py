@@ -12,7 +12,7 @@ from shared.models.risk_entities import (IdentifiedUserEntryItem,
                                          SymptomConfigRetriever,
                                          UserHealthItem, UserLocationItem)
 from shared.models.user_entities import HealthReport, ListUsersResponse, User
-from shared.service.neo_config import Neo4JGraph
+from shared.service.neo4j_api import Neo4JGraph
 
 from .authorization import AUTH_USER
 

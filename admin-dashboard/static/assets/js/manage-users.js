@@ -69,6 +69,15 @@ function userSelectionChange(checkbox) {
  */
 function showModifyModal() {
     $("#modify-users").modal("show");
+     $.get("/user/current-user-roles", function () {
+        console.log("Got Current User Roles");
+    }, "json").done(function (data) {
+        if (data.roles.length > 1){
+            $("#switch-report").show();
+            $("#campus-history-warning").show();
+            $("#delete-campus-history-btn").show();
+        }
+     }).fail(requestFailure)
 }
 
 /**

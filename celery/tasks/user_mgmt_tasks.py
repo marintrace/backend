@@ -12,8 +12,8 @@ from shared.models.user_mgmt_entitities import (AddCommunityMemberRequest,
                                                 BulkToggleAccessRequest,
                                                 SwitchReportNodeRequest,
                                                 ToggleAccessRequest)
-from shared.service.celery_config import GLOBAL_CELERY_OPTIONS, get_celery
-from shared.service.neo_config import Neo4JGraph
+from shared.service.celery_wrapper import GLOBAL_CELERY_OPTIONS, get_celery
+from shared.service.neo4j_api import Neo4JGraph
 
 from .user_mgmt_helpers.helpers import (add_user_to_role, create_user,
                                         delete_user, get_user,
@@ -34,8 +34,9 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
     logger.info(f"Adding user {task_data.email} to Auth0 at the request of {sender.email}")
     created_user_id = create_user(email=task_data.email, first_name=task_data.first_name,
                                   last_name=task_data.last_name)
+    user_exists = not created_user_id
 
-    if created_user_id:
+    if not user_exists:
         add_user_to_role(user_id=created_user_id, school=sender.school)
         send_password_reset(email=task_data.email, first_name=task_data.first_name)
     else:
@@ -48,11 +49,10 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
     with Neo4JGraph() as graph:
         # we do an optional match because we don't want a duplicate node if the user already exists
         graph.run("""MERGE (m: Member {email: $email, school: $school})
-                     SET m.first_name=$first_name, m.last_name=$last_name, m.location=$location, 
-                     m.vaccinated=$vaccination, m.disabled=false""",
+                    SET m.first_name=$first_name, m.last_name=$last_name, m.location=$location, 
+                    m.vaccinated=$vaccination, m.disabled=false""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
-        # TODO sync that shti up!
 
 
 @celery.task(name='tasks.admin_switch_report_node', **GLOBAL_CELERY_OPTIONS)
@@ -76,10 +76,6 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
     add_user_to_role(user_id=target_user_id, school=task_data.target_campus)
 
     with Neo4JGraph() as graph:
-        logger.info("Creating target node in target campus if necessary")
-        graph.run("""MERGE (member {email: $email, school: $target_campus}) SET member.status=$inactive_status""",
-                  email=task_data.email, target_campus=task_data.target_campus, inactive_status=UserStatus.INACTIVE)
-
         logger.info("Setting other user records to inactive")
         graph.run("""MATCH (member {email: $email}) WHERE member.school <> $target_campus 
                      SET member.status=$switched_status""",

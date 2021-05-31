@@ -5,7 +5,7 @@ from os import environ as env_vars
 from typing import Dict, Optional
 
 from shared.logger import logger
-from shared.service.vault_config import VaultConnection
+from shared.service.vault_api import VaultConnection
 
 
 class FlowerAPI:

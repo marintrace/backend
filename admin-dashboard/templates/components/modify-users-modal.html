@@ -25,7 +25,7 @@
         </table>
     </div>
 
-    <div class="password-reset"><br>
+    <div id="password-reset"><br>
         <h5 class="modal-subheader">Resend Invitation</h5>
         <p style="font-size: 15px;">If a user does not redeem their invitation in 48 hours, their link will expire. You
             can re-send invites to those users here.</p>
@@ -33,25 +33,30 @@
             Resend Invite
         </button>
     </div>
-    <div class="switch-report"><br>
+    <div id="switch-report" style="display:none"><br>
         <h5 class="modal-subheader">Switch Reporting Campus</h5>
         <p style="font-size: 15px;">You can switch a user between MarinTrace campuses you have administrator permissions
-            for. Please note that their report history will not transfer from school to school—a new history will be created at each campus. Inactive campuses will be read-only.</p>
+            for. Please note that their report history will not transfer from school to school—a new history will be
+            created at each campus. Inactive campuses will be read-only.</p>
         <button id="switch-report-btn" onclick='submitSwitchReport()' class="btn btn-warning btn-reduced">
             Switch Campus
         </button>
     </div>
-    <div class="delete-users"><br>
+    <div id="delete-users"><br>
         <h5 class="modal-subheader">Permanently Delete</h5>
         <p style="font-size: 15px;">The button below will remove a user's access to MarinTrace and delete their report
             history and contacts. Please note
-            that this is not reversible, and the deleted information cannot be recovered. If you have access to multiple
-            campuses, you can use the "Delete Campus History" button to clear only
-            the report history for a specific campus.</p>
+            that this is not reversible, and the deleted information cannot be recovered.
+        <div id="campus-history-warning" style="display: none">Since you have access to multiple
+            campuses, you can use the "Delete Campus History" button to clear the user's
+            report history for the current campus (but keeping it everywhere else).
+        </div>
+        </p>
         <button class="btn btn-danger btn-reduced" id="delete-users-btn" onclick="submitCheckedDeleteUsers()">Delete
             Users
         </button>
-        <button class="btn btn-secondary btn-reduced" id="delete-users-btn" onclick="submitCheckedDeleteUsers()">Delete
+        <button class="btn btn-secondary btn-reduced" id="delete-campus-history-btn" style="display: none"
+                onclick="submitCheckedDeleteUsers()">Delete
             Campus History
         </button>
 

@@ -10,7 +10,7 @@ from jose import ExpiredSignatureError, jwt
 from retry import retry
 
 from shared.logger import logger
-from shared.service.vault_config import VaultConnection
+from shared.service.vault_api import VaultConnection
 
 
 def is_jwt_expired(token: str) -> bool:
