@@ -30,8 +30,9 @@ function getCurrentUserRoles(callback) {
         $.get("/user/current-user-roles", function () {
             console.log("Got Current User Roles")
         }, "json").done(function (data) {
-            localStorage.setItem('current-user-roles', JSON.stringify(data.roles));
-            callback(data.roles)
+            let roles = data.filter(function (elem){return elem.endsWith('-admin')});
+            localStorage.setItem('current-user-roles', JSON.stringify(roles));
+            callback(roles)
         }).fail(requestFailure)
     }
 }

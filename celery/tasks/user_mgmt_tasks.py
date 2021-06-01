@@ -31,19 +31,23 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
     :param task_data: the add community member request
     """
     logger.info(f"Adding user {task_data.email} to Auth0 at the request of {sender.email}")
-    created_user_id = create_user(email=task_data.email, first_name=task_data.first_name,
-                                  last_name=task_data.last_name)
-    user_exists = not created_user_id
+    existing_user = get_user(email=task_data.email, fields=['user_id'])
 
-    if not user_exists:
+    if not existing_user:
+        created_user_id = create_user(email=task_data.email, first_name=task_data.first_name,
+                                      last_name=task_data.last_name)
         add_user_to_role(user_id=created_user_id, school=sender.school)
         send_password_reset(email=task_data.email, first_name=task_data.first_name)
     else:
         # the user could not be created because of a conflict, switch their report node
         # to the school we are dealing with.
-        admin_switch_report_node(sender=sender, task_data=SwitchReportNodeRequest(
-            email=task_data.email, target_campus=sender.school
-        ), merge_existing_node=False)
+        admin_switch_report_node(
+            sender=sender,
+            task_data=SwitchReportNodeRequest(
+                email=task_data.email,
+                target_campus=sender.school,
+                auth0_id=existing_user['user_id']  # provide the id since we already know it
+            ), merge_existing_node=False)
 
     with Neo4JGraph() as graph:
         # we do an optional match because we don't want a duplicate node if the user already exists
@@ -66,13 +70,13 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
     logger.info(f"Switching health record of {task_data.email} to {task_data.target_campus} at the request of "
                 f"{sender.email}")
 
-    if not sender.can_manage(school=task_data.target_campus):
+    if not sender.can_manage(school=task_data.target_campus): # TODO: check perms over old node
         logger.warning(f"**{sender.email} is not permitted to administrate over {task_data.target_campus}**")
         raise Exception(f'Admin is not permitted to administrate over {task_data.target_campus}')
 
-    target_user_id: str = get_user(email=task_data.email, fields=['user_id'])['user_id']
-    remove_community_roles(user_id=target_user_id)  # remove only the user's community roles
-    add_user_to_role(user_id=target_user_id, school=task_data.target_campus)
+    user_id = task_data.auth0_id or get_user(email=task_data.email, fields=['user_id'])['user_id']
+    remove_community_roles(user_id=user_id)  # remove only the user's community roles
+    add_user_to_role(user_id=user_id, school=task_data.target_campus)
 
     with Neo4JGraph() as graph:
         logger.info("Setting other user records to inactive")

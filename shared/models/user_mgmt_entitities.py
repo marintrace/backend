@@ -75,6 +75,7 @@ class SwitchReportNodeRequest(BaseModel):
     Request to switch a user's active health record to a new campus
     """
     email: str
+    auth0_id: str = None
     target_campus: str
 
 
