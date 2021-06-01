@@ -84,7 +84,7 @@ def create_beat_tasks():
         for customer in invoice_targets:
             beat_tasks[f"{customer}-create-invoice"] = dict(
                 task='tasks.create_invoice',
-                schedule=crontab(hour=10, minute=0, day_of_month=1),  # Create invoices @ 10am on the 1st of each month
+                schedule=crontab(hour=0, minute=0, day_of_month=1),  # Create invoices @ 10am on the 1st of each month
                 kwargs={'task_data': CreateInvoiceRequest(school=customer)}
             )
 

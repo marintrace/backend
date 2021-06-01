@@ -37,7 +37,7 @@ def get_active_inactive_counts(school: str) -> Dict[str, int]:
     return dict(active=active_users, inactive=inactive_users)
 
 
-@celery.task(name='tasks.send_invoice', **GLOBAL_CELERY_OPTIONS)
+@celery.task(name='tasks.create_invoice', **GLOBAL_CELERY_OPTIONS)
 def send_invoice(self, task_data: CreateInvoiceRequest):
     """
     Generate an invoice in Wave accounting software based on the number of active/inactive

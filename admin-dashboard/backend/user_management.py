@@ -203,7 +203,6 @@ async def paginate_users(request: OptIdPaginationRequest, admin: AdminDashboardU
     for record in records:
         member = record['member']
         details.append(MemberAccessInfo(email=member['email'], name=f"{member['first_name']} {member['last_name']}",
-                                        blocked=member['disabled'], active=member.get('status') == UserStatus.ACTIVE))
-        # TODO: make this not a boolean
+                                        blocked=member['disabled'], status=member.get('status', UserStatus.INACTIVE)))
 
     return MultipleMemberAccessInfo(users=details, pagination_token=request.pagination_token + request.limit)

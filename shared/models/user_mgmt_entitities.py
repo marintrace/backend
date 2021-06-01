@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from shared.models.enums import UserLocationStatus, VaccinationStatus
+from shared.models.enums import UserLocationStatus, VaccinationStatus, UserStatus
 from shared.models.user_entities import PaginatedResponse
 
 BULK_IMPORT_SCHEMA = ['Email', 'FirstName', 'LastName', 'Vaccinated', 'Location']
@@ -15,7 +15,7 @@ class MemberAccessInfo(BaseModel):
     email: str
     name: str
     blocked: bool
-    active: Optional[bool] = False
+    status: UserStatus
 
 
 class MultipleMemberAccessInfo(PaginatedResponse):

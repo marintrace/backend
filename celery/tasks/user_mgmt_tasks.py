@@ -1,5 +1,4 @@
 from celery import group, states
-from celery.exceptions import Ignore
 
 from shared.logger import logger
 from shared.models.enums import UserStatus
@@ -44,32 +43,32 @@ def admin_create_user(self, *, sender: AdminDashboardUser, task_data: AddCommuni
         # to the school we are dealing with.
         admin_switch_report_node(sender=sender, task_data=SwitchReportNodeRequest(
             email=task_data.email, target_campus=sender.school
-        ))
+        ), merge_existing_node=False)
 
     with Neo4JGraph() as graph:
         # we do an optional match because we don't want a duplicate node if the user already exists
         graph.run("""MERGE (m: Member {email: $email, school: $school})
                     SET m.first_name=$first_name, m.last_name=$last_name, m.location=$location, 
-                    m.vaccinated=$vaccination, m.disabled=false""",
+                    m.vaccinated=$vaccination, m.disabled=false, m.status='inactive'""",
                   first_name=task_data.first_name, last_name=task_data.last_name, email=task_data.email,
                   location=task_data.location, vaccination=task_data.vaccinated, school=sender.school)
 
 
 @celery.task(name='tasks.admin_switch_report_node', **GLOBAL_CELERY_OPTIONS)
-def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: SwitchReportNodeRequest):
+def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: SwitchReportNodeRequest,
+                             merge_existing_node: bool = True):
     """
     Switch a user's health record to another campus. Creates the record if it doesn't exist.
     :param sender: the user that initiated the task
     :param task_data: a request payload to switch a user's health record
+    :param merge_existing_node: whether or not to merge the user properties from the existing user into a new node.
     """
     logger.info(f"Switching health record of {task_data.email} to {task_data.target_campus} at the request of "
                 f"{sender.email}")
 
     if not sender.can_manage(school=task_data.target_campus):
         logger.warning(f"**{sender.email} is not permitted to administrate over {task_data.target_campus}**")
-        self.update_state(state=states.FAILURE,
-                          meta=f'Admin is not permitted to administrate over {task_data.target_campus}')
-        raise Ignore()
+        raise Exception(f'Admin is not permitted to administrate over {task_data.target_campus}')
 
     target_user_id: str = get_user(email=task_data.email, fields=['user_id'])['user_id']
     remove_community_roles(user_id=target_user_id)  # remove only the user's community roles
@@ -77,10 +76,21 @@ def admin_switch_report_node(self, *, sender: AdminDashboardUser, task_data: Swi
 
     with Neo4JGraph() as graph:
         logger.info("Setting other user records to inactive")
-        graph.run("""MATCH (member {email: $email}) WHERE member.school <> $target_campus 
-                     SET member.status=$switched_status""",
-                  email=task_data.email, target_campus=task_data.target_campus,
-                  switched_status=UserStatus.SCHOOL_SWITCHED)
+        transaction = graph.begin()
+        if merge_existing_node:
+            transaction.run("""MATCH (m: Member {email: $email})
+                               MERGE (n: Member {email: $email, school: $target_campus})
+                               SET n.first_name=m.first_name, n.last_name=m.last_name, n.vaccinated=m.vaccinated,
+                               n.disabled=m.disabled, n.location=m.location, n.status='inactive'
+                            """, email=task_data.email, target_campus=task_data.target_campus,
+                            switched_status=UserStatus.SCHOOL_SWITCHED)
+        transaction.run(
+            """MATCH (member {email: $email}) WHERE member.school <> $target_campus 
+            SET member.status=$switched_status""",
+            email=task_data.email, target_campus=task_data.target_campus, switched_status=UserStatus.SCHOOL_SWITCHED
+        )
+
+        transaction.commit()
 
     logger.info("Migrated User in Database... Sending SendGrid Campus Switch Notification")
     send_campus_switch_email(email=task_data.email, school=task_data.target_campus)

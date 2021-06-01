@@ -19,23 +19,39 @@ function acceptPolicy() {
 }
 
 /**
+ * Get a list of the current user's roles from the backend
+ */
+function getCurrentUserRoles(callback) {
+    let cachedRoles = localStorage.getItem('current-user-roles')
+    if (cachedRoles) {
+        console.log("Using cache to get roles from LS...")
+        callback(JSON.parse(cachedRoles))
+    } else {
+        $.get("/user/current-user-roles", function () {
+            console.log("Got Current User Roles")
+        }, "json").done(function (data) {
+            localStorage.setItem('current-user-roles', JSON.stringify(data.roles));
+            callback(data.roles)
+        }).fail(requestFailure)
+    }
+}
+
+/**
  * Show the switch role dialog
  */
 function showSwitchRoleModal() {
     $("#switch-campus").modal('show');
     $("#user-roles").html("<option disabled selected>Loading...</option>");
     let currentRole = getCookie("assume_role");
-    $.get("/user/current-user-roles", function () {
-        console.log("Got Current User Roles");
-    }, "json").done(function (data) {
+    getCurrentUserRoles(function (roles){
         let options = [];
-        data.roles.forEach(function (e) {
+        roles.forEach(function (e) {
             if (e.endsWith('-admin')) {
-                options.push(`<option value="${e}"` + (currentRole === e ? "selected": "") + `>${e.split("-admin")[0]}</option>`)
+                options.push(`<option value="${e}"` + (currentRole === e ? "selected" : "") + `>${e.split("-admin")[0]}</option>`)
             }
         });
-        $("#user-roles").html(options.join(""))
-    }).fail(requestFailure)
+        $("#user-roles").html(options.join(""));
+    })
 }
 
 /**
@@ -113,6 +129,7 @@ var delete_cookie = function (name) {
  */
 function logoutUser() {
     delete_cookie("assume_role");
+    localStorage.clear();
     window.location.href = "/admin/oauth/logout";
 }
 
@@ -208,9 +225,9 @@ function truncate(str, n) {
  * @returns {string}
  */
 function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
 /**

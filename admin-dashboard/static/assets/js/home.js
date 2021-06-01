@@ -38,13 +38,21 @@ function populateHealthSummaryTable(email = null, getall = false) {
 
         data['statuses'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
+            let statusHTML;
+            if (e.status === 'school-switched') {
+                statusHTML = "<span class='badge badge-dot mr-4'><i class='bg-warning'></i><span class='status'>" +
+                    `<a class='modal-link' onclick='alert("This user has its active health history at another campus. Please switch to that campus to change health options.")'>Read-only</a></span></span>`;
+            } else {
+                statusHTML = "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
+                    `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}", "${e.status}")'>` +
+                    truncate(e.health.criteria.join(' & '), 45) + " </a></span></span>";
+            }
+
             let rows = [
                 `<input type="radio" data-email="${escapedEmail}" onchange="itemSelectionChange(this)" name="userSelect" `
-                + (selectedMember === escapedEmail ? "checked" : "") + " class='big-select'/>",
-                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>` + (e.status !== "active" ? " (" + e.status.replace("_", "-") + ")" : ""),
-                "<span class='badge badge-dot mr-4'><i class='bg-" + e.health.color + "'></i><span class='status'>" +
-                `<a class='modal-link' onclick='showHealthChangeModal("${escapedEmail}", "${e.status}")'>` +
-                truncate(e.health.criteria.join(' & '), 45) + " </a></span></span>",
+                + (selectedMember === escapedEmail ? "checked" : "") + " class='big-select' " + (e.status === 'school-switched' ? 'disabled' : '') + "/>",
+                `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>` + (e.status !== "active" ? " (" + e.status.replace("-", " ") + ")" : ""),
+                statusHTML,
                 "<span class='badge badge-dot mr-4'><i class='bg-" + e.location.color + "'></i><span class='status'>" +
                 `<a class='modal-link' onclick='showLocationChangeModal("${escapedEmail}", "${e.status}")'>` +
                 e.location.location.capitalize() + "</a></span></span>"

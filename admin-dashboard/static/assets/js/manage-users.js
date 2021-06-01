@@ -31,13 +31,22 @@ function populateMembersTable(email = null, getall = true) {
 
         data['users'].forEach(function (e) {
             let escapedEmail = e.email.escapeQuotes();
+            let status;
+            let statusColor;
+            if (e.status === "school-switched"){
+                status = "School Switched"
+                statusColor = "warning"
+            } else {
+                status = e.blocked ? "Disabled" : "Enabled"
+                statusColor = e.blocked ? "danger" : "success"
+            }
             let rows = [
                 `<input type='checkbox' onchange='userSelectionChange(this)' name="${escapedEmail}" 
                 class="member-edit-checkbox big-select" ` + (selectedCommunityUsers.has(escapedEmail) ? "checked" : "") + "/>",
-                e.name + (e.active ? "" : " (invited)"),
+                e.name + (e.status === "active" ? "" : " (invited)"),
                 `<a href='/detail/${escapedEmail}'>${escapedEmail}</a>`,
-                "<span class='badge badge-dot mr-4'><i class='bg-" + (e.blocked ? "danger" : "success") + "'></i>" +
-                "<span>" + (e.blocked ? "Disabled" : "Enabled") + "</span>"
+                "<span class='badge badge-dot mr-4'><i class='bg-" + statusColor + "'></i>" +
+                "<span>" + status + "</span>"
             ];
             $("#users").append("<tr><td>" + rows.join("</td><td>") + "</td>");
         })
@@ -69,15 +78,11 @@ function userSelectionChange(checkbox) {
  */
 function showModifyModal() {
     $("#modify-users").modal("show");
-     $.get("/user/current-user-roles", function () {
-        console.log("Got Current User Roles");
-    }, "json").done(function (data) {
-        if (data.roles.length > 1){
+    getCurrentUserRoles(function (roles) {
+        if (roles.length > 1) {
             $("#switch-report").show();
-            $("#campus-history-warning").show();
-            $("#delete-campus-history-btn").show();
         }
-     }).fail(requestFailure)
+    })
 }
 
 /**
@@ -91,6 +96,7 @@ function deselectAllUsers() {
     $("#user-button-2").html("Invite User").attr('onclick', 'showUserInviteModal()');
     selectedCommunityUsers.clear();
 }
+
 
 /**
  * Get Invite Statistics and update top statistics widget on manage users page
@@ -139,7 +145,7 @@ function showUserImportModal() {
 /**
  * Show the single user invite modal
  */
-function showUserInviteModal(){
+function showUserInviteModal() {
     $("#invite-user").modal("show");
 }
 
@@ -223,6 +229,7 @@ function confirmUserConsent(operation, callback) {
     $("#confirm-reject").on("click", function () {
         $("#confirm-modal").modal('hide');
         $("#modify-users").modal('hide');
+        $("#")
     })
 }
 
@@ -280,9 +287,44 @@ function submitCheckedPasswordReset() {
 /**
  * Show the modal that allows a user to switch their reporting campus
  */
-function showSwitchReportNodeModal(){
-    
+function showSwitchReportNodeModal() {
+    $("#switch-report-node").modal('show');
+    let currentRole = getCookie("assume_role");
+    getCurrentUserRoles(function (roles) {
+        let options = [];
+        roles.forEach(function (e) {
+            if (e.endsWith('-admin')) {
+                let campus = e.split("-admin")[0];
+                options.push(`<option value="${campus}"` + (currentRole === e ? "selected" : "") + `>${campus}</option>`)
+            }
+        });
+        $("#campus-selection").html(options.join(""));
+    })
 }
+
+/**
+ * Submit a request to the backend switching the selected users' report nodes
+ */
+function submitSwitchReportNode() {
+    $("#switch-report-node").modal('hide');
+    confirmUserConsent('switch the reporting campus for', function () {
+        $(".btn-reduced").prop('disabled', true);
+        $("#switch-report-btn").html("Processing...");
+        let target_campus = $("#campus-selection").val();
+        let requests = [];
+        selectedCommunityUsers.forEach(function (user) {
+                requests.push({"email": user, "target_campus": target_campus});
+        })
+        $.post("/user/switch-report-campus", JSON.stringify({"requests": requests}), function (){
+            console.log("Sent switch campus request...");
+        }).done(async function (data){
+            $("#switch-report-btn").html("Success.");
+            await sleep(1000);
+            window.location.reload();
+        }).fail(requestFailure)
+    })
+}
+
 /**
  * Submit a request to the backend to permanently delete the selected users
  */
@@ -295,9 +337,9 @@ function submitCheckedDeleteUsers() {
         selectedCommunityUsers.forEach(function (email) {
             identifiers.push({"email": email});
         });
-        $.delete("/user/delete-users", JSON.stringify({"identifiers": identifiers}), function (){
+        $.delete("/user/delete-users", JSON.stringify({"identifiers": identifiers}), function () {
             console.log("Delete Users Complete.");
-        }, "json").done(async function (data){
+        }, "json").done(async function (data) {
             selectedButton.html("Success.");
             await sleep(1500);
             $("#modify-users").modal("hide");
