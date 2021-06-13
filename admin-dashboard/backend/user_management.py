@@ -54,9 +54,9 @@ async def bulk_import(users: UploadFile = File(...), admin: AdminDashboardUser =
         user_objects.append(AddCommunityMemberRequest(
             first_name=line['FirstName'].strip(),
             last_name=line['LastName'].strip(),
-            email=line['Email'].strip(),
-            vaccinated=VaccinationStatus.from_radio(line['Vaccinated'].lower().strip()),
-            location=line['Location'].strip()
+            email=line['Email'].strip().lower(),
+            vaccinated=VaccinationStatus.from_radio((line['Vaccinated'] or 'no').strip().lower()),
+            location=line['Location'].strip().lower()
         ))
     return CreatedAsyncTask(task_id=admin.queue_task(task_name='tasks.admin_bulk_import',
                                                      task_data=BulkAddCommunityMemberRequest(users=user_objects),
