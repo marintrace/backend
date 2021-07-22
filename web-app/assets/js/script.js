@@ -184,6 +184,7 @@ async function getUserStatus(callback) {
           //console.log(response);
       })
       .catch(function (error) {
+          //callback({"name":"MT Admin","entry":false,"reason":"health","health":{"vaccinated":true,"color":"danger","school":"tilden-albany","criteria":["No Report","Fully Vaccinated"]},"location":{"color":"success","location":"campus"}})
           alert("Couldn't get your status. Make sure you're connected to internet and log out and log in again. If the error persists please contact us. " + error);
           document.location.href = "/home.html";
           /*var obj = {
