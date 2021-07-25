@@ -61,7 +61,8 @@ async function finishedLoading() {
   })
 
   if (userIsTilden) {
-    await getUserStatus(setupQuestionnaireTilden) //pull down vaccine status and hide symptoms if vaccinated + setup form for tilden
+    setupTildenQuestionnaire() //setup form for tilden
+    await getUserStatus(tildenVaccineConfig) //pull down vaccine status and hide symptoms if vaccinated
   }
 
   $("#negativeTrigger").removeClass("disabled")
@@ -80,7 +81,7 @@ async function finishedLoading() {
   $("#triggerStatus").html("View status card »")
 }
 
-async function setupQuestionnaireTilden(vaccineStatus) {
+function setupTildenQuestionnaire() {
   $("#travelLabel").text("I have travelled internationally in the last 5 days") //change travel question
   $("#difficulty_breathing").parent().hide() //shorten symptom list
   $("#fatigue").parent().hide()
@@ -89,7 +90,9 @@ async function setupQuestionnaireTilden(vaccineStatus) {
   $("#nausea_vomiting").parent().hide()
   $("#diarrhea").parent().hide()
   $("#muscle_body_aches").parent().hide()
+}
 
+async function tildenVaccineConfig(vaccineStatus) {
   let entry_data = vaccineStatus[vaccineStatus.reason]
   if (entry_data.criteria.includes("Fully Vaccinated")) {
     userVaccinated = true
