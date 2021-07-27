@@ -26,7 +26,8 @@ app.add_middleware(
     allow_origins=[
         'https://api.marintracingapp.org',
         'https://marintracingapp.org',
-        'https://admin.marintracingapp.org'
+        'https://admin.marintracingapp.org',
+        'http://localhost:8090'
     ],
     allow_credentials=True,
     allow_methods=["*"],
