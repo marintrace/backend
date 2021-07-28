@@ -17,7 +17,11 @@ $(document).ready(function () {
         if (status.entry) {
             $("#entry").html("<b>✅ Permitted to enter campus</b>");
         } else {
-            $("#entry").html("<b>❌ Not permitted to enter campus</b>");
+            if (userIsTilden) {
+              $("#entry").html("<b>Contact your Head of School to see if you're permitted to enter campus</b>");
+            } else {
+              $("#entry").html("<b>❌ Not permitted to enter campus</b>");
+            }
         }
         let entry_data = status[status.reason];
         if (status.reason === "location") {

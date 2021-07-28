@@ -1,4 +1,13 @@
 $(document).ready(function() {
+  $('#contact').change(function() { //if vaccinated, show/hide symptoms based on contact
+    if (userVaccinated && $(this).is(':checked')) {
+      $("#symptomQuestions").show()
+    } else if (userVaccinated && !$(this).is(':checked')) {
+      $("#symptomQuestions").hide()
+      $('#symptomQuestions input:checkbox').removeAttr('checked'); //reset symptoms
+    }
+  })
+
   var jsoninput = $('#json');
   var submit = $('button[type="submit"]');
   var form = $('form');
