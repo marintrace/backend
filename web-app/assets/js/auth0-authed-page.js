@@ -93,8 +93,7 @@ function setupTildenQuestionnaire() {
 }
 
 async function tildenVaccineConfig(vaccineStatus) {
-  let entry_data = vaccineStatus[vaccineStatus.reason]
-  if (entry_data.criteria.includes("Fully Vaccinated")) {
+  if (vaccineStatus.health.vaccinated) {
     userVaccinated = true
     $("#symptomQuestions").hide()
   }
