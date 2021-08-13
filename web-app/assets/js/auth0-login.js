@@ -11,10 +11,10 @@ document.getElementById("headlands").onclick = function() {
 document.getElementById("tilden").onclick = function() {
   showPassword()
 };
-/*document.getElementById("branson-summer").onclick = function() {
+document.getElementById("branson-summer").onclick = function() {
   alert("If you are an existing Branson user, please make sure to continue to use your old login method (i.e if you always logged in with Google, continue to do so here). If you received an email from us to setup a password, then please login with your email and that password.")
   unspecifiedLogin()
-};*/
+};
 document.getElementById("ngs").onclick = function() {
   showPassword()
 };
