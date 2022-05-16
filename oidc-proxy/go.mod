@@ -34,8 +34,7 @@ require (
 	golang.org/x/sys v0.0.0-20200302083256-062a44052db1 // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20160220154919-db14e161995a // indirect
 	gopkg.in/redis.v4 v4.2.4
-	gopkg.in/resty.v1 v1.10.3
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.8
 )
 
 go 1.13
